@@ -22,12 +22,13 @@ export default function App() {
     const saved = localStorage.getItem('kintsugi_concepts');
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
       } catch (e) {
         console.warn('Failed to parse saved concepts:', e);
       }
     }
-    return SEED_CONCEPTS;
+    return [];
   });
 
   const [streak, setStreak] = useState<SynapticStreakData>(() => getStoredStreak());

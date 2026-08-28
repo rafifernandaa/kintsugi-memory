@@ -124,58 +124,37 @@ export const IngestionHub: React.FC<IngestionHubProps> = ({
     const start = Date.now();
 
     try {
+      const apiKey = localStorage.getItem('gemini_api_key') || '';
       const res = await fetch('/api/extract-concepts', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-gemini-api-key': apiKey,
+        },
         body: JSON.stringify({
           rawText: rawText || extractedDocText,
           fileBase64,
-          mimeType: fileMime,
+          fileMime,
           filename: fileName,
           subjectHint,
         }),
       });
 
-      const contentType = res.headers.get('content-type');
-      let data: IngestionResult;
-      if (res.ok && contentType && contentType.includes('application/json')) {
-        data = await res.json();
-      } else {
-        data = {
-          title: subjectHint || 'Decoupled Systems & Memory Invariants',
-          subject: subjectHint || 'Applied Cognitive Architecture',
-          overview: 'Analyzed material covering core theoretical mechanics, failure boundaries, and cognitive models.',
-          concepts: [
-            {
-              title: 'Algorithmic Invariant & Boundary Constraint',
-              summary: 'Core structural mechanics dictate system consistency when operating under peak demand or partitioned state.',
-              keyMechanisms: ['State divergence', 'Convergence protocol', 'Asynchronous quorum'],
-              commonMisconceptions: ['Assuming synchronous consensus is zero-cost', 'Overlooking latency spikes'],
-              initialDifficulty: 7,
-              sourceSnippet: rawText?.slice(0, 120) || 'System invariants must hold across all execution bounds.',
-            },
-            {
-              title: 'FSRS Power-Law Retrievability Curve',
-              summary: 'Memory retrievability decays as a power-law function of elapsed time and stability S, requiring proactive recall before the forgetting cliff.',
-              keyMechanisms: ['Power-law decay function', 'Bayesian stability expansion', 'Dynamic difficulty adjustment'],
-              commonMisconceptions: ['Confusing recognition fluency with true recall', 'Linear memory loss assumptions'],
-              initialDifficulty: 6,
-              sourceSnippet: 'Memory retrievability R decays according to R(t) = (1 + factor * t / S)^-d.',
-            },
-          ],
-        };
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        throw new Error(data.error || `Concept extraction failed (status ${res.status})`);
       }
 
       setExtractedData(data);
       onAddTelemetry(
         'Extracted Concepts from Ingestion Hub',
-        `Parsed ${data.concepts?.length || 0} core concepts from "${data.title || subjectHint}" in ${Date.now() - start}ms`,
+        `Parsed ${data.concepts?.length || 0} core concepts from "${data.title || subjectHint || 'Material'}" in ${Date.now() - start}ms`,
         'Ingestion Agent',
         'success'
       );
     } catch (err: any) {
       console.error(err);
-      setError(err.message || 'Failed to parse concepts.');
+      setError(err.message || 'Failed to distill concepts. Please verify your GEMINI_API_KEY.');
     } finally {
       setIsLoading(false);
     }

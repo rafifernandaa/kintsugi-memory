@@ -292,9 +292,13 @@ export const ActiveRetrievalRoom: React.FC<ActiveRetrievalRoomProps> = ({
     const start = Date.now();
 
     try {
+      const apiKey = localStorage.getItem('gemini_api_key') || '';
       const res = await fetch('/api/generate-questions', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-gemini-api-key': apiKey,
+        },
         body: JSON.stringify({
           concept,
           pastPerformance: concept.history,
@@ -417,13 +421,18 @@ export const ActiveRetrievalRoom: React.FC<ActiveRetrievalRoomProps> = ({
     const start = Date.now();
 
     try {
+      const apiKey = localStorage.getItem('gemini_api_key') || '';
       const res = await fetch('/api/evaluate-retrieval', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-gemini-api-key': apiKey,
+        },
         body: JSON.stringify({
           concept,
           question: currentQ,
-          studentAnswer: finalAnswer || '(No answer provided within time limit)',
+          userAnswer: finalAnswer || '(No answer provided within time limit)',
+          timeSpentSeconds: challengeTimeLimit - challengeSecondsRemaining,
         }),
       });
 

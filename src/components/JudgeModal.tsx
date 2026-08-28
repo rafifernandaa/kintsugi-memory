@@ -60,15 +60,20 @@ export const JudgeModal: React.FC<JudgeModalProps> = ({ isOpen, onClose }) => {
   const handleSaveApiKey = async () => {
     if (!apiKeyInput.trim()) return;
     setIsSavingKey(true);
+    const keyVal = apiKeyInput.trim();
+    localStorage.setItem('gemini_api_key', keyVal);
     try {
       const res = await fetch('/api/set-api-key', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ apiKey: apiKeyInput.trim() }),
+        headers: {
+          'Content-Type': 'application/json',
+          'x-gemini-api-key': keyVal,
+        },
+        body: JSON.stringify({ apiKey: keyVal }),
       });
       const data = await res.json();
       if (data.success) {
-        setKeySavedMessage('API Key registered! Testing live connection...');
+        setKeySavedMessage('API Key registered & synced! Testing live connection...');
         setApiKeyInput('');
         await fetchHealth();
         setTimeout(() => setKeySavedMessage(null), 3500);

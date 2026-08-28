@@ -134,10 +134,14 @@ export const AutonomousDispatcher: React.FC<AutonomousDispatcherProps> = ({
     const start = Date.now();
 
     try {
+      const apiKey = localStorage.getItem('gemini_api_key') || '';
       // 1. Generate editorial zine content with Gemini
       const pingRes = await fetch('/api/generate-cliff-ping', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-gemini-api-key': apiKey,
+        },
         body: JSON.stringify({
           concept: targetConcept,
           currentRetention: targetConcept.currentRetention,
@@ -153,7 +157,10 @@ export const AutonomousDispatcher: React.FC<AutonomousDispatcherProps> = ({
       // 2. Dispatch real notification (Email + GCP Pub/Sub pipeline)
       const dispatchRes = await fetch('/api/send-cliff-notification', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-gemini-api-key': apiKey,
+        },
         body: JSON.stringify({
           email: userEmail,
           conceptTitle: targetConcept.title,

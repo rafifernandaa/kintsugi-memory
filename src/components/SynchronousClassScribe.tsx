@@ -330,13 +330,30 @@ export const SynchronousClassScribe: React.FC<SynchronousClassScribeProps> = ({
     setError(null);
     const start = Date.now();
 
+    // If currently recording, stop it first to flush audio chunks
+    if (isRecording && mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      await new Promise((resolve) => setTimeout(resolve, 600));
+    }
+
+    if (!recordedAudioBase64) {
+      setError('Please record speech with your microphone or upload an audio file (.mp3, .wav, .m4a, .webm) first.');
+      setIsTranscribingAudio(false);
+      return;
+    }
+
     try {
+      const apiKey = localStorage.getItem('gemini_api_key') || '';
       const res = await fetch('/api/transcribe-audio', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-gemini-api-key': apiKey,
+        },
         body: JSON.stringify({
-          audioBase64: recordedAudioBase64 || 'data:audio/webm;base64,GkXfo59ChoEBQveBAULygQRC84EIQoKEd2VibUKHgQRChYECGFOAZwE=',
-          mimeType: recordedAudioMime,
+          audioBase64: recordedAudioBase64,
+          mimeType: recordedAudioMime || 'audio/webm',
           filename: uploadedAudioName || 'live_microphone_recording.webm',
           meetingTitle,
           subjectHint: subject,
@@ -344,6 +361,10 @@ export const SynchronousClassScribe: React.FC<SynchronousClassScribeProps> = ({
       });
 
       const data = await res.json();
+      if (!res.ok || data.error) {
+        throw new Error(data.error || `Server responded with status ${res.status}`);
+      }
+
       if (data.transcript) {
         setTranscript(data.transcript);
       }
@@ -373,7 +394,7 @@ export const SynchronousClassScribe: React.FC<SynchronousClassScribeProps> = ({
       );
     } catch (err: any) {
       console.error(err);
-      setError(err.message || 'Failed to transcribe audio.');
+      setError(err.message || 'Failed to transcribe audio. Please verify your GEMINI_API_KEY.');
     } finally {
       setIsTranscribingAudio(false);
     }

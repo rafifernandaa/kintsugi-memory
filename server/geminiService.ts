@@ -16,22 +16,52 @@ const CANDIDATE_MODELS = [
   "gemini-3.5-flash",
   "gemini-3.5-flash-lite",
   "gemini-3.6-flash",
+  "gemini-2.5-flash",
+  "gemini-2.0-flash",
+  "gemini-1.5-flash",
   "gemini-3.5-transcribe",
 ];
 
-export function getGeminiClient(apiKeyOverride?: string): { ai: GoogleGenAI; model: string } {
+export function getGeminiClient(apiKeyOverride?: string): { ai: GoogleGenAI; model: string; mode: string } {
   const apiKey = apiKeyOverride || process.env.GEMINI_API_KEY;
-  if (!apiKey || apiKey.trim() === "" || apiKey === "MY_GEMINI_API_KEY") {
-    throw new Error(
-      "GEMINI_API_KEY is not configured. Please configure your key in the Judge / API Settings modal, or in Cloud Run environment variables."
-    );
+  const projectId = process.env.GOOGLE_CLOUD_PROJECT || "my-project-31-491314";
+  const location = process.env.GOOGLE_CLOUD_REGION || "us-west1";
+  const model = process.env.GEMINI_MODEL || "gemini-3.7-flash";
+
+  // 1. If explicit Vertex AI mode requested or running on GCP Cloud Run
+  if (process.env.USE_VERTEX_AI === "true" || process.env.GOOGLE_GENAI_USE_VERTEXAI === "true" || !apiKey) {
+    try {
+      const ai = new GoogleGenAI({
+        vertexAI: true,
+        project: projectId,
+        location,
+      });
+      return { ai, model, mode: `Vertex AI (${projectId}/${location})` };
+    } catch (vertexErr) {
+      if (!apiKey) {
+        throw new Error(
+          `Vertex AI authentication notice: ${(vertexErr as any)?.message || vertexErr}. Ensure the service account has 'roles/aiplatform.user' or provide an API key in the Judge modal.`
+        );
+      }
+    }
   }
 
-  const model = process.env.GEMINI_MODEL || "gemini-3.7-flash";
-  return {
-    ai: new GoogleGenAI({ apiKey: apiKey.trim() }),
-    model,
-  };
+  // 2. Direct API Key authentication mode
+  if (apiKey && apiKey.trim() !== "" && apiKey !== "MY_GEMINI_API_KEY") {
+    return {
+      ai: new GoogleGenAI({ apiKey: apiKey.trim() }),
+      model,
+      mode: "Gemini Developer API",
+    };
+  }
+
+  // 3. Fallback to Vertex AI
+  const ai = new GoogleGenAI({
+    vertexAI: true,
+    project: projectId,
+    location,
+  });
+  return { ai, model, mode: `Vertex AI (${projectId}/${location})` };
 }
 
 async function executeWithModelRetry<T>(

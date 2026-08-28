@@ -3,7 +3,7 @@ import { GoogleGenAI, Type } from "@google/genai";
 
 /**
  * ============================================================================
- * 🎙️ SPEECH SERVICE: GOOGLE CLOUD SPEECH-TO-TEXT & GEMINI MULTIMODAL AUDIO
+ * 🎙️ SPEECH SERVICE: GOOGLE CLOUD SPEECH-TO-TEXT & VERTEX AI / GEMINI MULTIMODAL AUDIO
  * ============================================================================
  */
 
@@ -11,7 +11,7 @@ let speechClient: speech.SpeechClient | null = null;
 try {
   speechClient = new speech.SpeechClient();
 } catch (err) {
-  console.warn("[SpeechService] Google Cloud SpeechClient initialization deferred:", (err as any)?.message || err);
+  console.warn("[SpeechService] Google Cloud SpeechClient initialization notice:", (err as any)?.message || err);
 }
 
 export interface TranscribeOptions {
@@ -35,7 +35,7 @@ export interface TranscriptionResult {
 }
 
 /**
- * Primary Transcriber: Uses Gemini 3.7 Multimodal Audio or Google Cloud Speech-to-Text
+ * Primary Transcriber: Uses Vertex AI / Gemini Multimodal Audio or Google Cloud Speech-to-Text
  */
 export async function transcribeAudio(options: TranscribeOptions): Promise<TranscriptionResult> {
   const { audioBuffer, mimeType, filename, meetingTitle, subjectHint, geminiApiKey, geminiModel } = options;
@@ -44,12 +44,19 @@ export async function transcribeAudio(options: TranscribeOptions): Promise<Trans
     throw new Error("Audio payload is empty. Please record audio from your microphone or upload a valid audio file.");
   }
 
-  // 1. Try Gemini Multimodal Audio (Full diarization + structured invariants)
   const apiKey = geminiApiKey || process.env.GEMINI_API_KEY;
   const modelName = geminiModel || process.env.GEMINI_MODEL || "gemini-3.7-flash";
+  const projectId = process.env.GOOGLE_CLOUD_PROJECT || "my-project-31-491314";
+  const location = process.env.GOOGLE_CLOUD_REGION || "us-west1";
 
-  if (apiKey && apiKey.trim() !== "") {
-    const ai = new GoogleGenAI({ apiKey: apiKey.trim() });
+  // 1. Try Vertex AI / Gemini Multimodal Audio
+  try {
+    let ai: GoogleGenAI;
+    if (process.env.USE_VERTEX_AI === "true" || !apiKey || apiKey.trim() === "") {
+      ai = new GoogleGenAI({ vertexAI: true, project: projectId, location });
+    } else {
+      ai = new GoogleGenAI({ apiKey: apiKey.trim() });
+    }
     const base64Data = audioBuffer.toString("base64");
 
     let normalizedMime = mimeType || "audio/webm";
@@ -79,12 +86,13 @@ TASK:
       "gemini-3.5-transcribe",
       "gemini-3.5-flash",
       "gemini-3.6-flash",
-      "gemini-3.5-transcribe-live",
+      "gemini-2.0-flash",
+      "gemini-1.5-flash",
     ].filter((m, i, arr) => arr.indexOf(m) === i);
 
     for (const targetModel of audioCandidateModels) {
       try {
-        console.log(`[SpeechService] Transcribing audio with Gemini model "${targetModel}"...`);
+        console.log(`[SpeechService] Transcribing audio with model "${targetModel}"...`);
         const response = await ai.models.generateContent({
           model: targetModel,
           contents: {
@@ -137,6 +145,8 @@ TASK:
         console.warn(`[SpeechService] Model "${targetModel}" failed (${geminiError?.message?.slice(0, 100)}), trying next candidate...`);
       }
     }
+  } catch (err: any) {
+    console.warn("[SpeechService] Multimodal audio client notice:", err?.message || err);
   }
 
   // 2. Fallback: Google Cloud Speech-to-Text API
@@ -187,6 +197,6 @@ TASK:
   }
 
   throw new Error(
-    "Transcription failed: Please provide a valid GEMINI_API_KEY in the Judge / API Settings modal, or configure Google Cloud credentials on Cloud Run."
+    "Transcription failed: Please configure Google Cloud Vertex AI credentials on Cloud Run, or enter your API key in the Judge modal."
   );
 }

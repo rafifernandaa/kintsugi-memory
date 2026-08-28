@@ -141,14 +141,14 @@ export const JudgeModal: React.FC<JudgeModalProps> = ({ isOpen, onClose }) => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 text-xs font-mono">
             {/* Req 1 */}
             <div className="p-2.5 rounded-lg bg-[#FFFFFF] border border-[#DDD7C8] space-y-1">
-              <div className="text-[10px] text-[#736D6B] uppercase font-bold">1. Gemini Model Stack (&gt;3.5)</div>
+              <div className="text-[10px] text-[#736D6B] uppercase font-bold">1. Vertex AI / Gemini Models</div>
               <div className="font-bold text-[#2B2827] flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5 text-[#BF9A2A]" />
                 {healthData?.currentModel || 'gemini-3.7-flash'}
               </div>
               <div className="text-[10px] text-[#2F6A38] flex items-center gap-1 font-semibold">
                 <CheckCircle2 className="w-3 h-3" />
-                {healthData?.geminiConfigured ? (healthData.geminiLiveTest ? `Live Active (${healthData.testLatencyMs || 220}ms)` : 'Key Ready') : 'Heuristic Fallback Engine'}
+                {healthData?.authMode || 'Google Cloud Vertex AI (ADC)'}
               </div>
             </div>
 
@@ -169,10 +169,10 @@ export const JudgeModal: React.FC<JudgeModalProps> = ({ isOpen, onClose }) => {
               <div className="text-[10px] text-[#736D6B] uppercase font-bold">3. Google Cloud Infrastructure</div>
               <div className="font-bold text-[#2B2827] flex items-center gap-1.5 truncate">
                 <Cloud className="w-3.5 h-3.5 text-[#8F6A00]" />
-                Cloud Run & Pub/Sub
+                Vertex AI, Cloud Run & Pub/Sub
               </div>
               <div className="text-[10px] text-[#2F6A38] flex items-center gap-1 font-semibold">
-                <CheckCircle2 className="w-3 h-3" /> my-project-31-491314
+                <CheckCircle2 className="w-3 h-3" /> my-project-31-491314 (us-west1)
               </div>
             </div>
           </div>

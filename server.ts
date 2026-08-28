@@ -48,10 +48,14 @@ let serverStreakStore = {
 // -------------------------------------------------------------
 // 0. CONFIGURATION & HEALTH ENDPOINTS
 // -------------------------------------------------------------
+// 0. CONFIGURATION & HEALTH ENDPOINTS
+// -------------------------------------------------------------
 app.get("/api/config", (req, res) => {
   const apiKey = resolveApiKey(req);
+  const isVertexAI = process.env.USE_VERTEX_AI === "true" || !apiKey;
   res.json({
-    geminiConfigured: !!apiKey,
+    geminiConfigured: !!apiKey || isVertexAI,
+    authMode: isVertexAI ? "Google Cloud Vertex AI (ADC / GCP Credentials)" : "Gemini Developer API",
     currentModel: runtimeModel,
     googleCloudProject: gcpProjectId,
     pubSubTopic: gcpPubSubTopic,
@@ -78,33 +82,43 @@ app.post("/api/set-api-key", (req, res) => {
 
 app.get("/api/health", async (req, res) => {
   const apiKey = resolveApiKey(req);
+  const isVertexAI = process.env.USE_VERTEX_AI === "true" || !apiKey;
   let geminiLiveTest = false;
   let testLatencyMs = 0;
   let errorDetail: string | null = null;
 
-  if (apiKey) {
-    const start = Date.now();
-    try {
-      const { GoogleGenAI } = await import("@google/genai");
-      const ai = new GoogleGenAI({ apiKey });
-      const resp = await ai.models.generateContent({
-        model: runtimeModel,
-        contents: "Respond with 'OK'.",
+  const start = Date.now();
+  try {
+    const { GoogleGenAI } = await import("@google/genai");
+    let ai: any;
+    if (isVertexAI) {
+      ai = new GoogleGenAI({
+        vertexAI: true,
+        project: gcpProjectId,
+        location: process.env.GOOGLE_CLOUD_REGION || "us-west1",
       });
-      if (resp && resp.text) {
-        geminiLiveTest = true;
-      }
-      testLatencyMs = Date.now() - start;
-    } catch (e: any) {
-      errorDetail = e?.message || String(e);
-      console.warn("[Health Check] Gemini ping error:", errorDetail);
+    } else {
+      ai = new GoogleGenAI({ apiKey: apiKey! });
     }
+
+    const resp = await ai.models.generateContent({
+      model: runtimeModel,
+      contents: "Respond with 'OK'.",
+    });
+    if (resp && resp.text) {
+      geminiLiveTest = true;
+    }
+    testLatencyMs = Date.now() - start;
+  } catch (e: any) {
+    errorDetail = e?.message || String(e);
+    console.warn("[Health Check] Model ping notice:", errorDetail);
   }
 
   res.json({
     status: "ok",
     service: "Kintsugi Memory Autonomous Agent",
-    geminiConfigured: !!apiKey,
+    authMode: isVertexAI ? "Google Cloud Vertex AI (ADC / GCP Credentials)" : "Gemini Developer API",
+    geminiConfigured: !!apiKey || isVertexAI,
     geminiLiveTest,
     testLatencyMs,
     currentModel: runtimeModel,

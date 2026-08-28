@@ -14,6 +14,7 @@ import { TelemetryDrawer } from './components/TelemetryDrawer';
 import { DailySynapticSummaryModal } from './components/DailySynapticSummaryModal';
 import { LandingPage } from './components/LandingPage';
 import { ExamCalendar } from './components/ExamCalendar';
+import { AboutTab } from './components/AboutTab';
 import { Home, Sparkles, FastForward, RotateCcw, Award, Terminal, Brain } from 'lucide-react';
 
 export default function App() {
@@ -231,6 +232,7 @@ export default function App() {
                 else if (t === 'oracle') setCurrentTab('progress');
                 else if (t === 'dispatch') setCurrentTab('insights');
                 else if ((t as string) === 'calendar') setCurrentTab('calendar');
+                else if ((t as string) === 'about') setCurrentTab('about');
               }}
               onOpenJournal={() => setDailySummaryOpen(true)}
               onOpenDailySummary={() => setDailySummaryOpen(true)}
@@ -287,6 +289,22 @@ export default function App() {
               concepts={concepts}
               onReviewConcept={handleSelectConceptForReview}
               onAddTelemetry={addTelemetry}
+            />
+          )}
+
+          {currentTab === 'about' && (
+            <AboutTab
+              onNavigateToTab={(t) => {
+                if (t === 'home') setCurrentTab('home');
+                else if (t === 'materials') setCurrentTab('materials');
+                else if (t === 'calendar') setCurrentTab('calendar');
+                else if (t === 'review') setCurrentTab('review');
+                else if (t === 'neuroplasticity') setCurrentTab('neuroplasticity');
+                else if (t === 'progress') setCurrentTab('progress');
+                else if (t === 'journal') setCurrentTab('journal');
+                else if (t === 'insights') setCurrentTab('insights');
+              }}
+              onOpenJudgeModal={() => setJudgeModalOpen(true)}
             />
           )}
         </main>

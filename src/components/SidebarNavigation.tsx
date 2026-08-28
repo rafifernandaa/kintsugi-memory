@@ -19,11 +19,12 @@ import {
   FastForward,
   RotateCcw,
   Calendar,
+  Info,
 } from 'lucide-react';
 import { SynapticStreakData } from '../types';
 import { SynapticStreakTracker } from './SynapticStreakTracker';
 
-export type TabKey = 'home' | 'materials' | 'calendar' | 'review' | 'neuroplasticity' | 'progress' | 'journal' | 'insights';
+export type TabKey = 'home' | 'materials' | 'calendar' | 'review' | 'neuroplasticity' | 'progress' | 'journal' | 'insights' | 'about';
 
 interface SidebarNavigationProps {
   currentTab: TabKey;
@@ -59,10 +60,11 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
     { key: 'calendar', label: 'Exam Calendar', icon: Calendar },
     { key: 'materials', label: 'Materials', icon: FileText },
     { key: 'review', label: 'Review', icon: Target, badge: urgentCount > 0 ? urgentCount : undefined },
-    { key: 'neuroplasticity', label: 'Neuroplasticity', icon: Brain },
+    { key: 'neuroplasticity', label: 'Garden', icon: Brain },
     { key: 'progress', label: 'Progress', icon: TrendingUp },
     { key: 'journal', label: 'Journal', icon: BookOpen },
     { key: 'insights', label: 'Insights', icon: Lightbulb },
+    { key: 'about', label: 'About', icon: Info },
   ];
 
   return (

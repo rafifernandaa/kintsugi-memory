@@ -17,6 +17,7 @@ import {
   ShieldCheck,
   Layers,
   Settings,
+  X,
 } from 'lucide-react';
 
 interface AutonomousDispatcherProps {

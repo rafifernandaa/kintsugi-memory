@@ -42,9 +42,7 @@ import {
   playTimerWarningTick,
 } from '../lib/audio';
 import { KintsugiOverlay } from './KintsugiOverlay';
-import { GoldenSeamGlowEffect } from './GoldenSeamGlowEffect';
 import {
-  SynapticLevelUpModal,
   calculateMasteryTier,
   MASTERY_TIERS,
   MasteryLevelInfo,
@@ -73,7 +71,6 @@ export const ActiveRetrievalRoom: React.FC<ActiveRetrievalRoomProps> = ({
   const [isLoadingQuestions, setIsLoadingQuestions] = useState(false);
   const [isEvaluating, setIsEvaluating] = useState(false);
   const [evaluationResult, setEvaluationResult] = useState<EvaluationResult | null>(null);
-  const [showGoldenSeamGlow, setShowGoldenSeamGlow] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [voiceError, setVoiceError] = useState<string | null>(null);
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -105,12 +102,6 @@ export const ActiveRetrievalRoom: React.FC<ActiveRetrievalRoomProps> = ({
     streakMultiplier: number;
     totalEarned: number;
     speedTierLabel: string;
-  } | null>(null);
-
-  // Level Up Modal State
-  const [levelUpEvent, setLevelUpEvent] = useState<{
-    newLevel: MasteryLevelInfo;
-    previousLevel: MasteryLevelInfo;
   } | null>(null);
 
   const recognizerRef = useRef<SpeechRecognitionHandler | null>(null);
@@ -467,10 +458,9 @@ export const ActiveRetrievalRoom: React.FC<ActiveRetrievalRoomProps> = ({
 
       setEvaluationResult(evalData);
 
-      // Play Kintsugi sound effect & trigger animations
+      // Play Kintsugi sound effect & celebratory particle burst (inline, no blocking modal)
       if (evalData.score >= 70) {
         playGoldenKintsugiChime();
-        setShowGoldenSeamGlow(true);
         confetti({
           particleCount: 60,
           spread: 70,
@@ -500,7 +490,7 @@ export const ActiveRetrievalRoom: React.FC<ActiveRetrievalRoomProps> = ({
           playRapidBonusChime(velocityMult);
         }
 
-        // Calculate Level Up
+        // Calculate Level Progression
         const oldPoints = totalSynapticPoints;
         const newPoints = oldPoints + earnedPoints;
         const oldTier = calculateMasteryTier(oldPoints);
@@ -509,10 +499,6 @@ export const ActiveRetrievalRoom: React.FC<ActiveRetrievalRoomProps> = ({
         setTotalSynapticPoints(newPoints);
 
         if (newTier.level > oldTier.level) {
-          setLevelUpEvent({
-            previousLevel: oldTier,
-            newLevel: newTier,
-          });
           onAddTelemetry(
             'Synaptic Mastery Level Up!',
             `Student achieved Level ${newTier.level} (${newTier.title}) with ${newPoints} XP!`,
@@ -1015,20 +1001,6 @@ export const ActiveRetrievalRoom: React.FC<ActiveRetrievalRoomProps> = ({
                   >
                     Next Socratic Question →
                   </button>
-
-                  {evaluationResult.score >= 70 && (
-                    <button
-                      onClick={() => {
-                        setShowGoldenSeamGlow(true);
-                        playGoldenKintsugiChime();
-                      }}
-                      className="px-3 py-2 rounded-xl bg-[#BF9A2A]/15 hover:bg-[#BF9A2A]/25 text-[#8F6A00] border border-[#BF9A2A]/40 text-xs font-mono flex items-center gap-1.5 transition-colors font-bold shadow-sm"
-                      title="Replay full-screen Golden Seam Glow animation"
-                    >
-                      <Sparkles className="w-3.5 h-3.5 text-[#BF9A2A]" />
-                      Replay Golden Seam Glow
-                    </button>
-                  )}
                 </div>
 
                 <button
@@ -1356,8 +1328,8 @@ export const ActiveRetrievalRoom: React.FC<ActiveRetrievalRoomProps> = ({
                         </span>
                         <h3 className="text-xl font-serif font-bold mt-2">
                           {evaluationResult.score >= 75
-                            ? '🌸 Synaptic Crack Repaired with Gold!'
-                            : '⚠️ Constructive Neural Struggle Detected'}
+                            ? 'Synaptic Crack Repaired with Gold!'
+                            : 'Constructive Neural Struggle Detected'}
                         </h3>
                       </div>
 
@@ -1448,26 +1420,6 @@ export const ActiveRetrievalRoom: React.FC<ActiveRetrievalRoomProps> = ({
           </div>
         </div>
       )}
-
-      {/* Level Up Celebration Modal */}
-      {levelUpEvent && (
-        <SynapticLevelUpModal
-          newLevel={levelUpEvent.newLevel}
-          previousLevel={levelUpEvent.previousLevel}
-          totalPoints={totalSynapticPoints}
-          retentionStreak={challengeStreak}
-          onClose={() => setLevelUpEvent(null)}
-        />
-      )}
-
-      {/* Screen-Spanning Golden Seam Glow Animation */}
-      <GoldenSeamGlowEffect
-        active={showGoldenSeamGlow}
-        conceptTitle={concept.title}
-        newStabilityDays={evaluationResult?.updatedStabilityDays}
-        newRetentionPct={Math.round((evaluationResult?.newPredictedRetention || 0.95) * 100)}
-        onAnimationComplete={() => setShowGoldenSeamGlow(false)}
-      />
     </div>
   );
 };

@@ -276,7 +276,7 @@ export default function App() {
               onUpdateConcept={handleUpdateConcept}
               onRecordRetrievalSession={handleRecordRetrievalSession}
               onAddTelemetry={addTelemetry}
-              onBackToGarden={() => setCurrentTab('home')}
+              onBackToGarden={() => setCurrentTab('neuroplasticity')}
             />
           )}
 

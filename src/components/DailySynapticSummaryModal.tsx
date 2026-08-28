@@ -22,6 +22,7 @@ interface DailySynapticSummaryModalProps {
   concepts: Concept[];
   onStartRetrievalForConcept: (concept: Concept) => void;
   onStartPriorityRetrieval: () => void;
+  onNavigateToHome?: () => void;
 }
 
 export const DailySynapticSummaryModal: React.FC<DailySynapticSummaryModalProps> = ({
@@ -30,6 +31,7 @@ export const DailySynapticSummaryModal: React.FC<DailySynapticSummaryModalProps>
   concepts,
   onStartRetrievalForConcept,
   onStartPriorityRetrieval,
+  onNavigateToHome,
 }) => {
   const [dontShowAgainToday, setDontShowAgainToday] = useState(false);
 
@@ -279,23 +281,24 @@ export const DailySynapticSummaryModal: React.FC<DailySynapticSummaryModalProps>
 
           <div className="flex flex-col sm:flex-row items-center gap-2">
             <button
-              onClick={handleDismiss}
-              className="w-full sm:w-auto px-3 py-2 rounded-xl bg-[#FAF8F2] hover:bg-[#EAE6D6] text-[#5A5553] hover:text-[#2B2827] font-mono text-[11px] transition-colors border border-[#DDD7C8] shadow-xs font-medium"
+              onClick={() => {
+                handleDismiss();
+                if (onNavigateToHome) onNavigateToHome();
+              }}
+              className="w-full sm:w-auto px-4 py-2 rounded-xl bg-[#FAF8F2] hover:bg-[#EAE6D6] text-[#5A5553] hover:text-[#2B2827] font-mono text-[11px] transition-colors border border-[#DDD7C8] shadow-xs font-medium cursor-pointer"
             >
-              Explore Garden First
+              Back to Home
             </button>
             <button
               onClick={() => {
                 handleDismiss();
                 onStartPriorityRetrieval();
               }}
-              className="w-full flex-1 py-2 px-3 rounded-xl bg-[#152659] hover:bg-[#1E357A] text-[#FFFFFF] font-bold font-mono text-[11px] flex items-center justify-center gap-1.5 transition-all shadow-sm truncate"
+              className="w-full flex-1 py-2 px-3 rounded-xl bg-[#152659] hover:bg-[#1E357A] text-[#FFFFFF] font-bold font-mono text-[11px] flex items-center justify-center gap-1.5 transition-all shadow-sm truncate cursor-pointer"
             >
               <Zap className="w-3 h-3 fill-[#BF9A2A] text-[#BF9A2A] shrink-0" />
               <span className="truncate">
-                {cliffConcepts.length > 0
-                  ? `Mend Priority Concept (${cliffConcepts[0].title})`
-                  : 'Start Daily Socratic Practice'}
+                Start Daily Socratic Practice
               </span>
               <ArrowRight className="w-3 h-3 shrink-0 text-[#BF9A2A]" />
             </button>

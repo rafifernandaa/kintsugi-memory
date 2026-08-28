@@ -77,8 +77,9 @@ export const FutureDecayProjection: React.FC<FutureDecayProjectionProps> = ({
   };
 
   const selectPreset = (preset: 'cliff' | 'top3' | 'all' | 'ml' | 'bio' | 'systems') => {
+    const defaultId = concepts[0]?.id ? [concepts[0].id] : [];
     if (preset === 'cliff') {
-      const cliff = concepts.filter((c) => c.currentRetention < 0.70).map((c) => c.id);
+      const cliff = concepts.filter((c) => (c.currentRetention ?? 0.95) < 0.70).map((c) => c.id);
       setSelectedConceptIds(cliff.length > 0 ? cliff : sortedConcepts.slice(0, 2).map((c) => c.id));
     } else if (preset === 'top3') {
       setSelectedConceptIds(sortedConcepts.slice(0, 3).map((c) => c.id));
@@ -86,13 +87,13 @@ export const FutureDecayProjection: React.FC<FutureDecayProjectionProps> = ({
       setSelectedConceptIds(concepts.map((c) => c.id));
     } else if (preset === 'ml') {
       const ml = concepts.filter((c) => c.category?.toLowerCase().includes('machine') || c.category?.toLowerCase().includes('ml')).map((c) => c.id);
-      setSelectedConceptIds(ml.length > 0 ? ml : [concepts[0].id]);
+      setSelectedConceptIds(ml.length > 0 ? ml : defaultId);
     } else if (preset === 'bio') {
       const bio = concepts.filter((c) => c.category?.toLowerCase().includes('bio') || c.category?.toLowerCase().includes('neuro')).map((c) => c.id);
-      setSelectedConceptIds(bio.length > 0 ? bio : [concepts[0].id]);
+      setSelectedConceptIds(bio.length > 0 ? bio : defaultId);
     } else if (preset === 'systems') {
       const sys = concepts.filter((c) => c.category?.toLowerCase().includes('system') || c.category?.toLowerCase().includes('distribut')).map((c) => c.id);
-      setSelectedConceptIds(sys.length > 0 ? sys : [concepts[0].id]);
+      setSelectedConceptIds(sys.length > 0 ? sys : defaultId);
     }
   };
 

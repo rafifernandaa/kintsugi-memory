@@ -41,8 +41,8 @@ interface MemoryGardenProps {
 }
 
 // Category Domain metadata helper using exact Garden Cluster & Main App palettes
-function getCategoryMeta(category: string) {
-  const cat = category.toLowerCase();
+function getCategoryMeta(category?: string) {
+  const cat = (category || '').toLowerCase();
   if (
     cat.includes('bio') ||
     cat.includes('neuro') ||
@@ -159,8 +159,8 @@ export const MemoryGarden: React.FC<MemoryGardenProps> = ({
   const allTags = useMemo(() => {
     const set = new Set<string>();
     concepts.forEach((c) => {
-      if (c.tags) {
-        c.tags.forEach((t) => set.add(t));
+      if (c && c.tags) {
+        c.tags.forEach((t) => t && set.add(t));
       }
     });
     return Array.from(set);
@@ -170,6 +170,7 @@ export const MemoryGarden: React.FC<MemoryGardenProps> = ({
   const clusters = useMemo(() => {
     const map = new Map<string, Concept[]>();
     concepts.forEach((c) => {
+      if (!c) return;
       const cat = c.category || 'General Knowledge';
       if (!map.has(cat)) {
         map.set(cat, []);
@@ -179,13 +180,13 @@ export const MemoryGarden: React.FC<MemoryGardenProps> = ({
 
     return Array.from(map.entries())
       .map(([name, items]) => {
-        const criticalCount = items.filter((c) => c.currentRetention < 0.70).length;
-        const goldenCount = items.filter((c) => c.kintsugiRepairs > 0).length;
+        const criticalCount = items.filter((c) => (c.currentRetention ?? 0.95) < 0.70).length;
+        const goldenCount = items.filter((c) => (c.kintsugiRepairs ?? 0) > 0).length;
         const avgRet = items.length
-          ? Math.round((items.reduce((acc, c) => acc + c.currentRetention, 0) / items.length) * 100)
+          ? Math.round((items.reduce((acc, c) => acc + (c.currentRetention ?? 0.95), 0) / items.length) * 100)
           : 0;
         const avgStability = items.length
-          ? (items.reduce((acc, c) => acc + c.stability, 0) / items.length).toFixed(1)
+          ? (items.reduce((acc, c) => acc + (c.stability ?? 1), 0) / items.length).toFixed(1)
           : '0';
 
         return {
@@ -208,23 +209,28 @@ export const MemoryGarden: React.FC<MemoryGardenProps> = ({
 
   // Filter concepts based on search, tags, status filter, and selected cluster
   const filterConcept = (c: Concept): boolean => {
-    if (statusFilter === 'critical' && c.currentRetention >= 0.70) return false;
-    if (statusFilter === 'golden' && c.kintsugiRepairs === 0) return false;
-    if (statusFilter === 'healthy' && c.currentRetention < 0.75) return false;
+    if (!c) return false;
+    const ret = c.currentRetention ?? 0.95;
+    const repairs = c.kintsugiRepairs ?? 0;
+
+    if (statusFilter === 'critical' && ret >= 0.70) return false;
+    if (statusFilter === 'golden' && repairs === 0) return false;
+    if (statusFilter === 'healthy' && ret < 0.75) return false;
 
     if (selectedTag) {
-      const hasTag = c.tags?.some((t) => t.toLowerCase() === selectedTag.toLowerCase());
-      const hasCat = c.category.toLowerCase().includes(selectedTag.toLowerCase());
+      const tagLower = selectedTag.toLowerCase();
+      const hasTag = c.tags?.some((t) => t && t.toLowerCase() === tagLower);
+      const hasCat = (c.category || '').toLowerCase().includes(tagLower);
       if (!hasTag && !hasCat) return false;
     }
 
-    if (searchQuery.trim()) {
+    if (searchQuery && searchQuery.trim()) {
       const q = searchQuery.toLowerCase().trim();
-      const matchTitle = c.title.toLowerCase().includes(q);
-      const matchSummary = c.summary.toLowerCase().includes(q);
-      const matchCategory = c.category.toLowerCase().includes(q);
-      const matchTags = c.tags?.some((t) => t.toLowerCase().includes(q));
-      const matchMechanisms = c.keyMechanisms?.some((m) => m.toLowerCase().includes(q));
+      const matchTitle = (c.title || '').toLowerCase().includes(q);
+      const matchSummary = (c.summary || '').toLowerCase().includes(q);
+      const matchCategory = (c.category || '').toLowerCase().includes(q);
+      const matchTags = c.tags?.some((t) => t && t.toLowerCase().includes(q));
+      const matchMechanisms = c.keyMechanisms?.some((m) => m && m.toLowerCase().includes(q));
       if (!matchTitle && !matchSummary && !matchCategory && !matchTags && !matchMechanisms) {
         return false;
       }
@@ -248,19 +254,20 @@ export const MemoryGarden: React.FC<MemoryGardenProps> = ({
       .filter((cl) => cl.filteredItems.length > 0 || (!searchQuery.trim() && !selectedTag));
   }, [clusters, selectedClusterFilter, statusFilter, searchQuery, selectedTag]);
 
-  const criticalCount = concepts.filter((c) => c.currentRetention < 0.70).length;
-  const goldenCount = concepts.filter((c) => c.kintsugiRepairs > 0).length;
+  const criticalCount = concepts.filter((c) => (c?.currentRetention ?? 0.95) < 0.70).length;
+  const goldenCount = concepts.filter((c) => (c?.kintsugiRepairs ?? 0) > 0).length;
   const avgRetention = concepts.length
-    ? Math.round((concepts.reduce((acc, c) => acc + c.currentRetention, 0) / concepts.length) * 100)
+    ? Math.round((concepts.reduce((acc, c) => acc + (c?.currentRetention ?? 0.95), 0) / concepts.length) * 100)
     : 0;
 
   // Render individual concept ceramic card with chosen palette
   const renderConceptCard = (concept: Concept) => {
-    const retPct = Math.round(concept.currentRetention * 100);
-    const isCliff = concept.currentRetention < 0.70;
-    const isGolden = concept.kintsugiRepairs > 0;
-    const lowPct = Math.round(concept.confidenceLow * 100);
-    const highPct = Math.round(concept.confidenceHigh * 100);
+    if (!concept) return null;
+    const retPct = Math.round((concept.currentRetention ?? 0.95) * 100);
+    const isCliff = (concept.currentRetention ?? 0.95) < 0.70;
+    const isGolden = (concept.kintsugiRepairs ?? 0) > 0;
+    const lowPct = Math.round((concept.confidenceLow ?? 0.75) * 100);
+    const highPct = Math.round((concept.confidenceHigh ?? 0.98) * 100);
     const catMeta = getCategoryMeta(concept.category);
 
     return (
@@ -956,8 +963,32 @@ export const MemoryGarden: React.FC<MemoryGardenProps> = ({
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
-          {concepts.filter(filterConcept).map((concept) => renderConceptCard(concept))}
+        <div className="space-y-4">
+          {concepts.filter(filterConcept).length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
+              {concepts.filter(filterConcept).map((concept) => renderConceptCard(concept))}
+            </div>
+          ) : (
+            <div className="p-8 rounded-3xl bg-[#FFFFFF] border border-[#DDD7C8] text-center space-y-2 shadow-sm">
+              <BookOpen className="w-8 h-8 text-[#736D6B] mx-auto" />
+              <h4 className="text-base font-serif font-bold text-[#2B2827]">
+                No matching memory vessels found
+              </h4>
+              <p className="text-xs text-[#5A5553] max-w-sm mx-auto">
+                Try adjusting your search query or status filter to find vessels.
+              </p>
+              <button
+                onClick={() => {
+                  setStatusFilter('all');
+                  setSearchQuery('');
+                  setSelectedTag(null);
+                }}
+                className="px-3.5 py-1.5 rounded-xl bg-[#152659] text-[#FFFFFF] text-xs font-mono font-bold hover:bg-[#1E357A] transition-colors inline-block mt-2 shadow-sm"
+              >
+                Reset All Filters
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>

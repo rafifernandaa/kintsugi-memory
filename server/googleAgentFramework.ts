@@ -90,16 +90,15 @@ export class ScribeAgent {
 
     const prompt = `
 You are the Master Scribe Agent for Kintsugi Memory.
-A student recorded spoken audio from a live lecture or meeting.
-Topic: ${params.meetingTitle || params.subjectHint || "Academic Lecture"}
-Filename: ${params.filename || "lecture_recording"}
+A student provided spoken audio (from a live lecture, meeting, or online video/YouTube audio).
 
-TASK:
-1. Provide a verbatim chronological timestamped transcript with speaker diarization (e.g. "[00:15] Professor: ...", "[01:10] Student: ...").
-2. Provide a 2-3 sentence executive synthesis of what was discussed.
-3. Extract core technical invariants, formulas, theorems, and causal mechanisms.
-4. Extract professor exam warnings and common pitfalls.
-5. Extract action items, reading assignments, and deadlines.
+CRITICAL DIRECTIVES:
+1. FAITHFUL TRANSCRIPTION: Transcribe the ACTUAL SPOKEN WORDS in the audio recording with verbatim precision. Do not invent, hallucinate, or force unrelated topics.
+2. TOPIC DETECTION: Identify the genuine subject, title, and topics directly from what is spoken in the audio.
+3. TIMESTAMPS & DIARIZATION: Use timestamp tags of format [MM:SS] and identify distinct speaker turns (e.g. "[00:00] Speaker 1: ...", "[00:45] Speaker 2: ...").
+4. SUMMARY & INVARIANTS: Formulate a 2-3 sentence executive cognitive summary of what was actually discussed in the audio. Extract core technical laws, theorems, concepts, and invariants mentioned.
+5. EXAM ALERTS & ACTION ITEMS: Flag any critical warnings, key exam takeaways, or action items discussed in the recording.
+${params.meetingTitle ? `\n(Optional Context Hint: "${params.meetingTitle}" - only use to assist with spelling technical terms if they actually match the spoken audio.)` : ''}
 `;
 
     return executeWithModelFallback(this.model, async (modelName) => {
@@ -120,8 +119,9 @@ TASK:
           },
         ],
         config: {
+          audioTimestamp: true,
           systemInstruction:
-            "You are an elite academic speech recognition and lecture transcription AI agent. Transcribe audio with verbatim precision, timestamps, speaker diarization, and extraction of theoretical invariants.",
+            "You are an elite academic speech recognition and lecture transcription AI agent. Transcribe audio with verbatim precision, timestamps, speaker diarization, and faithful extraction of theoretical invariants directly from spoken content.",
           responseMimeType: "application/json",
           responseSchema: {
             type: Type.OBJECT,

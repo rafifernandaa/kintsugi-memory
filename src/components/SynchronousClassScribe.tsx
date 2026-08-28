@@ -222,17 +222,17 @@ export const SynchronousClassScribe: React.FC<SynchronousClassScribeProps> = ({
       try {
         // 1. Start continuous browser speech recognition
         const recognizer = createSpeechRecognizer(
-          (confirmedText, interimText) => {
+          (deltaFinal, interimText) => {
             setInterimSpeech(interimText);
-            if (confirmedText) {
+            if (deltaFinal && deltaFinal.trim()) {
               const minutes = Math.floor(recordingSeconds / 60).toString().padStart(2, '0');
               const secs = (recordingSeconds % 60).toString().padStart(2, '0');
               const timecode = `[${minutes}:${secs}]`;
               setTranscript((prev) => {
                 const prevClean = prev.trim();
                 return prevClean
-                  ? `${prevClean}\n${timecode} Speaker: ${confirmedText}`
-                  : `${timecode} Speaker: ${confirmedText}`;
+                  ? `${prevClean}\n${timecode} Speaker: ${deltaFinal.trim()}`
+                  : `${timecode} Speaker: ${deltaFinal.trim()}`;
               });
             }
           },
@@ -821,6 +821,13 @@ export const SynchronousClassScribe: React.FC<SynchronousClassScribeProps> = ({
             placeholder="Spoken lecture audio will appear here in real-time with timecodes [mm:ss]... You can also paste audio transcripts directly."
             className="w-full bg-[#FAF8F2] border border-[#DDD7C8] rounded-xl p-3.5 text-xs font-mono text-[#2B2827] placeholder-[#736D6B] focus:outline-none focus:border-[#BF9A2A] transition-colors resize-y leading-relaxed shadow-xs"
           />
+
+          {isRecording && interimSpeech && (
+            <div className="text-[11px] font-mono text-[#8F6A00] bg-[#FAF8F2] px-3 py-1.5 rounded-lg border border-[#BF9A2A]/40 flex items-center gap-2 animate-pulse">
+              <span className="w-2 h-2 rounded-full bg-[#BF9A2A] animate-ping" />
+              <span>Listening: "{interimSpeech}"</span>
+            </div>
+          )}
 
           <div className="flex items-center justify-between text-[11px] text-[#736D6B] font-mono pt-1">
             <span>Synchronized with lecture timeline</span>

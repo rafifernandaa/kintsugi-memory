@@ -12,7 +12,7 @@ export interface SpeechRecognitionHandler {
 }
 
 export function createSpeechRecognizer(
-  onTranscript: (confirmedText: string, interimText: string) => void,
+  onTranscript: (deltaFinal: string, interimText: string, fullFinal: string) => void,
   onError: (err: string) => void
 ): SpeechRecognitionHandler | null {
   const SpeechRecognition =
@@ -28,21 +28,26 @@ export function createSpeechRecognizer(
   recognition.lang = 'en-US';
 
   let listening = false;
-  let finalAccumulated = '';
+  let fullAccumulated = '';
 
   recognition.onresult = (event: any) => {
     let interim = '';
+    let delta = '';
 
     for (let i = event.resultIndex; i < event.results.length; ++i) {
       const piece = event.results[i][0].transcript;
       if (event.results[i].isFinal) {
-        finalAccumulated += (finalAccumulated ? ' ' : '') + piece.trim();
+        const cleanPiece = piece.trim();
+        if (cleanPiece) {
+          delta += (delta ? ' ' : '') + cleanPiece;
+          fullAccumulated += (fullAccumulated ? ' ' : '') + cleanPiece;
+        }
       } else {
         interim += piece;
       }
     }
 
-    onTranscript(finalAccumulated.trim(), interim.trim());
+    onTranscript(delta.trim(), interim.trim(), fullAccumulated.trim());
   };
 
   recognition.onerror = (event: any) => {
@@ -59,7 +64,7 @@ export function createSpeechRecognizer(
   return {
     start: () => {
       try {
-        finalAccumulated = '';
+        fullAccumulated = '';
         listening = true;
         recognition.start();
       } catch (e) {

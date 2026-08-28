@@ -68,16 +68,15 @@ export async function transcribeAudio(options: TranscribeOptions): Promise<Trans
 
     const prompt = `
 You are the Academic Speech Transcriber and Scribe Agent for Kintsugi Memory.
-A student recorded spoken lecture audio.
-Topic: ${meetingTitle || subjectHint || "Academic Lecture"}
-Filename: ${filename || "lecture_recording"}
+A student provided an audio recording (from a live lecture, meeting, or online video/YouTube audio).
 
-TASK:
-1. Provide an accurate, continuous verbatim transcript of the speech.
-2. Identify distinct topics and key mechanistic invariants.
-3. Formulate a 2-3 sentence executive cognitive summary.
-4. Flag potential exam alerts or cognitive traps mentioned by the instructor.
-5. Extract action items, homework assignments, or upcoming deadlines.
+CRITICAL DIRECTIVES:
+1. FAITHFUL TRANSCRIPTION: Transcribe the ACTUAL SPOKEN WORDS in the audio recording with verbatim precision. Do not invent, hallucinate, or force unrelated topics.
+2. TOPIC DETECTION: Identify the genuine subject, title, and topics directly from what is spoken in the audio.
+3. TIMESTAMPS & DIARIZATION: Use timestamp tags of format [MM:SS] and identify distinct speaker turns (e.g. "[00:00] Speaker 1: ...", "[00:45] Speaker 2: ...").
+4. SUMMARY & INVARIANTS: Formulate a 2-3 sentence executive cognitive summary of what was actually discussed in the audio. Extract core technical laws, theorems, concepts, and invariants mentioned.
+5. EXAM ALERTS & ACTION ITEMS: Flag any critical warnings, key exam takeaways, or action items discussed in the recording.
+${meetingTitle ? `\n(Optional Context Hint: "${meetingTitle}" - only use to assist with spelling technical terms if they actually match the spoken audio.)` : ''}
 `;
 
     const audioCandidateModels = [
@@ -109,8 +108,9 @@ TASK:
             },
           ],
           config: {
+            audioTimestamp: true,
             systemInstruction:
-              "You are an elite academic speech recognition AI. Produce accurate timestamped transcripts with speaker diarization and extract core theoretical invariants.",
+              "You are an elite academic speech recognition AI. Produce faithful, verbatim timestamped transcripts with speaker diarization strictly based on the provided audio stream, avoiding any hallucination.",
             responseMimeType: "application/json",
             responseSchema: {
               type: Type.OBJECT,

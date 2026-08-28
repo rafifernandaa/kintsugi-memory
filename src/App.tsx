@@ -175,21 +175,13 @@ export default function App() {
   };
 
   const handleStartPriorityRetrieval = () => {
-    const sortedCliff = [...concepts]
-      .filter((c) => c.currentRetention < 0.70)
-      .sort((a, b) => a.currentRetention - b.currentRetention);
-
-    const targetConcept = sortedCliff.length > 0 ? sortedCliff[0] : concepts[0];
-    if (targetConcept) {
-      setActiveReviewConcept(targetConcept);
-      setCurrentTab('review');
-      addTelemetry(
-        'Priority Socratic Practice Started',
-        `Launched immediate golden repair for "${targetConcept.title}" (${Math.round(targetConcept.currentRetention * 100)}% retention).`,
-        'Socratic Interviewer',
-        'info'
-      );
-    }
+    setCurrentTab('neuroplasticity');
+    addTelemetry(
+      'Daily Socratic Practice Opened in Garden',
+      'Opened Synaptic Vessel Garden to review and mend memory vessels.',
+      'Socratic Interviewer',
+      'info'
+    );
   };
 
   const urgentCliffCount = concepts.filter((c) => c.currentRetention < 0.70).length;
@@ -335,6 +327,7 @@ export default function App() {
         concepts={concepts}
         onStartRetrievalForConcept={handleSelectConceptForReview}
         onStartPriorityRetrieval={handleStartPriorityRetrieval}
+        onNavigateToHome={() => setCurrentTab('home')}
       />
 
       {/* Hackathon Judge Dossier Modal */}

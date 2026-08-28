@@ -618,8 +618,11 @@ export const ActiveRetrievalRoom: React.FC<ActiveRetrievalRoomProps> = ({
         <div className="space-y-1 relative z-20 flex-1">
           <div className="flex items-center justify-between gap-2 flex-wrap">
             <div className="flex items-center gap-2 text-xs font-mono text-[#736D6B]">
-              <button onClick={onBackToGarden} className="hover:text-[#8F6A00] underline font-semibold">
-                ← Return to Garden
+              <button
+                onClick={onBackToGarden}
+                className="hover:text-[#8F6A00] font-semibold transition-colors flex items-center gap-1 cursor-pointer"
+              >
+                <span>← Return to Garden</span>
               </button>
               <span>/</span>
               <span className="text-[#8F6A00] font-bold">{concept.category}</span>

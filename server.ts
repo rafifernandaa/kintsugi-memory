@@ -24,7 +24,7 @@ app.use(express.urlencoded({ extended: true, limit: "100mb" }));
 
 // Runtime environment resolution
 let runtimeApiKey = process.env.GEMINI_API_KEY || "";
-let runtimeModel = process.env.GEMINI_MODEL || "gemini-3.7-flash";
+let runtimeModel = process.env.GEMINI_MODEL || "gemini-3.5-flash";
 const gcpProjectId = process.env.GOOGLE_CLOUD_PROJECT || "my-project-31-491314";
 const gcpPubSubTopic = process.env.GOOGLE_CLOUD_PUBSUB_TOPIC || `projects/${gcpProjectId}/topics/kintsugi-cliff-pings`;
 

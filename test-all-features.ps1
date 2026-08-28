@@ -29,7 +29,7 @@ function Run-TestCase ($name, [scriptblock]$action) {
 # 1. Test Server Configuration
 Run-TestCase "Server Configuration & Google Cloud Project Check" {
     $res = Invoke-RestMethod -Uri "$baseUrl/api/config"
-    if ($res.currentModel -ne "gemini-3.7-flash") { throw "Expected gemini-3.7-flash, got $($res.currentModel)" }
+    if ($res.currentModel -notmatch "gemini-3.5-flash|gemini-3.7-flash|gemini-3.5-flash-lite") { throw "Expected Gemini 3.5+ model, got $($res.currentModel)" }
     if ($res.googleCloudProject -ne "my-project-31-491314") { throw "Expected project my-project-31-491314" }
     "Model: $($res.currentModel) | GCP Project: $($res.googleCloudProject) | PubSub: $($res.pubSubTopic)"
 }

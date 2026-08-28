@@ -65,16 +65,16 @@ gcloud run deploy $SERVICE_NAME `
   --min-instances 0 `
   --max-instances 10 `
   --ingress all `
-  --set-env-vars GOOGLE_CLOUD_PROJECT=$PROJECT_ID,GOOGLE_CLOUD_REGION=$REGION,GEMINI_MODEL=gemini-3.7-flash,USE_VERTEX_AI=true,GOOGLE_CLOUD_PUBSUB_TOPIC=projects/$PROJECT_ID/topics/kintsugi-cliff-pings
+  --set-env-vars GOOGLE_CLOUD_PROJECT=$PROJECT_ID,GOOGLE_CLOUD_REGION=$REGION,GEMINI_MODEL=gemini-3.5-flash,USE_VERTEX_AI=true,GOOGLE_CLOUD_PUBSUB_TOPIC=projects/$PROJECT_ID/topics/kintsugi-cliff-pings
 
 # 7. Print deployed URL
 $SERVICE_URL = gcloud run services describe $SERVICE_NAME --region $REGION --format='value(status.url)' 2>$null
 
-Write-Host "🌸 ====================================================================" -ForegroundColor Green
-Write-Host "✅ DEPLOYMENT COMPLETE! Service is live on Google Cloud Run." -ForegroundColor Green
+Write-Host "====================================================================" -ForegroundColor Green
+Write-Host "DEPLOYMENT COMPLETE! Service is live on Google Cloud Run." -ForegroundColor Green
 if ($SERVICE_URL) {
-  Write-Host "🌐 Live Application URL: $SERVICE_URL" -ForegroundColor Cyan
+  Write-Host "Live Application URL: $SERVICE_URL" -ForegroundColor Cyan
 }
-Write-Host "🌸 Dedicated Service Account: $SA_EMAIL" -ForegroundColor Green
-Write-Host "🌸 Region: $REGION | Model: gemini-3.7-flash | Mode: Vertex AI ADC" -ForegroundColor Green
-Write-Host "🌸 ====================================================================" -ForegroundColor Green
+Write-Host "Dedicated Service Account: $SA_EMAIL" -ForegroundColor Green
+Write-Host "Region: $REGION | Model: gemini-3.5-flash | Mode: Vertex AI ADC" -ForegroundColor Green
+Write-Host "====================================================================" -ForegroundColor Green

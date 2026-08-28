@@ -45,7 +45,7 @@ export async function transcribeAudio(options: TranscribeOptions): Promise<Trans
   }
 
   const apiKey = geminiApiKey || process.env.GEMINI_API_KEY;
-  const modelName = geminiModel || process.env.GEMINI_MODEL || "gemini-3.7-flash";
+  const modelName = geminiModel || process.env.GEMINI_MODEL || "gemini-3.5-flash";
   const projectId = process.env.GOOGLE_CLOUD_PROJECT || "my-project-31-491314";
   const location = process.env.GOOGLE_CLOUD_REGION || "us-west1";
 
@@ -73,21 +73,20 @@ Topic: ${meetingTitle || subjectHint || "Academic Lecture"}
 Filename: ${filename || "lecture_recording"}
 
 TASK:
-1. Provide a verbatim chronological timestamped transcript with speaker diarization (e.g. "[00:12] Professor: ...", "[01:05] Student: ...").
-2. Provide a 2-3 sentence executive synthesis of what was discussed.
-3. Extract core technical invariants, mathematical formulas, or scientific laws.
-4. Extract professor exam warnings and common pitfalls.
+1. Provide an accurate, continuous verbatim transcript of the speech.
+2. Identify distinct topics and key mechanistic invariants.
+3. Formulate a 2-3 sentence executive cognitive summary.
+4. Flag potential exam alerts or cognitive traps mentioned by the instructor.
 5. Extract action items, homework assignments, or upcoming deadlines.
 `;
 
     const audioCandidateModels = [
       modelName,
-      "gemini-3.7-flash",
-      "gemini-3.5-transcribe",
       "gemini-3.5-flash",
+      "gemini-3.5-flash-lite",
+      "gemini-3.7-flash",
+      "gemini-3.5-transcribe-preview",
       "gemini-3.6-flash",
-      "gemini-2.0-flash",
-      "gemini-1.5-flash",
     ].filter((m, i, arr) => arr.indexOf(m) === i);
 
     for (const targetModel of audioCandidateModels) {

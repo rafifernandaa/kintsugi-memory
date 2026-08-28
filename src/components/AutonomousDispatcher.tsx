@@ -126,6 +126,78 @@ export const AutonomousDispatcher: React.FC<AutonomousDispatcherProps> = ({
     setPings(generated);
   };
 
+  const [emailPreviewHtml, setEmailPreviewHtml] = useState<string | null>(null);
+
+  // Autonomous Background Governor: Automatically publishes and alerts when vessels reach forgetting cliff
+  useEffect(() => {
+    const autoDispatchedKey = 'kintsugi_auto_dispatched_ids';
+    const autoDispatched = JSON.parse(sessionStorage.getItem(autoDispatchedKey) || '[]');
+    const cliffVessels = concepts.filter((c) => (c?.currentRetention ?? 0.95) < 0.70);
+
+    cliffVessels.forEach(async (vessel) => {
+      if (!autoDispatched.includes(vessel.id)) {
+        autoDispatched.push(vessel.id);
+        sessionStorage.setItem(autoDispatchedKey, JSON.stringify(autoDispatched));
+
+        try {
+          const apiKey = localStorage.getItem('gemini_api_key') || '';
+          const pingRes = await fetch('/api/generate-cliff-ping', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-gemini-api-key': apiKey },
+            body: JSON.stringify({
+              concept: vessel,
+              currentRetention: vessel.currentRetention,
+              daysSinceReview: 3,
+            }),
+          });
+          const pingData = await pingRes.json();
+
+          const dispatchRes = await fetch('/api/send-cliff-notification', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-gemini-api-key': apiKey },
+            body: JSON.stringify({
+              email: userEmail,
+              conceptTitle: vessel.title,
+              currentRetention: Math.round(vessel.currentRetention * 100),
+              editorialSubject: pingData.editorialSubject || `[Forgetting Cliff Alert] ${vessel.title}`,
+              teaserQuestion: pingData.teaserQuestion || `What is the core invariant of ${vessel.title}?`,
+              zineMessage: pingData.zineMessage || `Your memory vessel is at ${Math.round(vessel.currentRetention * 100)}% retention.`,
+              urgency: 'urgent_cliff',
+            }),
+          });
+          const dispatchResult = await dispatchRes.json();
+
+          if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+            new Notification(`🌸 [Cliff Alert] ${vessel.title}`, {
+              body: `${pingData.teaserQuestion || 'Spaced retrieval needed.'}\nRecall at ${Math.round(vessel.currentRetention * 100)}%`,
+            });
+          }
+
+          setRecentDispatches((prev) => [
+            {
+              id: `auto_${Date.now()}`,
+              conceptTitle: vessel.title,
+              recipientEmail: userEmail,
+              editorialSubject: pingData.editorialSubject || `[Forgetting Cliff Alert] ${vessel.title}`,
+              dispatchedAt: new Date().toLocaleTimeString(),
+              gcpPubSubMessageId: dispatchResult.gcpPubSubMessageId || `auto-pubsub-${Date.now()}`,
+            },
+            ...prev.slice(0, 4),
+          ]);
+
+          onAddTelemetry(
+            'Autonomous Forgetting-Cliff Event Triggered',
+            `Auto-governor detected "${vessel.title}" on cliff (${Math.round(vessel.currentRetention * 100)}%). Published to Cloud Pub/Sub & dispatched alert to ${userEmail}.`,
+            'Cliff Scheduler',
+            'info'
+          );
+        } catch (autoErr) {
+          console.warn('Auto-dispatch notice:', autoErr);
+        }
+      }
+    });
+  }, [concepts, userEmail]);
+
   const handleDispatchAutonomousPing = async (ping: AutonomousPing) => {
     const targetConcept = concepts.find((c) => c.id === ping.conceptId);
     if (!targetConcept) return;
@@ -173,6 +245,9 @@ export const AutonomousDispatcher: React.FC<AutonomousDispatcherProps> = ({
       });
 
       const dispatchResult = await dispatchRes.json();
+      if (dispatchResult.htmlPreview) {
+        setEmailPreviewHtml(dispatchResult.htmlPreview);
+      }
 
       // 3. Show native browser notification if enabled
       if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
@@ -421,6 +496,53 @@ export const AutonomousDispatcher: React.FC<AutonomousDispatcherProps> = ({
           })}
         </div>
       </div>
+
+      {/* HTML Email Preview Modal */}
+      {emailPreviewHtml && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
+          <div className="bg-[#FFFFFF] border border-[#DDD7C8] rounded-3xl p-6 max-w-xl w-full shadow-2xl space-y-4 max-h-[85vh] flex flex-col animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between border-b border-[#DDD7C8] pb-3">
+              <div className="flex items-center gap-2">
+                <Mail className="w-5 h-5 text-[#8F6A00]" />
+                <div>
+                  <h3 className="text-base font-serif font-bold text-[#2B2827]">
+                    Dispatched Socratic Email Delivery Receipt
+                  </h3>
+                  <span className="text-[11px] font-mono text-[#736D6B]">
+                    Google Cloud Pub/Sub & Nodemailer
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={() => setEmailPreviewHtml(null)}
+                className="p-1.5 rounded-xl hover:bg-[#EAE6D6] text-[#736D6B] hover:text-[#2B2827]"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div
+              className="flex-1 overflow-y-auto rounded-2xl border border-[#DDD7C8] p-2 bg-[#FAF8F2]"
+              dangerouslySetInnerHTML={{ __html: emailPreviewHtml }}
+            />
+
+            <div className="flex items-center gap-3 pt-2">
+              <a
+                href={`mailto:${userEmail}?subject=Kintsugi Memory Socratic Alert&body=Active retrieval session ready in Kintsugi Memory.`}
+                className="flex-1 py-2 px-3 rounded-xl bg-[#FAF8F2] hover:bg-[#EAE6D6] text-[#5A5553] border border-[#DDD7C8] font-mono text-xs font-semibold text-center"
+              >
+                Open in Email Client
+              </a>
+              <button
+                onClick={() => setEmailPreviewHtml(null)}
+                className="flex-1 py-2 rounded-xl bg-[#152659] hover:bg-[#1E357A] text-[#FFFFFF] font-mono text-xs font-bold"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -359,7 +359,7 @@ app.post("/api/send-cliff-notification", async (req, res) => {
     const { email, conceptTitle, currentRetention, editorialSubject, teaserQuestion, zineMessage, urgency } = req.body;
     const recipient = email || process.env.USER_NOTIFICATION_EMAIL || "student@kintsugi-memory.ai";
 
-    const publishedGcpMessageId = await publishCliffEvent({
+    const dispatchResult = await publishCliffEvent({
       recipientEmail: recipient,
       conceptTitle: conceptTitle || "Active Memory Synapse",
       currentRetentionPct: currentRetention || 68,
@@ -376,8 +376,10 @@ app.post("/api/send-cliff-notification", async (req, res) => {
       recipientEmail: recipient,
       gcpProjectId,
       gcpPubSubTopic,
-      gcpPubSubMessageId: publishedGcpMessageId,
-      message: `Autonomous Editorial Ping successfully published to Google Cloud Pub/Sub (${publishedGcpMessageId}) and dispatched to ${recipient}!`,
+      gcpPubSubMessageId: dispatchResult.messageId,
+      emailSent: dispatchResult.emailSent,
+      htmlPreview: dispatchResult.htmlPreview,
+      message: `Autonomous Editorial Ping successfully published to Google Cloud Pub/Sub (${dispatchResult.messageId}) and dispatched to ${recipient}!`,
     });
   } catch (error: any) {
     console.error("[Send Notification Route Error]:", error);

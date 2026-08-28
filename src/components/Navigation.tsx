@@ -25,10 +25,27 @@ export const Navigation: React.FC<NavigationProps> = ({
   timeWarpDays,
   onFastForwardDecay,
   onOpenJudgeModal,
+  onOpenDailySummary?: () => void;
+  onOpenPubSubAlerts?: () => void;
+  onToggleTelemetry?: () => void;
+  telemetryCount?: number;
+  urgentCount?: number;
+  streak?: SynapticStreakData;
+  onStartRetrieval?: () => void;
+}
+
+export const Navigation: React.FC<NavigationProps> = ({
+  currentTab,
+  onChangeTab,
+  onReturnToLanding,
+  timeWarpDays,
+  onFastForwardDecay,
+  onOpenJudgeModal,
   onOpenDailySummary,
+  onOpenPubSubAlerts,
   onToggleTelemetry,
   telemetryCount,
-  urgentCount,
+  urgentCount = 0,
   streak,
   onStartRetrieval,
 }) => {
@@ -56,15 +73,15 @@ export const Navigation: React.FC<NavigationProps> = ({
         </div>
 
         <div className="flex items-center gap-2.5">
-          {/* Daily Synaptic Summary Button */}
-          {onOpenDailySummary && (
+          {/* Autonomous Pub/Sub Alerts Bell */}
+          {onOpenPubSubAlerts && (
             <button
-              onClick={onOpenDailySummary}
-              className="px-2.5 py-0.5 rounded-lg bg-[#FFFFFF] hover:bg-[#F2F0E4] text-[#2B2827] border border-[#DDD7C8] text-[11px] font-mono font-semibold flex items-center gap-1.5 transition-colors shadow-sm"
-              title="Open Daily Synaptic Summary & Cliff Overview"
+              onClick={onOpenPubSubAlerts}
+              className="px-2.5 py-0.5 rounded-lg bg-[#FFFFFF] hover:bg-[#F2F0E4] text-[#2B2827] border border-[#DDD7C8] text-[11px] font-mono font-semibold flex items-center gap-1.5 transition-colors shadow-sm cursor-pointer"
+              title="Autonomous Google Cloud Pub/Sub Cliff Alerts"
             >
-              <Brain className="w-3.5 h-3.5 text-[#BF9A2A]" />
-              <span className="hidden sm:inline">Daily Summary</span>
+              <Bell className="w-3.5 h-3.5 text-[#8F6A00]" />
+              <span className="hidden sm:inline">Pub/Sub Alerts</span>
               {urgentCount > 0 && (
                 <span className="px-1.5 py-0.2 rounded-full bg-[#993B2B] text-[#FFFFFF] border border-[#993B2B] text-[9px] font-bold animate-pulse">
                   {urgentCount}

@@ -398,12 +398,14 @@ export const MemoryGarden: React.FC<MemoryGardenProps> = ({
           {/* Tags */}
           {concept.tags && concept.tags.length > 0 && (
             <div className="flex flex-wrap gap-1 pt-0.5">
-              {concept.tags.map((tag) => {
-                const isTagSelected = selectedTag?.toLowerCase() === tag.toLowerCase() ||
-                  (searchQuery.trim() && tag.toLowerCase().includes(searchQuery.toLowerCase().trim()));
+              {concept.tags.map((tag, i) => {
+                if (!tag) return null;
+                const isTagSelected =
+                  (selectedTag && selectedTag.toLowerCase() === tag.toLowerCase()) ||
+                  (searchQuery && searchQuery.trim() && tag.toLowerCase().includes(searchQuery.toLowerCase().trim()));
                 return (
                   <button
-                    key={tag}
+                    key={`${tag}-${i}`}
                     onClick={(e) => {
                       e.stopPropagation();
                       setSelectedTag(selectedTag === tag ? null : tag);

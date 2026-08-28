@@ -36,6 +36,7 @@ interface SidebarNavigationProps {
   onFastForwardDecay: (days: number) => void;
   onOpenJudgeModal: () => void;
   onOpenDailySummary: () => void;
+  onOpenPubSubAlerts?: () => void;
   onToggleTelemetry: () => void;
   telemetryCount: number;
   onUpdateStreak?: (updated: SynapticStreakData) => void;
@@ -51,6 +52,7 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
   onFastForwardDecay,
   onOpenJudgeModal,
   onOpenDailySummary,
+  onOpenPubSubAlerts,
   onToggleTelemetry,
   telemetryCount,
   onUpdateStreak,

@@ -15,10 +15,13 @@ import { DailySynapticSummaryModal } from './components/DailySynapticSummaryModa
 import { LandingPage } from './components/LandingPage';
 import { ExamCalendar } from './components/ExamCalendar';
 import { AboutTab } from './components/AboutTab';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { PubSubNotificationPopover } from './components/PubSubNotificationPopover';
 import { Home, Sparkles, FastForward, RotateCcw, Award, Terminal, Brain } from 'lucide-react';
 
 export default function App() {
   const [showLanding, setShowLanding] = useState<boolean>(true);
+  const [pubSubAlertsOpen, setPubSubAlertsOpen] = useState<boolean>(false);
   const [concepts, setConcepts] = useState<Concept[]>(() => {
     const saved = localStorage.getItem('kintsugi_concepts');
     if (saved) {
@@ -216,6 +219,7 @@ export default function App() {
         onFastForwardDecay={applyTimeWarp}
         onOpenJudgeModal={() => setJudgeModalOpen(true)}
         onOpenDailySummary={() => setDailySummaryOpen(true)}
+        onOpenPubSubAlerts={() => setPubSubAlertsOpen(true)}
         onToggleTelemetry={() => setTelemetryDrawerOpen((prev) => !prev)}
         telemetryCount={telemetryLogs.length}
         onUpdateStreak={setStreak}
@@ -223,102 +227,115 @@ export default function App() {
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 min-h-screen">
-        {/* View Router */}
+        {/* View Router with Safe Error Boundary */}
         <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
-          {currentTab === 'home' && (
-            <DashboardHome
-              concepts={concepts}
-              streak={streak}
-              timeWarpDays={timeWarpDays}
-              onStartReview={handleSelectConceptForReview}
-              onNavigateToTab={(t) => {
-                if (t === 'garden') setCurrentTab('neuroplasticity');
-                else if (t === 'ingest') setCurrentTab('materials');
-                else if (t === 'retrieve') setCurrentTab('review');
-                else if (t === 'oracle') setCurrentTab('progress');
-                else if (t === 'dispatch') setCurrentTab('insights');
-                else if ((t as string) === 'calendar') setCurrentTab('calendar');
-                else if ((t as string) === 'about') setCurrentTab('about');
-              }}
-              onOpenJournal={() => setDailySummaryOpen(true)}
-              onOpenDailySummary={() => setDailySummaryOpen(true)}
-              onOpenJudgeModal={() => setJudgeModalOpen(true)}
-            />
-          )}
+          <ErrorBoundary fallbackTitle="Synaptic View Recovered" onReset={() => setCurrentTab('home')}>
+            {currentTab === 'home' && (
+              <DashboardHome
+                concepts={concepts}
+                streak={streak}
+                timeWarpDays={timeWarpDays}
+                onStartReview={handleSelectConceptForReview}
+                onNavigateToTab={(t) => {
+                  if (t === 'garden') setCurrentTab('neuroplasticity');
+                  else if (t === 'ingest') setCurrentTab('materials');
+                  else if (t === 'retrieve') setCurrentTab('review');
+                  else if (t === 'oracle') setCurrentTab('progress');
+                  else if (t === 'dispatch') setCurrentTab('insights');
+                  else if ((t as string) === 'calendar') setCurrentTab('calendar');
+                  else if ((t as string) === 'about') setCurrentTab('about');
+                }}
+                onOpenJournal={() => setDailySummaryOpen(true)}
+                onOpenDailySummary={() => setDailySummaryOpen(true)}
+                onOpenPubSubAlerts={() => setPubSubAlertsOpen(true)}
+                onOpenJudgeModal={() => setJudgeModalOpen(true)}
+              />
+            )}
 
-          {currentTab === 'calendar' && (
-            <ExamCalendar
-              concepts={concepts}
-              onAddConcepts={handleAddConcepts}
-              onStartReviewForConcept={handleSelectConceptForReview}
-              onAddTelemetry={addTelemetry}
-            />
-          )}
+            {currentTab === 'calendar' && (
+              <ExamCalendar
+                concepts={concepts}
+                onAddConcepts={handleAddConcepts}
+                onStartReviewForConcept={handleSelectConceptForReview}
+                onAddTelemetry={addTelemetry}
+              />
+            )}
 
-          {currentTab === 'materials' && (
-            <IngestionHub
-              onIngestComplete={handleIngestComplete}
-              onAddTelemetry={addTelemetry}
-            />
-          )}
+            {currentTab === 'materials' && (
+              <IngestionHub
+                onIngestComplete={handleIngestComplete}
+                onAddTelemetry={addTelemetry}
+              />
+            )}
 
-          {currentTab === 'review' && (
-            <ActiveRetrievalRoom
-              concept={activeReviewConcept || (concepts.length > 0 ? concepts[0] : undefined)}
-              allConcepts={concepts}
-              onSelectConcept={handleSelectConceptForReview}
-              onUpdateConcept={handleUpdateConcept}
-              onRecordRetrievalSession={handleRecordRetrievalSession}
-              onAddTelemetry={addTelemetry}
-              onBackToGarden={() => setCurrentTab('neuroplasticity')}
-              onNavigateToMaterials={() => setCurrentTab('materials')}
-            />
-          )}
+            {currentTab === 'review' && (
+              <ActiveRetrievalRoom
+                concept={activeReviewConcept || (concepts.length > 0 ? concepts[0] : undefined)}
+                allConcepts={concepts}
+                onSelectConcept={handleSelectConceptForReview}
+                onUpdateConcept={handleUpdateConcept}
+                onRecordRetrievalSession={handleRecordRetrievalSession}
+                onAddTelemetry={addTelemetry}
+                onBackToGarden={() => setCurrentTab('neuroplasticity')}
+                onNavigateToMaterials={() => setCurrentTab('materials')}
+              />
+            )}
 
-          {currentTab === 'neuroplasticity' && (
-            <MemoryGarden
-              concepts={concepts}
-              timeWarpDays={timeWarpDays}
-              onSelectConceptForReview={handleSelectConceptForReview}
-              onInspectOracle={handleInspectOracle}
-              onFastForwardDecay={applyTimeWarp}
-            />
-          )}
+            {currentTab === 'neuroplasticity' && (
+              <MemoryGarden
+                concepts={concepts}
+                timeWarpDays={timeWarpDays}
+                onSelectConceptForReview={handleSelectConceptForReview}
+                onInspectOracle={handleInspectOracle}
+                onFastForwardDecay={applyTimeWarp}
+              />
+            )}
 
-          {currentTab === 'progress' && (
-            <RetentionOracle
-              concepts={concepts}
-              selectedConceptId={selectedOracleConceptId}
-              onSelectConcept={(c) => setSelectedOracleConceptId(c.id)}
-              onReviewConcept={handleSelectConceptForReview}
-            />
-          )}
+            {currentTab === 'progress' && (
+              <RetentionOracle
+                concepts={concepts}
+                selectedConceptId={selectedOracleConceptId}
+                onSelectConcept={(c) => setSelectedOracleConceptId(c.id)}
+                onReviewConcept={handleSelectConceptForReview}
+              />
+            )}
 
-          {currentTab === 'insights' && (
-            <AutonomousDispatcher
-              concepts={concepts}
-              onReviewConcept={handleSelectConceptForReview}
-              onAddTelemetry={addTelemetry}
-            />
-          )}
+            {currentTab === 'insights' && (
+              <AutonomousDispatcher
+                concepts={concepts}
+                onReviewConcept={handleSelectConceptForReview}
+                onAddTelemetry={addTelemetry}
+              />
+            )}
 
-          {currentTab === 'about' && (
-            <AboutTab
-              onNavigateToTab={(t) => {
-                if (t === 'home') setCurrentTab('home');
-                else if (t === 'materials') setCurrentTab('materials');
-                else if (t === 'calendar') setCurrentTab('calendar');
-                else if (t === 'review') setCurrentTab('review');
-                else if (t === 'neuroplasticity') setCurrentTab('neuroplasticity');
-                else if (t === 'progress') setCurrentTab('progress');
-                else if (t === 'journal') setCurrentTab('journal');
-                else if (t === 'insights') setCurrentTab('insights');
-              }}
-              onOpenJudgeModal={() => setJudgeModalOpen(true)}
-            />
-          )}
+            {currentTab === 'about' && (
+              <AboutTab
+                onNavigateToTab={(t) => {
+                  if (t === 'home') setCurrentTab('home');
+                  else if (t === 'materials') setCurrentTab('materials');
+                  else if (t === 'calendar') setCurrentTab('calendar');
+                  else if (t === 'review') setCurrentTab('review');
+                  else if (t === 'neuroplasticity') setCurrentTab('neuroplasticity');
+                  else if (t === 'progress') setCurrentTab('progress');
+                  else if (t === 'journal') setCurrentTab('journal');
+                  else if (t === 'insights') setCurrentTab('insights');
+                }}
+                onOpenJudgeModal={() => setJudgeModalOpen(true)}
+              />
+            )}
+          </ErrorBoundary>
         </main>
       </div>
+
+      {/* Autonomous Google Cloud Pub/Sub Forgetting Cliff Alerts Popover */}
+      <PubSubNotificationPopover
+        isOpen={pubSubAlertsOpen}
+        onClose={() => setPubSubAlertsOpen(false)}
+        concepts={concepts}
+        onStartRetrievalForConcept={handleSelectConceptForReview}
+        onNavigateToInsights={() => setCurrentTab('insights')}
+        onAddTelemetry={addTelemetry}
+      />
 
       {/* Daily Synaptic Summary Modal (Startup / Journal Overview) */}
       <DailySynapticSummaryModal

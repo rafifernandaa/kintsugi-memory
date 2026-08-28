@@ -36,7 +36,8 @@ interface DashboardHomeProps {
   onStartReview: (concept?: Concept) => void;
   onNavigateToTab: (tab: 'garden' | 'ingest' | 'retrieve' | 'oracle' | 'dispatch' | 'calendar' | 'about') => void;
   onOpenJournal: () => void;
-  onOpenDailySummary: () => void;
+  onOpenDailySummary?: () => void;
+  onOpenPubSubAlerts: () => void;
   onOpenJudgeModal: () => void;
 }
 
@@ -48,6 +49,7 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({
   onNavigateToTab,
   onOpenJournal,
   onOpenDailySummary,
+  onOpenPubSubAlerts,
   onOpenJudgeModal,
 }) => {
   const [timeframe, setTimeframe] = useState<'This week' | 'This month'>('This week');
@@ -74,19 +76,21 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({
   // Filter concepts based on search query and tag selection
   const filteredConcepts = useMemo(() => {
     return concepts.filter((c) => {
+      if (!c) return false;
       if (selectedTag) {
-        const hasTag = c.tags?.some((t) => t.toLowerCase() === selectedTag.toLowerCase());
-        const hasCat = c.category.toLowerCase().includes(selectedTag.toLowerCase());
+        const tagLower = selectedTag.toLowerCase().trim();
+        const hasTag = c.tags?.some((t) => t && t.toLowerCase() === tagLower);
+        const hasCat = (c.category || '').toLowerCase().includes(tagLower);
         if (!hasTag && !hasCat) return false;
       }
 
-      if (searchQuery.trim()) {
+      if (searchQuery && searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim();
-        const matchTitle = c.title.toLowerCase().includes(q);
-        const matchSummary = c.summary.toLowerCase().includes(q);
-        const matchCategory = c.category.toLowerCase().includes(q);
-        const matchTags = c.tags?.some((t) => t.toLowerCase().includes(q));
-        const matchMechanisms = c.keyMechanisms.some((m) => m.toLowerCase().includes(q));
+        const matchTitle = (c.title || '').toLowerCase().includes(q);
+        const matchSummary = (c.summary || '').toLowerCase().includes(q);
+        const matchCategory = (c.category || '').toLowerCase().includes(q);
+        const matchTags = c.tags?.some((t) => t && t.toLowerCase().includes(q));
+        const matchMechanisms = c.keyMechanisms?.some((m) => m && m.toLowerCase().includes(q));
         if (!matchTitle && !matchSummary && !matchCategory && !matchTags && !matchMechanisms) {
           return false;
         }
@@ -136,13 +140,13 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({
           </div>
 
           <button
-            onClick={onOpenDailySummary}
-            className="p-2.5 rounded-xl bg-[#FFFFFF] hover:bg-[#FAF8F2] border border-[#DDD7C8] text-[#5A5553] hover:text-[#2B2827] transition-colors relative shadow-sm"
-            title="Daily Synaptic Summary"
+            onClick={onOpenPubSubAlerts}
+            className="p-2.5 rounded-xl bg-[#FFFFFF] hover:bg-[#FAF8F2] border border-[#DDD7C8] text-[#5A5553] hover:text-[#2B2827] transition-colors relative shadow-sm cursor-pointer"
+            title="Autonomous Google Cloud Pub/Sub Cliff Alerts"
           >
             <Bell className="w-4 h-4 text-[#8F6A00]" />
             {cliffConcepts.length > 0 && (
-              <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-[#993B2B] text-white text-[9px] font-bold rounded-full flex items-center justify-center animate-pulse">
+              <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 bg-[#993B2B] text-white text-[9px] font-bold rounded-full flex items-center justify-center animate-pulse shadow-sm">
                 {cliffConcepts.length}
               </span>
             )}
@@ -262,9 +266,10 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({
           {filteredConcepts.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredConcepts.map((concept) => {
-                const retPct = Math.round(concept.currentRetention * 100);
-                const isCliff = concept.currentRetention < 0.70;
-                const isGolden = concept.kintsugiRepairs > 0;
+                if (!concept) return null;
+                const retPct = Math.round((concept.currentRetention ?? 0.95) * 100);
+                const isCliff = (concept.currentRetention ?? 0.95) < 0.70;
+                const isGolden = (concept.kintsugiRepairs ?? 0) > 0;
 
                 return (
                   <div

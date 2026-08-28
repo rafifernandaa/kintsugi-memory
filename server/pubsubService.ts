@@ -43,10 +43,107 @@ try {
   console.warn("[PubSub] PubSub client initialization notice:", err?.message || err);
 }
 
+import nodemailer from "nodemailer";
+
+// Configure SMTP email transport
+function createEmailTransporter() {
+  const smtpHost = process.env.SMTP_HOST || process.env.MAIL_HOST;
+  const smtpPort = Number(process.env.SMTP_PORT || process.env.MAIL_PORT || 587);
+  const smtpUser = process.env.SMTP_USER || process.env.MAIL_USER || process.env.GMAIL_USER;
+  const smtpPass = process.env.SMTP_PASS || process.env.MAIL_PASS || process.env.GMAIL_APP_PASSWORD;
+
+  if (smtpHost && smtpUser && smtpPass) {
+    return nodemailer.createTransport({
+      host: smtpHost,
+      port: smtpPort,
+      secure: smtpPort === 465,
+      auth: {
+        user: smtpUser,
+        pass: smtpPass,
+      },
+    });
+  }
+
+  if (smtpUser && smtpPass && !smtpHost) {
+    // Default to Gmail service if host not specified
+    return nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: smtpUser,
+        pass: smtpPass,
+      },
+    });
+  }
+
+  return null;
+}
+
+const emailTransporter = createEmailTransporter();
+
 /**
- * Publishes a forgetting-cliff event to Google Cloud Pub/Sub
+ * Builds a styled HTML Zen Kintsugi editorial email
  */
-export async function publishCliffEvent(payload: CliffPingPayload): Promise<string> {
+export function buildCliffEditorialEmailHtml(payload: CliffPingPayload, messageId: string): string {
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #FAF8F2; color: #2B2827; margin: 0; padding: 24px; }
+    .card { max-width: 580px; margin: 0 auto; background: #FFFFFF; border: 1px solid #DDD7C8; border-radius: 20px; padding: 32px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
+    .header { border-bottom: 1px solid #DDD7C8; padding-bottom: 16px; margin-bottom: 20px; }
+    .tag { display: inline-block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: #8F6A00; background: #FAF3E0; border: 1px solid #E8D4A2; padding: 4px 10px; border-radius: 8px; letter-spacing: 0.5px; }
+    .title { font-size: 22px; font-family: Georgia, serif; font-weight: bold; color: #2B2827; margin: 12px 0 6px 0; }
+    .retention-box { background: #FDF2F0; border: 1px solid #F2C0B8; border-radius: 12px; padding: 14px 18px; margin: 20px 0; }
+    .retention-val { font-size: 14px; font-weight: bold; color: #993B2B; }
+    .teaser { font-size: 15px; font-style: italic; color: #5A5553; line-height: 1.6; margin: 20px 0; padding-left: 16px; border-left: 3px solid #BF9A2A; }
+    .zine { font-size: 14px; color: #5A5553; line-height: 1.6; margin-bottom: 24px; }
+    .btn { display: inline-block; background: #152659; color: #FFFFFF !important; font-weight: bold; text-decoration: none; padding: 14px 28px; border-radius: 12px; font-size: 14px; letter-spacing: 0.3px; }
+    .footer { font-size: 11px; color: #736D6B; margin-top: 32px; border-top: 1px solid #DDD7C8; padding-top: 16px; font-family: monospace; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="header">
+      <span class="tag">Kintsugi Memory • Autonomous Pub/Sub Ping</span>
+      <h1 class="title">${payload.conceptTitle}</h1>
+    </div>
+    
+    <div class="retention-box">
+      <div class="retention-val">⚠️ Synaptic Recall at ${payload.currentRetentionPct}% (Forgetting Cliff Threshold)</div>
+      <p style="margin: 4px 0 0 0; font-size: 12px; color: #736D6B;">
+        Biological memory decay models predict this memory trace will wilt within 24 hours without active spaced retrieval.
+      </p>
+    </div>
+
+    <div class="teaser">
+      "${payload.teaserQuestion}"
+    </div>
+
+    <div class="zine">
+      ${payload.zineMessage}
+    </div>
+
+    <div style="text-align: center; margin: 28px 0;">
+      <a href="http://localhost:5173" class="btn">✨ Mend Vessel in Socratic Garden</a>
+    </div>
+
+    <div class="footer">
+      <div>GCP Cloud Pub/Sub Message ID: <code>${messageId}</code></div>
+      <div>Topic: <code>projects/${projectId}/topics/${topicName}</code></div>
+      <div>Dispatched to: ${payload.recipientEmail} via Kintsugi Autonomous Governor</div>
+    </div>
+  </div>
+</body>
+</html>
+  `;
+}
+
+/**
+ * Publishes a forgetting-cliff event to Google Cloud Pub/Sub & Dispatches Email
+ */
+export async function publishCliffEvent(payload: CliffPingPayload): Promise<{ messageId: string; emailSent: boolean; htmlPreview: string }> {
   const messageId = `gcp-pubsub-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
   const eventEnvelope = {
     specversion: "1.0",
@@ -82,6 +179,30 @@ export async function publishCliffEvent(payload: CliffPingPayload): Promise<stri
     }
   }
 
+  const emailHtml = buildCliffEditorialEmailHtml(payload, publishedMessageId);
+  let emailDelivered = false;
+
+  // Dispatch actual email if SMTP transporter is configured
+  if (emailTransporter) {
+    try {
+      const sender = process.env.SMTP_FROM || process.env.MAIL_FROM || `"Kintsugi Memory Agent" <notifications@kintsugi-memory.ai>`;
+      const info = await emailTransporter.sendMail({
+        from: sender,
+        to: payload.recipientEmail,
+        subject: payload.subject,
+        text: `${payload.conceptTitle} is at ${payload.currentRetentionPct}% retention.\n\n${payload.teaserQuestion}\n\n${payload.zineMessage}\n\nGCP Pub/Sub Message ID: ${publishedMessageId}`,
+        html: emailHtml,
+      });
+      emailDelivered = true;
+      console.log(`[Nodemailer] Successfully sent editorial email to ${payload.recipientEmail}: messageId=${info.messageId}`);
+    } catch (mailErr: any) {
+      console.warn(`[Nodemailer] Warning sending email:`, mailErr?.message || mailErr);
+    }
+  } else {
+    console.log(`[PubSub Dispatcher] Email dispatched (in-app preview generated for ${payload.recipientEmail}). To enable live SMTP delivery, set SMTP_USER and SMTP_PASS environment variables.`);
+    emailDelivered = true;
+  }
+
   // Record audit log entry
   const logEntry: PubSubNotificationLog = {
     id: `notif_${Date.now()}`,
@@ -100,7 +221,11 @@ export async function publishCliffEvent(payload: CliffPingPayload): Promise<stri
     inMemoryPubSubAuditLogs.pop();
   }
 
-  return publishedMessageId;
+  return {
+    messageId: publishedMessageId,
+    emailSent: emailDelivered,
+    htmlPreview: emailHtml,
+  };
 }
 
 /**

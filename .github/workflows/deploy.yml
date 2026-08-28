@@ -7,10 +7,10 @@ on:
   workflow_dispatch:
 
 env:
-  PROJECT_ID: my-project-28-497709
-  REGION: us-central1
+  PROJECT_ID: my-project-31-491314
+  REGION: us-west1
   SERVICE_NAME: kintsugi-memory-service
-  IMAGE_NAME: gcr.io/my-project-28-497709/kintsugi-memory-agent
+  IMAGE_NAME: gcr.io/my-project-31-491314/kintsugi-memory-agent
 
 jobs:
   build-and-deploy:
@@ -46,9 +46,9 @@ jobs:
           region: ${{ env.REGION }}
           flags: '--allow-unauthenticated'
           env_vars: |
-            GOOGLE_CLOUD_PROJECT=my-project-28-497709
-            GOOGLE_CLOUD_REGION=us-central1
-            GOOGLE_CLOUD_PUBSUB_TOPIC=projects/my-project-28-497709/topics/kintsugi-cliff-pings
+            GOOGLE_CLOUD_PROJECT=my-project-31-491314
+            GOOGLE_CLOUD_REGION=us-west1
+            GOOGLE_CLOUD_PUBSUB_TOPIC=projects/my-project-31-491314/topics/kintsugi-cliff-pings
             GEMINI_MODEL=gemini-3.7-flash
             GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
 

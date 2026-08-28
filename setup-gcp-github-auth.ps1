@@ -1,5 +1,5 @@
 # Setup Google Cloud Service Account for GitHub Actions Continuous Deployment
-$PROJECT_ID = "my-project-28-497709"
+$PROJECT_ID = "my-project-31-491314"
 $SA_NAME = "github-actions-deployer"
 $SA_EMAIL = "$SA_NAME@$PROJECT_ID.iam.gserviceaccount.com"
 

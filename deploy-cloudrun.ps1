@@ -1,6 +1,6 @@
 # Deploy Kintsugi Memory to Google Cloud Run (Windows PowerShell)
-$PROJECT_ID = "my-project-28-497709"
-$REGION = "us-central1"
+$PROJECT_ID = "my-project-31-491314"
+$REGION = "us-west1"
 $SERVICE_NAME = "kintsugi-memory-service"
 
 Write-Host "🌸 Deploying Kintsugi Memory Agent to Google Cloud Run..." -ForegroundColor Cyan

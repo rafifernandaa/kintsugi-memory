@@ -2,8 +2,8 @@
 # Deploy Kintsugi Memory to Google Cloud Run (Bash / Linux / macOS)
 set -e
 
-PROJECT_ID="my-project-28-497709"
-REGION="us-central1"
+PROJECT_ID="my-project-31-491314"
+REGION="us-west1"
 SERVICE_NAME="kintsugi-memory-service"
 
 echo "🌸 Deploying Kintsugi Memory Agent to Google Cloud Run..."

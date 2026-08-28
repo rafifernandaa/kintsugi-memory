@@ -16,7 +16,7 @@ app.use(express.urlencoded({ extended: true, limit: "100mb" }));
 // Runtime configuration store
 let runtimeApiKey = process.env.GEMINI_API_KEY || "";
 let runtimeModel = process.env.GEMINI_MODEL || "gemini-3.7-flash";
-const gcpProjectId = process.env.GOOGLE_CLOUD_PROJECT || "my-project-28-497709";
+const gcpProjectId = process.env.GOOGLE_CLOUD_PROJECT || "my-project-31-491314";
 const gcpPubSubTopic = process.env.GOOGLE_CLOUD_PUBSUB_TOPIC || `projects/${gcpProjectId}/topics/kintsugi-cliff-pings`;
 
 // Candidate models for hackathon compliance (Gemini > 3.5 primary priority: 3.7 Flash/Pro, 3.5 Flash/Pro)

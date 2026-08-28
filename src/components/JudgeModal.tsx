@@ -97,7 +97,7 @@ export const JudgeModal: React.FC<JudgeModalProps> = ({ isOpen, onClose }) => {
                 Primary Track: Collaborative Partner
               </span>
               <span className="px-2 py-0.5 rounded-full text-[11px] font-mono font-semibold bg-[#FAF8F2] text-[#152659] border border-[#DDD7C8]">
-                GCP Project: my-project-28-497709
+                GCP Project: my-project-31-491314
               </span>
             </div>
             <h2 className="text-xl sm:text-2xl font-serif text-[#2B2827] font-bold tracking-tight">
@@ -167,7 +167,7 @@ export const JudgeModal: React.FC<JudgeModalProps> = ({ isOpen, onClose }) => {
                 Cloud Run & Pub/Sub
               </div>
               <div className="text-[10px] text-[#2F6A38] flex items-center gap-1 font-semibold">
-                <CheckCircle2 className="w-3 h-3" /> my-project-28-497709
+                <CheckCircle2 className="w-3 h-3" /> my-project-31-491314
               </div>
             </div>
           </div>

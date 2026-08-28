@@ -2,7 +2,7 @@
 ### Autonomous Forgetting-Cliff Agent for Proactive Cognitive Mastery
 **Built for the [All Things Agentic Hackathon](https://allthingsagentichackathon.devpost.com)**  
 **Primary Category Track:** Collaborative Partner  
-**Google Cloud Project ID:** `my-project-28-497709`
+**Google Cloud Project ID:** `my-project-31-491314`
 
 ---
 
@@ -12,7 +12,7 @@
 |---|---|---|
 | **1** | **Gemini 3.5 or newer (&gt; 3.5) via Gemini API or Vertex AI** | Powered by `gemini-3.7-flash` / `gemini-3.7-pro` multimodal models (Audio Speech, PDF Documents, Vision Diagrams, Structured JSON schemas) with `gemini-3.5-flash` / `gemini-3.5-pro` fallback. |
 | **2** | **At least one Google Agent Framework** | Built on the official **Google GenAI SDK (`@google/genai`)** with a decoupled 4-Agent pipeline architecture (Ingestion, Socratic Interviewer, Bayesian FSRS Engine, Autonomous Cliff Initiator). |
-| **3** | **At least one Google Cloud Infrastructure Service** | Containerized on **Google Cloud Run**, automated CI/CD via **Cloud Build**, and asynchronous notification event publishing via **Google Cloud Pub/Sub** (`projects/my-project-28-497709/topics/kintsugi-cliff-pings`). |
+| **3** | **At least one Google Cloud Infrastructure Service** | Containerized on **Google Cloud Run**, automated CI/CD via **Cloud Build**, and asynchronous notification event publishing via **Google Cloud Pub/Sub** (`projects/my-project-31-491314/topics/kintsugi-cliff-pings`). |
 
 ---
 
@@ -32,7 +32,7 @@
 ### 3. 📬 Autonomous Forgetting-Cliff Telegrams (Email & Cloud Pub/Sub)
 - Unlike passive chatbots that wait for prompts, the agent monitors power-law decay curves and **proactively initiates** contact right when retrievability reaches 70%.
 - Dispatches zine-style editorial micro-questions to the student's registered email and native browser notifications.
-- Publishes event messages to Google Cloud Pub/Sub topic `projects/my-project-28-497709/topics/kintsugi-cliff-pings`.
+- Publishes event messages to Google Cloud Pub/Sub topic `projects/my-project-31-491314/topics/kintsugi-cliff-pings`.
 
 ### 4. 🥋 Socratic Interviewer & Bayesian FSRS Engine
 - Generates scenario-based free-recall challenges and misconception-discriminating MCQs.

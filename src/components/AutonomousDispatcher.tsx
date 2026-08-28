@@ -307,7 +307,7 @@ export const AutonomousDispatcher: React.FC<AutonomousDispatcherProps> = ({
       <div className="bg-[#FAF8F2] border border-[#DDD7C8] rounded-xl p-4 text-xs font-mono flex flex-col md:flex-row md:items-center justify-between gap-3 text-[#5A5553] shadow-sm">
         <div className="flex items-center gap-2">
           <Zap className="w-4 h-4 text-[#8F6A00]" />
-          <span>GCP Project ID: <code className="text-[#8F6A00] font-bold">my-project-28-497709</code> | Topic: <code className="text-[#152659]">kintsugi-cliff-pings</code></span>
+          <span>GCP Project ID: <code className="text-[#8F6A00] font-bold">my-project-31-491314</code> | Topic: <code className="text-[#152659]">kintsugi-cliff-pings</code></span>
         </div>
         <span className="text-[#2F6A38] font-semibold text-[11px]">Autonomous Status: Active (1-min Tick)</span>
       </div>

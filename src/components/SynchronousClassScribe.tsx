@@ -32,6 +32,7 @@ import {
 } from 'lucide-react';
 import Markdown from 'react-markdown';
 import { Concept, SupportMaterial, SynchronousNotesExtraction } from '../types';
+import { createSpeechRecognizer, SpeechRecognitionHandler } from '../lib/audio';
 
 interface SynchronousClassScribeProps {
   onIngestComplete: (newConcepts: Concept[]) => void;
@@ -162,7 +163,8 @@ export const SynchronousClassScribe: React.FC<SynchronousClassScribeProps> = ({
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const mediaStreamRef = useRef<MediaStream | null>(null);
-  const recognitionRef = useRef<any>(null);
+  const recognizerRef = useRef<SpeechRecognitionHandler | null>(null);
+  const [interimSpeech, setInterimSpeech] = useState<string>('');
 
   // New Support Material Form
   const [newMaterialTitle, setNewMaterialTitle] = useState('');
@@ -191,47 +193,15 @@ export const SynchronousClassScribe: React.FC<SynchronousClassScribeProps> = ({
     return () => clearInterval(interval);
   }, [isRecording]);
 
-  // Speech Recognition (Web Speech fallback)
-  useEffect(() => {
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (SpeechRecognition) {
-      try {
-        const recognition = new SpeechRecognition();
-        recognition.continuous = true;
-        recognition.interimResults = true;
-        recognition.lang = 'en-US';
-
-        recognition.onresult = (event: any) => {
-          for (let i = event.resultIndex; i < event.results.length; ++i) {
-            if (event.results[i].isFinal) {
-              const text = event.results[i][0].transcript.trim();
-              if (text) {
-                const minutes = Math.floor(recordingSeconds / 60).toString().padStart(2, '0');
-                const secs = (recordingSeconds % 60).toString().padStart(2, '0');
-                const timecode = `[${minutes}:${secs}]`;
-                setTranscript((prev) => `${prev}\n${timecode} Instructor: ${text}`);
-              }
-            }
-          }
-        };
-
-        recognition.onerror = (e: any) => console.warn('Speech event error:', e);
-        recognitionRef.current = recognition;
-      } catch (e) {
-        // speech recognition unavailable
-      }
-    }
-  }, [recordingSeconds]);
-
-  // Start / Pause Live Audio Recording with MediaRecorder
+  // Start / Pause Live Audio Recording & Speech-to-Text
   const handleToggleRecording = async () => {
     if (isRecording) {
       // STOP recording
       setIsRecording(false);
-      if (recognitionRef.current) {
-        try {
-          recognitionRef.current.stop();
-        } catch {}
+      setInterimSpeech('');
+
+      if (recognizerRef.current) {
+        recognizerRef.current.stop();
       }
 
       if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
@@ -244,12 +214,37 @@ export const SynchronousClassScribe: React.FC<SynchronousClassScribeProps> = ({
 
       onAddTelemetry(
         'Paused Live Lecture Audio Recording',
-        `Recorded ${Math.floor(recordingSeconds / 60)}m ${recordingSeconds % 60}s of lecture audio. Ready for Gemini AI transcription.`,
+        `Recorded ${Math.floor(recordingSeconds / 60)}m ${recordingSeconds % 60}s of lecture audio. Ready for Gemini AI distillation.`,
         'Ingestion Agent'
       );
     } else {
       // START recording
       try {
+        // 1. Start continuous browser speech recognition
+        const recognizer = createSpeechRecognizer(
+          (confirmedText, interimText) => {
+            setInterimSpeech(interimText);
+            if (confirmedText) {
+              const minutes = Math.floor(recordingSeconds / 60).toString().padStart(2, '0');
+              const secs = (recordingSeconds % 60).toString().padStart(2, '0');
+              const timecode = `[${minutes}:${secs}]`;
+              setTranscript((prev) => {
+                const prevClean = prev.trim();
+                return prevClean
+                  ? `${prevClean}\n${timecode} Speaker: ${confirmedText}`
+                  : `${timecode} Speaker: ${confirmedText}`;
+              });
+            }
+          },
+          (err) => console.warn('Speech recognition warning:', err)
+        );
+
+        if (recognizer) {
+          recognizerRef.current = recognizer;
+          recognizer.start();
+        }
+
+        // 2. Start MediaRecorder for high-fidelity audio capture
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         mediaStreamRef.current = stream;
         audioChunksRef.current = [];
@@ -281,20 +276,13 @@ export const SynchronousClassScribe: React.FC<SynchronousClassScribeProps> = ({
         mediaRecorderRef.current = recorder;
         setIsRecording(true);
 
-        if (recognitionRef.current) {
-          try {
-            recognitionRef.current.start();
-          } catch {}
-        }
-
         onAddTelemetry(
           'Started Live Audio Recording',
-          `Listening to lecture for "${meetingTitle}" via MediaRecorder audio stream.`,
+          `Listening to lecture for "${meetingTitle || 'Live Session'}" with simultaneous real-time speech transcription.`,
           'Ingestion Agent'
         );
       } catch (err: any) {
         console.warn('Microphone permission or access error:', err);
-        // Fallback to simulation timer if microphone access is blocked
         setIsRecording(true);
       }
     }
@@ -379,18 +367,18 @@ export const SynchronousClassScribe: React.FC<SynchronousClassScribeProps> = ({
       if (data.summary) {
         setLiveStudentNotes((prev) =>
           prev
-            ? `${prev}\n\n• 🎙️ Gemini Transcribed Summary: ${data.summary}`
-            : `• 🎙️ Gemini Transcribed Summary: ${data.summary}`
+            ? `${prev}\n\n• Gemini Transcribed Summary: ${data.summary}`
+            : `• Gemini Transcribed Summary: ${data.summary}`
         );
       }
       if (data.keyInvariants && data.keyInvariants.length > 0) {
         setLiveStudentNotes((prev) =>
-          `${prev}\n• ⭐ Key Invariants: ${data.keyInvariants.join(', ')}`
+          `${prev}\n• Key Invariants: ${data.keyInvariants.join(', ')}`
         );
       }
       if (data.actionItems && data.actionItems.length > 0) {
         setLiveStudentNotes((prev) =>
-          `${prev}\n• 📋 Action Items: ${data.actionItems.join('; ')}`
+          `${prev}\n• Action Items: ${data.actionItems.join('; ')}`
         );
       }
 
@@ -504,9 +492,13 @@ export const SynchronousClassScribe: React.FC<SynchronousClassScribeProps> = ({
     const start = Date.now();
 
     try {
+      const apiKey = localStorage.getItem('gemini_api_key') || '';
       const res = await fetch('/api/extract-class-notes', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-gemini-api-key': apiKey,
+        },
         body: JSON.stringify({
           meetingTitle,
           subject,
@@ -527,7 +519,7 @@ export const SynchronousClassScribe: React.FC<SynchronousClassScribeProps> = ({
           title: `Master Synthesis: ${meetingTitle}`,
           subject: subject || 'Computer Science & Cognitive Psychology',
           executiveSummary: `Synthesized lecture and discussion on ${meetingTitle}. Integrated live speech transcript, student scratchpad remarks, and ${supportMaterials.length} supporting slide materials.`,
-          masterNotesMarkdown: `## 📌 Executive Summary\nThis session comprehensively explored the core invariants, failure domains, and practical tradeoffs discussed during class.\n\n---\n\n### 1. Primary Discussion Points & Live Transcribed Insights\n- **Core Invariant**: State convergence requires strict quorum overlap (R + W > N) under partitioned conditions.\n- **Professor's Warning**: Casual assumptions of zero-cost consistency represent an illusion of competence on exams.\n- **Student Live Notes Integration**: Synchronized student takeaways with the live audio stream, isolating critical edge cases.\n\n---\n\n### 2. Deep Mechanism Breakdown\n1. **Convergence Protocol**: Nodes coordinate via monotonic log indices before finalizing state transitions.\n2. **Failure Isolation**: Split-brain scenarios are mitigated through odd-numbered voter quorum thresholds (2f + 1).\n3. **Latency & Bandwidth Bounds**: Memory lookups dominate when token or state caches exceed cache line allocations.\n\n---\n\n### 3. Action Items & Follow-ups\n- [ ] Review Lemma 3.1 before the upcoming lab section.\n- [ ] Compare Quorum consensus behavior under asymmetric packet loss.`,
+          masterNotesMarkdown: `## Executive Summary\nThis session comprehensively explored the core invariants, failure domains, and practical tradeoffs discussed during class.\n\n---\n\n### 1. Primary Discussion Points & Live Transcribed Insights\n- **Core Invariant**: State convergence requires strict quorum overlap (R + W > N) under partitioned conditions.\n- **Professor's Warning**: Casual assumptions of zero-cost consistency represent an illusion of competence on exams.\n- **Student Live Notes Integration**: Synchronized student takeaways with the live audio stream, isolating critical edge cases.\n\n---\n\n### 2. Deep Mechanism Breakdown\n1. **Convergence Protocol**: Nodes coordinate via monotonic log indices before finalizing state transitions.\n2. **Failure Isolation**: Split-brain scenarios are mitigated through odd-numbered voter quorum thresholds (2f + 1).\n3. **Latency & Bandwidth Bounds**: Memory lookups dominate when token or state caches exceed cache line allocations.\n\n---\n\n### 3. Action Items & Follow-ups\n- [ ] Review Lemma 3.1 before the upcoming lab section.\n- [ ] Compare Quorum consensus behavior under asymmetric packet loss.`,
           slideTranscriptAlignment: [
             {
               slideTitle: supportMaterials?.[0]?.title || 'Slide Diagram Invariant',
@@ -684,12 +676,12 @@ export const SynchronousClassScribe: React.FC<SynchronousClassScribeProps> = ({
               {isTranscribingAudio ? (
                 <>
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  Transcribing via Gemini AI...
+                  Enhancing via Gemini 3.5...
                 </>
               ) : (
                 <>
                   <Sparkles className="w-3.5 h-3.5" />
-                  Transcribe Audio with Gemini
+                  Enhance Transcript (Gemini 3.5)
                 </>
               )}
             </button>
@@ -701,7 +693,7 @@ export const SynchronousClassScribe: React.FC<SynchronousClassScribeProps> = ({
             Synchronous Lecture Notes & Multimodal Material Scribe
           </h2>
           <p className="text-xs text-[#5A5553] max-w-3xl leading-relaxed mt-1">
-            Capture live class speech directly via microphone or audio files, record simultaneous student scratchpad notes, and attach supporting slide decks (PDF, PPTX), Word docs, or photos. Gemini 2.5/3.x cross-synthesizes everything into master notes and atomic Kintsugi memory vessels.
+            Capture live class speech directly via microphone or audio files, record simultaneous student scratchpad notes, and attach supporting slide decks (PDF, PPTX), Word docs, or photos. Gemini 3.5 cross-synthesizes everything into master notes and atomic Kintsugi memory vessels.
           </p>
         </div>
 
@@ -971,7 +963,7 @@ export const SynchronousClassScribe: React.FC<SynchronousClassScribeProps> = ({
             Extract Master Notes & Atomic Memory Vessels
           </h3>
           <p className="text-xs text-[#5A5553]">
-            Cross-analyzes transcript, student scratchpad, and {supportMaterials.length} support materials with Gemini AI.
+            Cross-analyzes transcript, student scratchpad, and {supportMaterials.length} support materials with Gemini 3.5.
           </p>
         </div>
 
@@ -983,12 +975,12 @@ export const SynchronousClassScribe: React.FC<SynchronousClassScribeProps> = ({
           {isExtracting ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin text-[#BF9A2A]" />
-              Synthesizing All Materials via Gemini AI...
+              Synthesizing All Materials via Gemini 3.5...
             </>
           ) : (
             <>
               <Sparkles className="w-4 h-4 text-[#BF9A2A]" />
-              <span>Synthesize & Extract All Notes</span>
+              <span>Synthesize Class & Plant Vessels (Gemini 3.5)</span>
             </>
           )}
         </button>

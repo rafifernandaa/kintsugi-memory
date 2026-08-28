@@ -225,7 +225,7 @@ export const IngestionHub: React.FC<IngestionHubProps> = ({
         </div>
 
         <div className="text-[11px] font-mono text-[#736D6B] hidden md:inline pr-2">
-          Gemini 3.7 / 3.5 Multimodal Pipeline (&gt;3.5 Spec)
+          Gemini 3.5 Multimodal Pipeline
         </div>
       </div>
 
@@ -246,7 +246,7 @@ export const IngestionHub: React.FC<IngestionHubProps> = ({
               Feed Lecture Notes, PDFs, Word Docs & Slide Decks
             </h2>
             <p className="text-xs text-[#5A5553] max-w-2xl leading-relaxed">
-              Upload PDF textbooks, PowerPoint presentations (.pptx), Word notes (.docx), or architectural slide images. Gemini AI isolates core invariants, detects illusion-of-competence pitfalls, and fits initial FSRS Bayesian memory decay parameters.
+              Upload PDF textbooks, PowerPoint presentations (.pptx), Word notes (.docx), or architectural slide images. Gemini 3.5 isolates core invariants, detects illusion-of-competence pitfalls, and fits initial FSRS Bayesian memory decay parameters.
             </p>
           </div>
 

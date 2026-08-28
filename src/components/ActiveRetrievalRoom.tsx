@@ -50,19 +50,25 @@ import {
 import confetti from 'canvas-confetti';
 
 interface ActiveRetrievalRoomProps {
-  concept: Concept;
+  concept?: Concept;
+  allConcepts?: Concept[];
+  onSelectConcept?: (concept: Concept) => void;
   onUpdateConcept: (updated: Concept) => void;
   onRecordRetrievalSession?: () => void;
   onAddTelemetry: (action: string, details: string, role?: any) => void;
   onBackToGarden: () => void;
+  onNavigateToMaterials?: () => void;
 }
 
 export const ActiveRetrievalRoom: React.FC<ActiveRetrievalRoomProps> = ({
   concept,
+  allConcepts,
+  onSelectConcept,
   onUpdateConcept,
   onRecordRetrievalSession,
   onAddTelemetry,
   onBackToGarden,
+  onNavigateToMaterials,
 }) => {
   const [questions, setQuestions] = useState<QuestionPrompt[]>([]);
   const [currentQIndex, setCurrentQIndex] = useState(0);
@@ -264,16 +270,19 @@ export const ActiveRetrievalRoom: React.FC<ActiveRetrievalRoomProps> = ({
 
   // Fetch Socratic questions on mount
   useEffect(() => {
-    fetchQuestions();
+    if (concept?.id) {
+      fetchQuestions();
+    }
     return () => {
       stopSpeaking();
       if (recognizerRef.current) {
         recognizerRef.current.stop();
       }
     };
-  }, [concept.id]);
+  }, [concept?.id]);
 
   const fetchQuestions = async () => {
+    if (!concept) return;
     setIsLoadingQuestions(true);
     setEvaluationResult(null);
     setStudentAnswer('');
@@ -559,6 +568,41 @@ export const ActiveRetrievalRoom: React.FC<ActiveRetrievalRoomProps> = ({
     }
   };
 
+  if (!concept) {
+    return (
+      <div className="max-w-3xl mx-auto py-16 px-6 bg-[#FFFFFF] border border-[#DDD7C8] rounded-3xl text-center space-y-6 shadow-sm">
+        <div className="w-16 h-16 rounded-2xl bg-[#BF9A2A]/15 text-[#8F6A00] flex items-center justify-center mx-auto">
+          <Target className="w-8 h-8" />
+        </div>
+        <div className="space-y-2 max-w-md mx-auto">
+          <h2 className="text-xl font-serif font-bold text-[#2B2827]">
+            No Memory Vessel Selected for Review
+          </h2>
+          <p className="text-xs text-[#736D6B] leading-relaxed">
+            Select an active memory vessel from your Synaptic Garden to practice Socratic retrieval, or ingest new course materials.
+          </p>
+        </div>
+        <div className="flex items-center justify-center gap-3 flex-wrap">
+          <button
+            onClick={onBackToGarden}
+            className="px-5 py-2.5 rounded-xl bg-[#152659] text-white text-xs font-semibold hover:bg-[#1E357A] transition-all shadow-xs inline-flex items-center gap-2"
+          >
+            <span>Open Synaptic Garden</span>
+            <ArrowRight className="w-3.5 h-3.5 text-[#BF9A2A]" />
+          </button>
+          {onNavigateToMaterials && (
+            <button
+              onClick={onNavigateToMaterials}
+              className="px-5 py-2.5 rounded-xl bg-[#FAF8F2] border border-[#DDD7C8] text-xs font-semibold text-[#5A5553] hover:bg-[#EFEAD9] transition-all"
+            >
+              <span>Ingest Course Materials</span>
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   const wordCount = studentAnswer.trim() ? studentAnswer.trim().split(/\s+/).length : 0;
   const charCount = studentAnswer.length;
 
@@ -571,13 +615,32 @@ export const ActiveRetrievalRoom: React.FC<ActiveRetrievalRoomProps> = ({
         {concept.kintsugiRepairs > 0 && (
           <KintsugiOverlay repairs={concept.kintsugiRepairs} intensity="subtle" />
         )}
-        <div className="space-y-1 relative z-20">
-          <div className="flex items-center gap-2 text-xs font-mono text-[#736D6B]">
-            <button onClick={onBackToGarden} className="hover:text-[#8F6A00] underline font-semibold">
-              ← Return to Garden
-            </button>
-            <span>/</span>
-            <span className="text-[#8F6A00] font-bold">{concept.category}</span>
+        <div className="space-y-1 relative z-20 flex-1">
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <div className="flex items-center gap-2 text-xs font-mono text-[#736D6B]">
+              <button onClick={onBackToGarden} className="hover:text-[#8F6A00] underline font-semibold">
+                ← Return to Garden
+              </button>
+              <span>/</span>
+              <span className="text-[#8F6A00] font-bold">{concept.category}</span>
+            </div>
+
+            {allConcepts && allConcepts.length > 1 && onSelectConcept && (
+              <select
+                value={concept.id}
+                onChange={(e) => {
+                  const target = allConcepts.find((c) => c.id === e.target.value);
+                  if (target) onSelectConcept(target);
+                }}
+                className="text-xs font-mono bg-[#FAF8F2] border border-[#DDD7C8] rounded-lg px-2.5 py-1 text-[#2B2827] focus:outline-hidden"
+              >
+                {allConcepts.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    Switch: {c.title} ({Math.round(c.currentRetention * 100)}% Ret)
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
           <h2 className="text-2xl font-serif font-bold text-[#2B2827]">{concept.title}</h2>
           <div className="flex items-center gap-3 text-xs font-mono text-[#5A5553] pt-1 flex-wrap">

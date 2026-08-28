@@ -13,6 +13,7 @@ import {
   generateExamStudyPlan,
   processMemory,
 } from "./server/geminiService";
+import { ScribeAgent } from "./server/googleAgentFramework";
 
 dotenv.config();
 
@@ -221,6 +222,30 @@ app.post("/api/extract-concepts", async (req, res) => {
     console.error("[Concept Extraction Route Error]:", error);
     return res.status(500).json({
       error: error?.message || "Failed to extract concepts.",
+    });
+  }
+});
+
+app.post("/api/extract-class-notes", async (req, res) => {
+  try {
+    const apiKey = resolveApiKey(req);
+    const { meetingTitle, subject, speakerName, transcript, liveStudentNotes, supportMaterials } = req.body;
+
+    const scribe = new ScribeAgent(apiKey, runtimeModel);
+    const result = await scribe.extractClassNotes({
+      meetingTitle,
+      subject,
+      speakerName,
+      transcript,
+      liveStudentNotes,
+      supportMaterials,
+    });
+
+    return res.json(result);
+  } catch (error: any) {
+    console.error("[Extract Class Notes Route Error]:", error);
+    return res.status(500).json({
+      error: error?.message || "Failed to extract class notes.",
     });
   }
 });

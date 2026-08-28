@@ -248,6 +248,169 @@ ${params.rawText || "(Analyze the attached visual slide / document)"}
       return JSON.parse(response.text || "{}");
     });
   }
+
+  async extractClassNotes(params: {
+    meetingTitle?: string;
+    subject?: string;
+    speakerName?: string;
+    transcript?: string;
+    liveStudentNotes?: string;
+    supportMaterials?: Array<{
+      id: string;
+      title: string;
+      type: "slide_image" | "handout_text" | "equation_photo" | "syllabus_topic";
+      textSnippet?: string;
+      imageBase64?: string;
+      mimeType?: string;
+    }>;
+  }) {
+    const parts: any[] = [];
+
+    // Add support material images / documents as multimodal parts
+    if (params.supportMaterials && params.supportMaterials.length > 0) {
+      for (const mat of params.supportMaterials) {
+        if (mat.imageBase64 && mat.mimeType) {
+          const cleanBase64 = mat.imageBase64.replace(/^data:[^;]+;base64,/, "");
+          parts.push({
+            inlineData: {
+              data: cleanBase64,
+              mimeType: mat.mimeType,
+            },
+          });
+        }
+      }
+    }
+
+    const materialTextSnippets = (params.supportMaterials || [])
+      .map((m, i) => `[Material #${i + 1} (${m.type}): "${m.title}"]\n${m.textSnippet || "(Attached Visual Document/Slide)"}`)
+      .join("\n\n");
+
+    const prompt = `
+You are the Scribe & Knowledge Distillation Agent for Kintsugi Memory.
+A student attended a live class / meeting and collected:
+1. Live Lecture Transcript (Speech audio diarized from instructor/class)
+2. Student Scratchpad Notes (Student's live takeaways, questions, notes)
+3. Attached Supporting Materials (Slide decks, PDF excerpts, handout diagrams)
+
+Lecture Metadata:
+- Meeting/Course Title: ${params.meetingTitle || "Academic Lecture"}
+- Subject: ${params.subject || "Course Topic"}
+- Speaker / Instructor: ${params.speakerName || "Instructor"}
+
+=== 1. LIVE LECTURE TRANSCRIPT ===
+${params.transcript || "(No spoken transcript recorded)"}
+
+=== 2. STUDENT SCRATCHPAD NOTES ===
+${params.liveStudentNotes || "(No student scratchpad notes taken)"}
+
+=== 3. SUPPORTING LECTURE MATERIALS ===
+${materialTextSnippets || "(No supporting materials attached)"}
+
+TASK:
+Synthesize the lecture and materials into:
+1. Executive Summary & Structured Master Markdown Notes with deep causal explanations.
+2. Slide & Transcript Alignment mapping supporting materials to timestamped discussions.
+3. Action items & Deliverables (Homework, upcoming deadlines, exam alerts).
+4. Potential Exam Questions (Diagnostic probes for active retrieval).
+5. Extract 2-5 Atomic Memory Vessels (Concepts) for long-term synaptic retention in the student's Kintsugi Garden.
+
+For each atomic concept vessel:
+- title: Crisp, unambiguous concept name
+- summary: 2-sentence mechanism description explaining the invariant
+- keyMechanisms: 2-4 core underlying rules, invariants, or mathematical bounds
+- commonMisconceptions: 2 specific illusions of competence or intuitive errors
+- initialDifficulty: 1-10 difficulty rating
+- sourceSnippet: Exact quote or context from the lecture / materials
+`;
+
+    parts.push({ text: prompt });
+
+    return executeWithModelFallback(this.model, async (modelName) => {
+      const response = await this.ai.models.generateContent({
+        model: modelName,
+        contents: [
+          {
+            role: "user",
+            parts,
+          },
+        ],
+        config: {
+          systemInstruction:
+            "You are an elite academic knowledge synthesis AI agent. Synthesize synchronous lectures, scratchpad notes, and slide documents into comprehensive study notes and extract atomic memory vessels for FSRS spaced retrieval.",
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              title: { type: Type.STRING },
+              subject: { type: Type.STRING },
+              executiveSummary: { type: Type.STRING },
+              masterNotesMarkdown: { type: Type.STRING },
+              slideTranscriptAlignment: {
+                type: Type.ARRAY,
+                items: {
+                  type: Type.OBJECT,
+                  properties: {
+                    slideTitle: { type: Type.STRING },
+                    timestamp: { type: Type.STRING },
+                    synthesis: { type: Type.STRING },
+                  },
+                  required: ["slideTitle", "timestamp", "synthesis"],
+                },
+              },
+              actionItems: {
+                type: Type.ARRAY,
+                items: { type: Type.STRING },
+              },
+              potentialExamQuestions: {
+                type: Type.ARRAY,
+                items: { type: Type.STRING },
+              },
+              concepts: {
+                type: Type.ARRAY,
+                items: {
+                  type: Type.OBJECT,
+                  properties: {
+                    title: { type: Type.STRING },
+                    summary: { type: Type.STRING },
+                    keyMechanisms: {
+                      type: Type.ARRAY,
+                      items: { type: Type.STRING },
+                    },
+                    commonMisconceptions: {
+                      type: Type.ARRAY,
+                      items: { type: Type.STRING },
+                    },
+                    initialDifficulty: { type: Type.INTEGER },
+                    sourceSnippet: { type: Type.STRING },
+                  },
+                  required: [
+                    "title",
+                    "summary",
+                    "keyMechanisms",
+                    "commonMisconceptions",
+                    "initialDifficulty",
+                    "sourceSnippet",
+                  ],
+                },
+              },
+            },
+            required: [
+              "title",
+              "subject",
+              "executiveSummary",
+              "masterNotesMarkdown",
+              "slideTranscriptAlignment",
+              "actionItems",
+              "potentialExamQuestions",
+              "concepts",
+            ],
+          },
+        },
+      });
+
+      return JSON.parse(response.text || "{}");
+    });
+  }
 }
 
 // ----------------------------------------------------------------------------

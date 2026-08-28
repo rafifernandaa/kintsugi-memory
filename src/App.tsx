@@ -272,11 +272,14 @@ export default function App() {
 
           {currentTab === 'review' && (
             <ActiveRetrievalRoom
-              concept={activeReviewConcept || concepts[0]}
+              concept={activeReviewConcept || (concepts.length > 0 ? concepts[0] : undefined)}
+              allConcepts={concepts}
+              onSelectConcept={handleSelectConceptForReview}
               onUpdateConcept={handleUpdateConcept}
               onRecordRetrievalSession={handleRecordRetrievalSession}
               onAddTelemetry={addTelemetry}
               onBackToGarden={() => setCurrentTab('neuroplasticity')}
+              onNavigateToMaterials={() => setCurrentTab('materials')}
             />
           )}
 

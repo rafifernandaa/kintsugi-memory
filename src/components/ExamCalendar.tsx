@@ -158,10 +158,39 @@ export const ExamCalendar: React.FC<ExamCalendarProps> = ({
   }>>([]);
   const [extractionError, setExtractionError] = useState<string | null>(null);
 
-  // AI Study Plan State
+  // Saved Study Plans Mapping (examId -> ExamStudyPlan)
+  const [savedStudyPlans, setSavedStudyPlans] = useState<Record<string, ExamStudyPlan>>(() => {
+    try {
+      const raw = localStorage.getItem('kintsugi_exam_study_plans');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (typeof parsed === 'object' && parsed !== null) return parsed;
+      }
+    } catch (e) {
+      console.error('Failed to load saved study plans', e);
+    }
+    return {};
+  });
+
+  // AI Study Plan State for active view
   const [studyPlan, setStudyPlan] = useState<ExamStudyPlan | null>(null);
   const [isGeneratingPlan, setIsGeneratingPlan] = useState<boolean>(false);
   const [planError, setPlanError] = useState<string | null>(null);
+
+  // Automatically load saved study plan whenever active exam changes
+  useEffect(() => {
+    if (selectedExamId) {
+      const exam = exams.find((e) => e.id === selectedExamId);
+      const existing = savedStudyPlans[selectedExamId] || exam?.savedStudyPlan;
+      if (existing) {
+        setStudyPlan(existing);
+      } else {
+        setStudyPlan(null);
+      }
+    } else {
+      setStudyPlan(null);
+    }
+  }, [selectedExamId, savedStudyPlans, exams]);
 
   // Helper calculations
   const year = currentDate.getFullYear();
@@ -426,11 +455,19 @@ export const ExamCalendar: React.FC<ExamCalendarProps> = ({
     setIsModalOpen(false);
   };
 
-  // Delete Exam
+  // Delete Exam and its saved plan
   const handleDeleteExam = (id: string) => {
     const target = exams.find((e) => e.id === id);
     if (!target) return;
     setExams((prev) => prev.filter((e) => e.id !== id));
+    setSavedStudyPlans((prev) => {
+      const copy = { ...prev };
+      delete copy[id];
+      try {
+        localStorage.setItem('kintsugi_exam_study_plans', JSON.stringify(copy));
+      } catch (e) {}
+      return copy;
+    });
     if (selectedExamId === id) {
       setSelectedExamId(exams.length > 1 ? exams.find((e) => e.id !== id)!.id : null);
     }
@@ -454,7 +491,12 @@ export const ExamCalendar: React.FC<ExamCalendarProps> = ({
 
   const handleClearAllExams = () => {
     setExams([]);
+    setSavedStudyPlans({});
+    try {
+      localStorage.removeItem('kintsugi_exam_study_plans');
+    } catch (e) {}
     setSelectedExamId(null);
+    setStudyPlan(null);
     onAddTelemetry(
       'Exam Calendar Reset',
       'Cleared all scheduled exams for a pristine study horizon.',
@@ -479,10 +521,33 @@ export const ExamCalendar: React.FC<ExamCalendarProps> = ({
     return { mean, count: linked.length, highRisk };
   };
 
-  // Generate AI Study Plan with Gemini 3.7 / Vertex AI
-  const handleGenerateStudyPlan = async (exam: ExamEvent) => {
+  // Fast Open Study Plan: loads saved plan immediately or triggers generation
+  const handleOpenStudyPlanForExam = (exam: ExamEvent) => {
     setSelectedExamId(exam.id);
     setViewMode('planner');
+    const existing = savedStudyPlans[exam.id] || exam.savedStudyPlan;
+    if (existing) {
+      setStudyPlan(existing);
+      setPlanError(null);
+    } else {
+      handleGenerateStudyPlan(exam, false);
+    }
+  };
+
+  // Generate / Regenerate AI Study Plan with Gemini 3.5 & Save for Exam
+  const handleGenerateStudyPlan = async (exam: ExamEvent, forceRegenerate = false) => {
+    setSelectedExamId(exam.id);
+    setViewMode('planner');
+
+    if (!forceRegenerate) {
+      const existing = savedStudyPlans[exam.id] || exam.savedStudyPlan;
+      if (existing) {
+        setStudyPlan(existing);
+        setPlanError(null);
+        return;
+      }
+    }
+
     setIsGeneratingPlan(true);
     setPlanError(null);
 
@@ -501,10 +566,32 @@ export const ExamCalendar: React.FC<ExamCalendarProps> = ({
       }
 
       const data: ExamStudyPlan = await res.json();
-      setStudyPlan(data);
+      const planWithMeta: ExamStudyPlan = {
+        ...data,
+        examId: exam.id,
+        examTitle: exam.title,
+        generatedAt: new Date().toISOString()
+      };
+
+      setStudyPlan(planWithMeta);
+
+      // Save to savedStudyPlans mapping and localStorage
+      setSavedStudyPlans((prev) => {
+        const next = { ...prev, [exam.id]: planWithMeta };
+        try {
+          localStorage.setItem('kintsugi_exam_study_plans', JSON.stringify(next));
+        } catch (e) {}
+        return next;
+      });
+
+      // Also attach to exam object in exams list
+      setExams((prev) =>
+        prev.map((e) => (e.id === exam.id ? { ...e, savedStudyPlan: planWithMeta } : e))
+      );
+
       onAddTelemetry(
-        'Gemini 3.7 Exam Study Plan Formulated',
-        `Synthesized ${data.dailySchedule?.length || 0}-day active retrieval countdown for "${exam.title}" (${exam.courseCode}).`,
+        'Gemini 3.5 Exam Study Plan Formulated & Saved',
+        `Synthesized and persisted ${planWithMeta.dailySchedule?.length || 0}-day active retrieval countdown for "${exam.title}" (${exam.courseCode}).`,
         'Exam Strategy Agent'
       );
     } catch (err: any) {
@@ -545,12 +632,24 @@ export const ExamCalendar: React.FC<ExamCalendarProps> = ({
           "Do not do cram-rereading on exam morning; perform 5 minutes of self-explanation on core causal invariants.",
           "When approaching complex multi-hop exam questions, first write down the core mathematical or algorithmic constraint.",
           "Beware the illusion of competence: recognizing a formula or diagram in notes is not the same as generating it unprompted."
-        ]
+        ],
+        generatedAt: new Date().toISOString()
       };
 
       setStudyPlan(fallbackPlan);
+      setSavedStudyPlans((prev) => {
+        const next = { ...prev, [exam.id]: fallbackPlan };
+        try {
+          localStorage.setItem('kintsugi_exam_study_plans', JSON.stringify(next));
+        } catch (e) {}
+        return next;
+      });
+      setExams((prev) =>
+        prev.map((e) => (e.id === exam.id ? { ...e, savedStudyPlan: fallbackPlan } : e))
+      );
+
       onAddTelemetry(
-        'Exam Study Plan Synthesized',
+        'Exam Study Plan Synthesized & Saved',
         `Formulated Bayesian active retrieval study blueprint for "${exam.title}" (${exam.courseCode}).`,
         'Exam Strategy Agent'
       );
@@ -764,7 +863,7 @@ export const ExamCalendar: React.FC<ExamCalendarProps> = ({
                   No Exam Horizons Scheduled Yet
                 </h4>
                 <p className="text-xs text-[#736D6B] leading-relaxed">
-                  Start fresh by scheduling your first exam milestone and uploading lecture materials. Gemini 3.7 will automatically synthesize atomic concept vessels for your garden!
+                  Start fresh by scheduling your first exam milestone and uploading lecture materials. Gemini 3.5 will automatically synthesize atomic concept vessels for your garden.
                 </p>
               </div>
               <div className="flex items-center justify-center gap-3 pt-1">
@@ -817,7 +916,7 @@ export const ExamCalendar: React.FC<ExamCalendarProps> = ({
 
           {selectedExam && (
             <button
-              onClick={() => handleGenerateStudyPlan(selectedExam)}
+              onClick={() => handleOpenStudyPlanForExam(selectedExam)}
               className={`px-3.5 py-1.5 rounded-xl text-xs font-mono font-semibold flex items-center gap-2 transition-all ${
                 viewMode === 'planner'
                   ? 'bg-[#152659] text-white shadow-xs'
@@ -825,7 +924,11 @@ export const ExamCalendar: React.FC<ExamCalendarProps> = ({
               }`}
             >
               <Sparkles className="w-3.5 h-3.5 text-[#BF9A2A]" />
-              <span>AI Socratic Study Plan</span>
+              <span>
+                {savedStudyPlans[selectedExam.id] || selectedExam.savedStudyPlan
+                  ? 'Saved Socratic Blueprint'
+                  : 'AI Socratic Study Plan'}
+              </span>
             </button>
           )}
         </div>
@@ -1047,11 +1150,19 @@ export const ExamCalendar: React.FC<ExamCalendarProps> = ({
                               <span>Start Sprint</span>
                             </button>
                             <button
-                              onClick={() => handleGenerateStudyPlan(ex)}
+                              onClick={() => handleOpenStudyPlanForExam(ex)}
                               className="px-3 py-2 rounded-xl bg-[#FAF8F2] hover:bg-[#EFEAD9] text-[#2B2827] border border-[#DDD7C8] text-xs font-semibold inline-flex items-center justify-center gap-1.5 transition-all"
                             >
-                              <Sparkles className="w-3.5 h-3.5 text-[#8F6A00]" />
-                              <span>Study Plan</span>
+                              {savedStudyPlans[ex.id] || ex.savedStudyPlan ? (
+                                <FileText className="w-3.5 h-3.5 text-[#2F6A38]" />
+                              ) : (
+                                <Sparkles className="w-3.5 h-3.5 text-[#8F6A00]" />
+                              )}
+                              <span>
+                                {savedStudyPlans[ex.id] || ex.savedStudyPlan
+                                  ? 'Saved Plan'
+                                  : 'Study Plan'}
+                              </span>
                             </button>
                           </div>
                         </div>
@@ -1204,11 +1315,19 @@ export const ExamCalendar: React.FC<ExamCalendarProps> = ({
                         <span>Launch Socratic Sprint</span>
                       </button>
                       <button
-                        onClick={() => handleGenerateStudyPlan(ex)}
+                        onClick={() => handleOpenStudyPlanForExam(ex)}
                         className="px-3.5 py-2.5 rounded-xl bg-[#FAF8F2] hover:bg-[#EFEAD9] text-[#2B2827] border border-[#DDD7C8] text-xs font-semibold inline-flex items-center justify-center gap-2 transition-all"
                       >
-                        <Sparkles className="w-3.5 h-3.5 text-[#8F6A00]" />
-                        <span>AI Plan</span>
+                        {savedStudyPlans[ex.id] || ex.savedStudyPlan ? (
+                          <FileText className="w-3.5 h-3.5 text-[#2F6A38]" />
+                        ) : (
+                          <Sparkles className="w-3.5 h-3.5 text-[#8F6A00]" />
+                        )}
+                        <span>
+                          {savedStudyPlans[ex.id] || ex.savedStudyPlan
+                            ? 'Saved Plan'
+                            : 'AI Plan'}
+                        </span>
                       </button>
                       <button
                         onClick={() => handleOpenEditModal(ex)}
@@ -1232,7 +1351,9 @@ export const ExamCalendar: React.FC<ExamCalendarProps> = ({
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#DDD7C8] pb-6">
             <div className="space-y-1">
               <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#BF9A2A]/15 text-[#8F6A00] border border-[#BF9A2A]/30">
-                Gemini 3.7 Strategic Study Blueprint
+                {studyPlan?.generatedAt
+                  ? `Saved Socratic Blueprint • Generated ${new Date(studyPlan.generatedAt).toLocaleDateString()}`
+                  : 'Gemini 3.5 Strategic Study Blueprint'}
               </span>
               <h3 className="text-xl sm:text-2xl font-serif font-bold text-[#2B2827]">
                 Countdown Retrieval Plan: {selectedExam ? selectedExam.title : 'Target Exam'}
@@ -1245,7 +1366,7 @@ export const ExamCalendar: React.FC<ExamCalendarProps> = ({
             {selectedExam && (
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => handleGenerateStudyPlan(selectedExam)}
+                  onClick={() => handleGenerateStudyPlan(selectedExam, true)}
                   disabled={isGeneratingPlan}
                   className="px-4 py-2 rounded-xl bg-[#FAF8F2] hover:bg-[#EFEAD9] text-[#2B2827] border border-[#DDD7C8] text-xs font-semibold inline-flex items-center gap-2 transition-all"
                 >
@@ -1254,7 +1375,7 @@ export const ExamCalendar: React.FC<ExamCalendarProps> = ({
                   ) : (
                     <RefreshCw className="w-4 h-4 text-[#8F6A00]" />
                   )}
-                  <span>{isGeneratingPlan ? 'Re-Synthesizing...' : 'Regenerate Plan'}</span>
+                  <span>{isGeneratingPlan ? 'Re-Synthesizing...' : 'Regenerate Plan (Gemini 3.5)'}</span>
                 </button>
                 <button
                   onClick={() => handleLaunchSprintReview(selectedExam)}
@@ -1272,12 +1393,37 @@ export const ExamCalendar: React.FC<ExamCalendarProps> = ({
               <Loader2 className="w-10 h-10 animate-spin text-[#BF9A2A] mx-auto" />
               <div className="space-y-1">
                 <h4 className="text-sm font-serif font-bold text-[#2B2827]">
-                  Synthesizing Bayesian Retrieval Countdown with Gemini 3.7...
+                  Synthesizing Bayesian Retrieval Countdown with Gemini 3.5...
                 </h4>
                 <p className="text-xs text-[#736D6B] font-mono max-w-md mx-auto">
                   Computing multi-day decay projections and scheduling forced active retrieval sprints for each core invariant.
                 </p>
               </div>
+            </div>
+          )}
+
+          {!isGeneratingPlan && !studyPlan && (
+            <div className="py-12 text-center bg-[#FAF8F2] border border-dashed border-[#BF9A2A]/40 rounded-2xl p-6 space-y-4">
+              <div className="w-12 h-12 rounded-2xl bg-[#BF9A2A]/15 text-[#8F6A00] flex items-center justify-center mx-auto">
+                <Sparkles className="w-6 h-6" />
+              </div>
+              <div className="space-y-1 max-w-md mx-auto">
+                <h4 className="text-sm font-serif font-bold text-[#2B2827]">
+                  No Socratic Blueprint Formulated Yet for This Exam
+                </h4>
+                <p className="text-xs text-[#736D6B] leading-relaxed">
+                  Synthesize an active retrieval roadmap with Gemini 3.5. Once generated, this study blueprint will be automatically saved for instant access anytime.
+                </p>
+              </div>
+              {selectedExam && (
+                <button
+                  onClick={() => handleGenerateStudyPlan(selectedExam, true)}
+                  className="px-5 py-2.5 rounded-xl bg-[#152659] text-white text-xs font-semibold hover:bg-[#1E357A] transition-all inline-flex items-center gap-2 shadow-xs"
+                >
+                  <Sparkles className="w-4 h-4 text-[#BF9A2A]" />
+                  <span>Generate Socratic Study Blueprint (Gemini 3.5)</span>
+                </button>
+              )}
             </div>
           )}
 
@@ -1340,8 +1486,9 @@ export const ExamCalendar: React.FC<ExamCalendarProps> = ({
                           <span className="text-xs font-mono text-[#736D6B]">
                             {day.dateStr}
                           </span>
-                          <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#FAF8F2] text-[#8F6A00] border border-[#DDD7C8]">
-                            ⏱️ {day.estimatedMinutes} mins
+                          <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#FAF8F2] text-[#8F6A00] border border-[#DDD7C8] inline-flex items-center gap-1">
+                            <Clock className="w-3 h-3 text-[#8F6A00]" />
+                            <span>{day.estimatedMinutes} mins</span>
                           </span>
                           <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#BF9A2A]/15 text-[#8F6A00]">
                             {day.retrievalType.replace(/_/g, ' ')}

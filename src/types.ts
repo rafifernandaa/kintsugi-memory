@@ -169,6 +169,7 @@ export interface ExamEvent {
   urgencyLevel?: 'high' | 'medium' | 'normal';
   color?: string;
   createdAt: string;
+  savedStudyPlan?: ExamStudyPlan;
 }
 
 export interface ExamDailyScheduleItem {
@@ -192,5 +193,6 @@ export interface ExamStudyPlan {
   strategySummary: string;
   dailySchedule: ExamDailyScheduleItem[];
   examDayProTips: string[];
+  generatedAt?: string;
 }
 

@@ -1,25 +1,25 @@
 # Multi-stage Dockerfile for Kintsugi Memory on Google Cloud Run
-FROM node:22-alpine AS builder
+FROM node:22-slim AS builder
 
 WORKDIR /app
 
-# Install build dependencies
-COPY package*.json ./
-RUN npm ci
+# Install all build dependencies
+COPY package.json ./
+RUN npm install
 
 # Copy source code and build frontend & backend bundle
 COPY . .
 RUN npm run build
 
-# Production image
-FROM node:22-alpine AS runner
+# Production runtime image
+FROM node:22-slim AS runner
 
 WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=8080
 
-COPY package*.json ./
-RUN npm ci --only=production
+COPY package.json ./
+RUN npm install --omit=dev
 
 # Copy built server and static assets from builder
 COPY --from=builder /app/dist ./dist

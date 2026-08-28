@@ -14,8 +14,6 @@
     "@google/genai": "^2.4.0",
     "@jridgewell/resolve-uri": "^3.1.2",
     "@jridgewell/trace-mapping": "^0.3.31",
-    "@rollup/rollup-win32-x64-msvc": "^4.63.0",
-    "@tailwindcss/oxide-win32-x64-msvc": "^4.3.3",
     "@tailwindcss/vite": "^4.1.14",
     "@vitejs/plugin-react": "^5.0.4",
     "accept-language": "^3.0.20",

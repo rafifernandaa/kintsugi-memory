@@ -1627,7 +1627,7 @@ export const ExamCalendar: React.FC<ExamCalendarProps> = ({
                         <span>
                           {isExtractingVessels
                             ? 'Extracting with Gemini 3.7...'
-                            : '✨ Extract Invariants & Vessels (Gemini 3.7)'}
+                            : 'Extract Invariants & Vessels (Gemini 3.7)'}
                         </span>
                       </button>
 

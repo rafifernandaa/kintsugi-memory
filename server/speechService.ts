@@ -53,7 +53,7 @@ export async function transcribeAudio(options: TranscribeOptions): Promise<Trans
   try {
     let ai: GoogleGenAI;
     if (process.env.USE_VERTEX_AI === "true" || !apiKey || apiKey.trim() === "") {
-      ai = new GoogleGenAI({ vertexAI: true, project: projectId, location });
+      ai = new GoogleGenAI({ vertexai: true, project: projectId, location });
     } else {
       ai = new GoogleGenAI({ apiKey: apiKey.trim() });
     }

@@ -48,6 +48,18 @@ async function executeWithModelFallback<T>(
   throw lastErr || new Error("All candidate Gemini models failed.");
 }
 
+function createAgentGenAIClient(apiKey?: string): GoogleGenAI {
+  const resolvedKey = apiKey || process.env.GEMINI_API_KEY;
+  if (resolvedKey && resolvedKey.trim() !== "" && resolvedKey !== "MY_GEMINI_API_KEY") {
+    return new GoogleGenAI({ apiKey: resolvedKey.trim() });
+  }
+  return new GoogleGenAI({
+    vertexai: true,
+    project: process.env.GOOGLE_CLOUD_PROJECT || "my-project-31-491314",
+    location: process.env.GOOGLE_CLOUD_REGION || "us-west1",
+  });
+}
+
 // ----------------------------------------------------------------------------
 // 1. SCRIBE AGENT: Live Speech Audio Diarization & Multimodal Slide Extractor
 // ----------------------------------------------------------------------------
@@ -55,8 +67,8 @@ export class ScribeAgent {
   private ai: GoogleGenAI;
   private model: string;
 
-  constructor(apiKey: string, model = "gemini-3.7-flash") {
-    this.ai = new GoogleGenAI({ apiKey });
+  constructor(apiKey?: string, model = "gemini-3.7-flash") {
+    this.ai = createAgentGenAIClient(apiKey);
     this.model = model;
   }
 
@@ -236,8 +248,8 @@ export class SocraticInterviewerAgent {
   private ai: GoogleGenAI;
   private model: string;
 
-  constructor(apiKey: string, model = "gemini-3.7-flash") {
-    this.ai = new GoogleGenAI({ apiKey });
+  constructor(apiKey?: string, model = "gemini-3.7-flash") {
+    this.ai = createAgentGenAIClient(apiKey);
     this.model = model;
   }
 
@@ -316,8 +328,8 @@ export class CognitiveEvaluatorAgent {
   private ai: GoogleGenAI;
   private model: string;
 
-  constructor(apiKey: string, model = "gemini-3.7-flash") {
-    this.ai = new GoogleGenAI({ apiKey });
+  constructor(apiKey?: string, model = "gemini-3.7-flash") {
+    this.ai = createAgentGenAIClient(apiKey);
     this.model = model;
   }
 
@@ -430,12 +442,12 @@ export class AutonomousCliffAgent {
   private pubSubTopic: string;
 
   constructor(
-    apiKey: string,
+    apiKey?: string,
     model = "gemini-3.7-flash",
     projectId = "my-project-31-491314",
     pubSubTopic = "projects/my-project-31-491314/topics/kintsugi-cliff-pings"
   ) {
-    this.ai = new GoogleGenAI({ apiKey });
+    this.ai = createAgentGenAIClient(apiKey);
     this.model = model;
     this.projectId = projectId;
     this.pubSubTopic = pubSubTopic;

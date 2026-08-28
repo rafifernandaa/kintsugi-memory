@@ -38,7 +38,7 @@ export function getGeminiClient(apiKeyOverride?: string): { ai: GoogleGenAI; mod
 
   // 2. Vertex AI Mode using GCP ADC / Service Account
   const ai = new GoogleGenAI({
-    vertexAI: true,
+    vertexai: true,
     project: projectId,
     location,
   });

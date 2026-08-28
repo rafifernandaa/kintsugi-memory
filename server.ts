@@ -94,7 +94,7 @@ app.get("/api/health", async (req, res) => {
     let ai: any;
     if (isVertexAI) {
       ai = new GoogleGenAI({
-        vertexAI: true,
+        vertexai: true,
         project: gcpProjectId,
         location: process.env.GOOGLE_CLOUD_REGION || "us-west1",
       });

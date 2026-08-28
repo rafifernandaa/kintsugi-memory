@@ -6,3 +6,6 @@ coverage/
 *.log
 .env*
 !.env.example
+gcp-sa-key.json
+*key*.json
+credentials*.json

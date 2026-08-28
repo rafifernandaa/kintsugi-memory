@@ -140,10 +140,28 @@ export function buildCliffEditorialEmailHtml(payload: CliffPingPayload, messageI
   `;
 }
 
+export function getSmtpStatus(): { configured: boolean; user: string | null; host: string | null } {
+  const user = process.env.SMTP_USER || process.env.MAIL_USER || process.env.GMAIL_USER || null;
+  const pass = process.env.SMTP_PASS || process.env.MAIL_PASS || process.env.GMAIL_APP_PASSWORD || null;
+  const host = process.env.SMTP_HOST || process.env.MAIL_HOST || (user ? "smtp.gmail.com" : null);
+
+  return {
+    configured: Boolean(user && pass),
+    user: user ? user.replace(/(.{3})(.*)(@.*)/, "$1***$3") : null,
+    host,
+  };
+}
+
 /**
  * Publishes a forgetting-cliff event to Google Cloud Pub/Sub & Dispatches Email
  */
-export async function publishCliffEvent(payload: CliffPingPayload): Promise<{ messageId: string; emailSent: boolean; htmlPreview: string }> {
+export async function publishCliffEvent(payload: CliffPingPayload): Promise<{
+  messageId: string;
+  emailSent: boolean;
+  smtpConfigured: boolean;
+  htmlPreview: string;
+  mailError?: string;
+}> {
   const messageId = `gcp-pubsub-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
   const eventEnvelope = {
     specversion: "1.0",
@@ -184,13 +202,15 @@ export async function publishCliffEvent(payload: CliffPingPayload): Promise<{ me
   }
 
   const emailHtml = buildCliffEditorialEmailHtml(payload, publishedMessageId);
+  const activeTransporter = createEmailTransporter();
   let emailDelivered = false;
+  let mailErrorMessage: string | undefined;
 
   // Dispatch actual email if SMTP transporter is configured
-  if (emailTransporter) {
+  if (activeTransporter) {
     try {
-      const sender = process.env.SMTP_FROM || process.env.MAIL_FROM || `"Kintsugi Memory Agent" <notifications@kintsugi-memory.ai>`;
-      const info = await emailTransporter.sendMail({
+      const sender = process.env.SMTP_FROM || process.env.MAIL_FROM || `"Kintsugi Memory Agent" <${process.env.SMTP_USER || process.env.GMAIL_USER || "notifications@kintsugi-memory.ai"}>`;
+      const info = await activeTransporter.sendMail({
         from: sender,
         to: payload.recipientEmail,
         subject: payload.subject,
@@ -200,11 +220,11 @@ export async function publishCliffEvent(payload: CliffPingPayload): Promise<{ me
       emailDelivered = true;
       console.log(`[Nodemailer] Successfully sent editorial email to ${payload.recipientEmail}: messageId=${info.messageId}`);
     } catch (mailErr: any) {
-      console.warn(`[Nodemailer] Warning sending email:`, mailErr?.message || mailErr);
+      mailErrorMessage = mailErr?.message || String(mailErr);
+      console.warn(`[Nodemailer] Warning sending email:`, mailErrorMessage);
     }
   } else {
-    console.log(`[PubSub Dispatcher] Email dispatched (in-app preview generated for ${payload.recipientEmail}). To enable live SMTP delivery, set SMTP_USER and SMTP_PASS environment variables.`);
-    emailDelivered = true;
+    console.log(`[PubSub Dispatcher] Live SMTP not configured in .env (generated in-app preview for ${payload.recipientEmail}).`);
   }
 
   // Record audit log entry
@@ -216,7 +236,7 @@ export async function publishCliffEvent(payload: CliffPingPayload): Promise<{ me
     teaserQuestion: payload.teaserQuestion,
     zineMessage: payload.zineMessage,
     dispatchedAt: new Date().toISOString(),
-    status: "delivered",
+    status: emailDelivered ? "delivered" : "queued",
     gcpPubSubMessageId: publishedMessageId,
   };
 
@@ -228,7 +248,9 @@ export async function publishCliffEvent(payload: CliffPingPayload): Promise<{ me
   return {
     messageId: publishedMessageId,
     emailSent: emailDelivered,
+    smtpConfigured: Boolean(activeTransporter),
     htmlPreview: emailHtml,
+    mailError: mailErrorMessage,
   };
 }
 

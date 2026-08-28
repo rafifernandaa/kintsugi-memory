@@ -4,7 +4,7 @@ import fs from "fs";
 import dotenv from "dotenv";
 import { parseUploadedDocument } from "./server/documentParser";
 import { transcribeAudio } from "./server/speechService";
-import { publishCliffEvent, startPubSubSubscriber, inMemoryPubSubAuditLogs } from "./server/pubsubService";
+import { publishCliffEvent, startPubSubSubscriber, inMemoryPubSubAuditLogs, getSmtpStatus } from "./server/pubsubService";
 import {
   extractAtomicConcepts,
   generateSocraticQuestions,
@@ -378,13 +378,21 @@ app.post("/api/send-cliff-notification", async (req, res) => {
       gcpPubSubTopic,
       gcpPubSubMessageId: dispatchResult.messageId,
       emailSent: dispatchResult.emailSent,
+      smtpConfigured: dispatchResult.smtpConfigured,
+      mailError: dispatchResult.mailError,
       htmlPreview: dispatchResult.htmlPreview,
-      message: `Autonomous Editorial Ping successfully published to Google Cloud Pub/Sub (${dispatchResult.messageId}) and dispatched to ${recipient}!`,
+      message: dispatchResult.emailSent
+        ? `Autonomous Editorial Ping successfully published to Google Cloud Pub/Sub (${dispatchResult.messageId}) and delivered directly to your inbox (${recipient})!`
+        : `Autonomous Editorial Ping published to Google Cloud Pub/Sub (${dispatchResult.messageId}). To receive real emails in your inbox, configure SMTP_PASS in .env.`,
     });
   } catch (error: any) {
     console.error("[Send Notification Route Error]:", error);
     return res.status(500).json({ error: "Failed to dispatch notification: " + error.message });
   }
+});
+
+app.get("/api/smtp-status", (req, res) => {
+  res.json(getSmtpStatus());
 });
 
 app.get("/api/notification-logs", (req, res) => {

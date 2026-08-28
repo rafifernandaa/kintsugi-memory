@@ -43,6 +43,15 @@ export const AutonomousDispatcher: React.FC<AutonomousDispatcherProps> = ({
   const [browserNotifsEnabled, setBrowserNotifsEnabled] = useState<boolean>(() => {
     return typeof Notification !== 'undefined' && Notification.permission === 'granted';
   });
+  const [smtpInfo, setSmtpInfo] = useState<{ configured: boolean; user: string | null; host: string | null } | null>(null);
+
+  useEffect(() => {
+    fetch('/api/smtp-status')
+      .then((r) => r.json())
+      .then((d) => setSmtpInfo(d))
+      .catch(() => {});
+  }, []);
+
   const [recentDispatches, setRecentDispatches] = useState<Array<{
     id: string;
     conceptTitle: string;
@@ -371,9 +380,24 @@ export const AutonomousDispatcher: React.FC<AutonomousDispatcherProps> = ({
           </div>
         </div>
 
-        <div className="text-[11px] font-mono text-[#736D6B] flex items-center gap-2">
-          <ShieldCheck className="w-3.5 h-3.5 text-[#2F6A38]" />
-          <span>Telegrams are formatted with calm, intellectual wabi-sabi aesthetics. Zero spam alarms.</span>
+        {/* Live SMTP Status Indicator */}
+        <div className="pt-2 border-t border-[#DDD7C8] flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[11px] font-mono">
+          {smtpInfo?.configured ? (
+            <div className="flex items-center gap-1.5 text-[#2F6A38]">
+              <CheckCircle2 className="w-3.5 h-3.5 text-[#2F6A38]" />
+              <span>Live Gmail / SMTP Delivery <b>Active</b> (Transmitter: {smtpInfo.user})</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1.5 text-[#8F6A00]">
+              <AlertTriangle className="w-3.5 h-3.5 text-[#8F6A00]" />
+              <span>In-App Preview & GCP Pub/Sub active. For direct Gmail arrival, set <code className="bg-[#FAF3E0] px-1 py-0.5 rounded text-[#8F6A00]">SMTP_PASS</code> in <code className="font-bold">.env</code>.</span>
+            </div>
+          )}
+
+          <div className="text-[11px] font-mono text-[#736D6B] flex items-center gap-2">
+            <ShieldCheck className="w-3.5 h-3.5 text-[#2F6A38]" />
+            <span>Zen wabi-sabi formatting.</span>
+          </div>
         </div>
       </div>
 
@@ -548,6 +572,24 @@ export const AutonomousDispatcher: React.FC<AutonomousDispatcherProps> = ({
                 <X className="w-4 h-4" />
               </button>
             </div>
+
+            {/* Delivery Channel Notice */}
+            {smtpInfo?.configured ? (
+              <div className="text-[11px] font-mono text-[#2F6A38] bg-[#F0F7F1] border border-[#BFE0C4] rounded-xl p-2.5 flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-[#2F6A38] shrink-0" />
+                <span>Physical email transmitted to <b>{userEmail}</b> via SMTP ({smtpInfo.user}).</span>
+              </div>
+            ) : (
+              <div className="text-[11px] font-mono text-[#8F6A00] bg-[#FAF3E0] border border-[#E8D4A2] rounded-xl p-2.5 space-y-1">
+                <div className="flex items-center gap-1.5 font-bold">
+                  <AlertTriangle className="w-3.5 h-3.5 text-[#8F6A00] shrink-0" />
+                  <span>Google Cloud Pub/Sub event published!</span>
+                </div>
+                <p className="text-[10px] text-[#736D6B] leading-relaxed">
+                  To deliver directly into your Gmail inbox, add <code className="bg-[#FFFFFF] px-1 py-0.5 rounded text-[#8F6A00]">SMTP_USER={userEmail}</code> and <code className="bg-[#FFFFFF] px-1 py-0.5 rounded text-[#8F6A00]">SMTP_PASS=your-16-char-app-password</code> in your <code>.env</code> file. Or click "Open in Email Client" to open this formatted draft immediately.
+                </p>
+              </div>
+            )}
 
             <div
               className="flex-1 overflow-y-auto rounded-2xl border border-[#DDD7C8] p-2 bg-[#FAF8F2]"

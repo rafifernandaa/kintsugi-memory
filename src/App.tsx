@@ -117,6 +117,20 @@ export default function App() {
     );
   };
 
+  const handleAddConcepts = (newConcepts: Concept[]) => {
+    setConcepts((prev) => {
+      const existingIds = new Set(prev.map((c) => c.id));
+      const uniqueNew = newConcepts.filter((c) => !existingIds.has(c.id));
+      return [...uniqueNew, ...prev];
+    });
+    addTelemetry(
+      'New Exam Vessels Synthesized',
+      `Synthesized and planted ${newConcepts.length} atomic memory vessels directly from exam syllabus materials.`,
+      'Ingestion Agent',
+      'success'
+    );
+  };
+
   const handleUpdateConcept = (updated: Concept) => {
     setConcepts((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
     setActiveReviewConcept(updated);
@@ -243,6 +257,7 @@ export default function App() {
           {currentTab === 'calendar' && (
             <ExamCalendar
               concepts={concepts}
+              onAddConcepts={handleAddConcepts}
               onStartReviewForConcept={handleSelectConceptForReview}
               onAddTelemetry={addTelemetry}
             />

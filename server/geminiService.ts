@@ -481,3 +481,147 @@ Provide:
     return JSON.parse(response.text);
   });
 }
+
+/**
+ * 6. Generate AI Exam Countdown & Socratic Study Blueprint with Gemini 3.7
+ */
+export async function generateExamStudyPlan(options: {
+  exam: any;
+  concepts?: any[];
+  apiKey?: string;
+}) {
+  const { exam, concepts = [], apiKey } = options;
+
+  if (!exam || !exam.title) {
+    throw new Error("Exam details are required to generate a study plan.");
+  }
+
+  const { ai, model } = getGeminiClient(apiKey);
+
+  const examDate = new Date(exam.date);
+  const now = new Date();
+  const daysRemaining = Math.max(1, Math.ceil((examDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+
+  const linkedConcepts = concepts.filter((c: any) => exam.conceptIds && exam.conceptIds.includes(c.id));
+  const conceptSummaries = linkedConcepts.length > 0
+    ? linkedConcepts.map((c: any) => ({
+        id: c.id,
+        title: c.title,
+        retention: Math.round((c.currentRetention || 0.8) * 100),
+        stability: c.stability || 2,
+        mechanisms: c.keyMechanisms || [],
+        misconceptions: c.commonMisconceptions || [],
+      }))
+    : [{ title: exam.subject || exam.title, retention: 75, stability: 2, mechanisms: [], misconceptions: [] }];
+
+  const targetRetentionPct = Math.round((exam.targetRetention || 0.90) * 100);
+
+  const prompt = `
+You are the Exam Strategy & Cognitive Countdown Agent for Kintsugi Memory.
+Formulate a high-yield, Bayesian active-retrieval study blueprint for an upcoming university exam.
+
+Exam Details:
+- Title: "${exam.title}"
+- Course Code: "${exam.courseCode || 'N/A'}"
+- Subject: "${exam.subject || 'Academic'}"
+- Exam Date: ${exam.date} (${daysRemaining} days remaining)
+- Target Retention Goal: ${targetRetentionPct}%
+- Location/Format: "${exam.location || 'In-Person / Online'}"
+- Syllabus / Invariant Notes: "${exam.notes || 'Core course syllabus'}"
+
+In-Scope Memory Vessels (${conceptSummaries.length}):
+${JSON.stringify(conceptSummaries, null, 2)}
+
+TASK:
+1. Synthesize a comprehensive Bayesian study blueprint.
+2. Provide a daily countdown schedule for the remaining ${Math.min(daysRemaining, 14)} days leading directly into the exam.
+3. For each day, assign a specific cognitive retrieval format ('socratic_free_recall', 'mcq_mechanisms', 'kintsugi_repair', 'synthesis_simulation') designed to repair synaptic fractures before the ${targetRetentionPct}% threshold.
+4. Highlight high-risk concepts that show low retention or tricky misconceptions.
+5. Provide 3 actionable "Exam Day Cognitive Execution Tactics" avoiding illusions of competence.
+`;
+
+  return executeWithModelRetry(ai, model, async (targetModel) => {
+    const response = await ai.models.generateContent({
+      model: targetModel,
+      contents: prompt,
+      config: {
+        systemInstruction:
+          "You are a world-class cognitive learning strategist and Socratic examiner. Create evidence-based, spaced retrieval study blueprints.",
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            examId: { type: Type.STRING },
+            examTitle: { type: Type.STRING },
+            daysRemaining: { type: Type.INTEGER },
+            currentMeanRetention: { type: Type.NUMBER },
+            projectedExamRetention: { type: Type.NUMBER },
+            recommendedDailyMinutes: { type: Type.INTEGER },
+            highRiskConcepts: {
+              type: Type.ARRAY,
+              items: { type: Type.STRING },
+            },
+            strategySummary: { type: Type.STRING },
+            dailySchedule: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  dayOffset: { type: Type.INTEGER },
+                  dateStr: { type: Type.STRING },
+                  focusTopic: { type: Type.STRING },
+                  conceptTitles: {
+                    type: Type.ARRAY,
+                    items: { type: Type.STRING },
+                  },
+                  estimatedMinutes: { type: Type.INTEGER },
+                  retrievalType: {
+                    type: Type.STRING,
+                    description: "socratic_free_recall | mcq_mechanisms | kintsugi_repair | synthesis_simulation",
+                  },
+                  reasoning: { type: Type.STRING },
+                },
+                required: [
+                  "dayOffset",
+                  "dateStr",
+                  "focusTopic",
+                  "conceptTitles",
+                  "estimatedMinutes",
+                  "retrievalType",
+                  "reasoning",
+                ],
+              },
+            },
+            examDayProTips: {
+              type: Type.ARRAY,
+              items: { type: Type.STRING },
+            },
+          },
+          required: [
+            "examId",
+            "examTitle",
+            "daysRemaining",
+            "currentMeanRetention",
+            "projectedExamRetention",
+            "recommendedDailyMinutes",
+            "highRiskConcepts",
+            "strategySummary",
+            "dailySchedule",
+            "examDayProTips",
+          ],
+        },
+      },
+    });
+
+    if (!response.text) {
+      throw new Error("Gemini returned empty study plan response.");
+    }
+
+    const parsed = JSON.parse(response.text);
+    parsed.examId = exam.id;
+    parsed.examTitle = exam.title;
+    parsed.daysRemaining = daysRemaining;
+
+    return parsed;
+  });
+}

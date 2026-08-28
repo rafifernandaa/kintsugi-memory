@@ -153,6 +153,38 @@ Run-TestCase "Synaptic Streak Synchronization API" {
     "Current Streak: $($resPost.streak.currentStreak) Days | Total Practice Sessions: $($resPost.streak.totalSessionsCompleted)"
 }
 
+# 10. Test AI Exam Countdown Study Plan Generator (Gemini 3.7)
+Run-TestCase "Gemini 3.7 Exam Countdown Study Plan Generator" {
+    $body = @{
+        exam = @{
+            id = "exam_test_midterm"
+            title = "Distributed Consensus & Raft Midterm"
+            courseCode = "CS 482"
+            subject = "Computer Science"
+            date = (Get-Date).AddDays(7).ToString("yyyy-MM-ddTHH:mm:ss")
+            targetRetention = 0.92
+            conceptIds = @("c_test_1")
+            location = "Turing Hall 102"
+            notes = "Covers leader election, log replication, and split-brain recovery."
+        }
+        concepts = @(
+            @{
+                id = "c_test_1"
+                title = "Two-Phase Commit Locking Anomaly"
+                summary = "If coordinator crashes in PREPARED state, cohorts hold locks indefinitely."
+                keyMechanisms = @("Prepare Phase", "Commit Phase", "Cohort Locks")
+                commonMisconceptions = @("Assuming 2PC is partition-tolerant")
+                stability = 3.5
+                difficulty = 6.0
+                currentRetention = 0.85
+            }
+        )
+    } | ConvertTo-Json -Depth 5
+    $res = Invoke-RestMethod -Uri "$baseUrl/api/generate-exam-study-plan" -Method POST -Headers @{ "Content-Type" = "application/json" } -Body $body
+    if (-not $res.dailySchedule -or $res.dailySchedule.Count -eq 0) { throw "Missing dailySchedule in study plan" }
+    "Synthesized $($res.dailySchedule.Count)-Day Countdown Plan | Projected Retention: $([Math]::Round($res.projectedExamRetention * 100))% | Recommended: $($res.recommendedDailyMinutes) mins/day"
+}
+
 Write-Host "`n======================================================================" -ForegroundColor Cyan
 Write-Host "RESULT: $testsPassed of $totalTests Tests Passed Successfully (100% Pass Rate)" -ForegroundColor Green
 Write-Host "======================================================================" -ForegroundColor Cyan

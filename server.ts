@@ -10,6 +10,7 @@ import {
   generateSocraticQuestions,
   evaluateCognitiveRetrieval,
   generateForgettingCliffTelegram,
+  generateExamStudyPlan,
   processMemory,
 } from "./server/geminiService";
 
@@ -244,6 +245,33 @@ app.post("/api/generate-questions", async (req, res) => {
     console.error("[Question Generator Route Error]:", error);
     return res.status(500).json({
       error: error?.message || "Failed to generate questions.",
+    });
+  }
+});
+
+// -------------------------------------------------------------
+// 3B. EXAM STUDY PLAN COUNTDOWN GENERATOR (GEMINI 3.7)
+// -------------------------------------------------------------
+app.post("/api/generate-exam-study-plan", async (req, res) => {
+  try {
+    const apiKey = resolveApiKey(req);
+    const { exam, concepts } = req.body;
+
+    if (!exam) {
+      return res.status(400).json({ error: "Exam payload is required." });
+    }
+
+    const result = await generateExamStudyPlan({
+      exam,
+      concepts,
+      apiKey,
+    });
+
+    return res.json(result);
+  } catch (error: any) {
+    console.error("[Exam Study Plan Route Error]:", error);
+    return res.status(500).json({
+      error: error?.message || "Failed to generate exam study plan.",
     });
   }
 });

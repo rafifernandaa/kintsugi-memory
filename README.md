@@ -2,7 +2,8 @@
 ### Autonomous Forgetting-Cliff Agent for Proactive Cognitive Mastery
 **Built for the [All Things Agentic Hackathon](https://allthingsagentichackathon.devpost.com)**  
 **Primary Category Track:** Collaborative Partner  
-**Google Cloud Project ID:** `my-project-31-491314`
+**Google Cloud Project ID:** `my-project-31-491314`  
+**Google Cloud Region:** `us-west1`
 
 ---
 
@@ -10,23 +11,23 @@
 
 | # | Requirement | Implementation in Kintsugi Memory |
 |---|---|---|
-| **1** | **Gemini 3.5 or newer (&gt; 3.5) via Gemini API or Vertex AI** | Powered by `gemini-3.7-flash` / `gemini-3.7-pro` multimodal models (Audio Speech, PDF Documents, Vision Diagrams, Structured JSON schemas) with `gemini-3.5-flash` / `gemini-3.5-pro` fallback. |
+| **1** | **Gemini 3.5 or newer (&gt; 3.5) via Vertex AI or Gemini API** | Powered by `gemini-3.7-flash` / `gemini-3.5-flash` multimodal models on **Google Cloud Vertex AI** (Application Default Credentials / Service Account) with audio transcription & structured JSON schemas. |
 | **2** | **At least one Google Agent Framework** | Built on the official **Google GenAI SDK (`@google/genai`)** with a decoupled 4-Agent pipeline architecture (Ingestion, Socratic Interviewer, Bayesian FSRS Engine, Autonomous Cliff Initiator). |
-| **3** | **At least one Google Cloud Infrastructure Service** | Containerized on **Google Cloud Run**, automated CI/CD via **Cloud Build**, and asynchronous notification event publishing via **Google Cloud Pub/Sub** (`projects/my-project-31-491314/topics/kintsugi-cliff-pings`). |
+| **3** | **At least one Google Cloud Infrastructure Service** | Containerized on **Google Cloud Run** with a **Dedicated Service Account (`kintsugi-runner`)**, automated builds via **Cloud Build**, and asynchronous notification event publishing via **Google Cloud Pub/Sub** (`projects/my-project-31-491314/topics/kintsugi-cliff-pings`). |
 
 ---
 
 ## ⚡ Core Feature Capabilities
 
 ### 1. 🎙️ Live Synchronous Class Scribe & Multimodal Materials
-- **Live Microphone Recording**: Real-time `MediaRecorder` audio capture.
+- **Live Microphone Recording**: Real-time `MediaRecorder` audio capture with interim speech isolation.
 - **Audio File Upload**: Upload lecture recordings (`.mp3`, `.wav`, `.m4a`, `.webm`, `.ogg`).
 - **Gemini Audio Transcription**: Verbatim timestamped transcripts with speaker diarization, executive summaries, core invariants, and action items.
 - **Universal Document Support**: Attach PDF slides, PowerPoint presentations (`.pptx`), Word documents (`.docx`), and whiteboard photos.
 
 ### 2. 📚 Universal Document Ingestion & Concept Distillation
 - Upload PDF papers, Word documents, PPTX decks, or paste raw lecture notes.
-- Gemini AI isolates atomic concepts, causal mechanisms, and cognitive *illusion of competence* traps.
+- Vertex AI isolates atomic concepts, causal mechanisms, and cognitive *illusion of competence* traps.
 - Calibrates initial Bayesian FSRS memory decay priors.
 
 ### 3. 📬 Autonomous Forgetting-Cliff Telegrams (Email & Cloud Pub/Sub)
@@ -47,11 +48,45 @@
 
 ---
 
-## 🚀 Quickstart & Local Execution
+## ☁️ Google Cloud Run Deployment (Vertex AI + Dedicated Service Account)
+
+The deployment script handles end-to-end infrastructure setup:
+1. Enables required GCP APIs (`aiplatform.googleapis.com`, `run.googleapis.com`, `pubsub.googleapis.com`, `speech.googleapis.com`, etc.).
+2. Creates a dedicated service account: `kintsugi-runner@my-project-31-491314.iam.gserviceaccount.com`.
+3. Grants required IAM roles to the dedicated service account:
+   - `roles/aiplatform.user` (Vertex AI User)
+   - `roles/pubsub.publisher` & `roles/pubsub.subscriber` (Cloud Pub/Sub)
+   - `roles/speech.client` (Speech-to-Text)
+   - `roles/storage.objectViewer`
+   - `roles/iam.serviceAccountUser`
+4. Creates Cloud Pub/Sub topic `kintsugi-cliff-pings` & subscription.
+5. Builds and deploys the container to Cloud Run in region `us-west1`.
+
+### 🐧 Linux / macOS / Google Cloud Shell:
+
+Make the script executable with `chmod +x` and run:
+
+```bash
+# 1. Make deploy script executable
+chmod +x deploy-cloudrun.sh
+
+# 2. Run the deployment script
+./deploy-cloudrun.sh
+```
+
+### 🪟 Windows PowerShell:
+
+```powershell
+.\deploy-cloudrun.ps1
+```
+
+---
+
+## 🚀 Local Development Execution
 
 ### Prerequisites
 - Node.js (v18+)
-- Gemini API Key ([Get one here](https://aistudio.google.com/app/apikey))
+- Google Cloud SDK (`gcloud`) or Gemini API Key
 
 ### Steps
 ```bash
@@ -59,7 +94,6 @@
 npm install
 
 # 2. Configure environment
-# Copy .env.example to .env and set your GEMINI_API_KEY
 cp .env.example .env
 
 # 3. Start local development server
@@ -67,20 +101,3 @@ npm run dev
 ```
 
 Visit `http://localhost:3000` in your browser.
-
----
-
-## ☁️ Google Cloud Run Deployment
-
-To deploy directly to Google Cloud Run under project `my-project-28-497709`:
-
-### Windows PowerShell:
-```powershell
-.\deploy-cloudrun.ps1
-```
-
-### Linux / macOS:
-```bash
-chmod +x deploy-cloudrun.sh
-./deploy-cloudrun.sh
-```

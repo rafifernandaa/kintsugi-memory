@@ -28,40 +28,21 @@ export function getGeminiClient(apiKeyOverride?: string): { ai: GoogleGenAI; mod
   const location = process.env.GOOGLE_CLOUD_REGION || "us-west1";
   const model = process.env.GEMINI_MODEL || "gemini-3.7-flash";
 
-  // 1. If explicit Vertex AI mode requested or running on GCP Cloud Run
-  if (process.env.USE_VERTEX_AI === "true" || process.env.GOOGLE_GENAI_USE_VERTEXAI === "true" || !apiKey) {
-    try {
-      const ai = new GoogleGenAI({
-        vertexAI: true,
-        project: projectId,
-        location,
-      });
-      return { ai, model, mode: `Vertex AI (${projectId}/${location})` };
-    } catch (vertexErr) {
-      if (!apiKey) {
-        throw new Error(
-          `Vertex AI authentication notice: ${(vertexErr as any)?.message || vertexErr}. Ensure the service account has 'roles/aiplatform.user' or provide an API key in the Judge modal.`
-        );
-      }
-    }
-  }
-
-  // 2. Direct API Key authentication mode
+  // 1. If API Key is present -> Direct Gemini API Developer Mode
   if (apiKey && apiKey.trim() !== "" && apiKey !== "MY_GEMINI_API_KEY") {
-    return {
-      ai: new GoogleGenAI({ apiKey: apiKey.trim() }),
-      model,
-      mode: "Gemini Developer API",
-    };
+    const ai = new GoogleGenAI({
+      apiKey: apiKey.trim(),
+    });
+    return { ai, model, mode: "Gemini Developer API" };
   }
 
-  // 3. Fallback to Vertex AI
+  // 2. Vertex AI Mode using GCP ADC / Service Account
   const ai = new GoogleGenAI({
     vertexAI: true,
     project: projectId,
     location,
   });
-  return { ai, model, mode: `Vertex AI (${projectId}/${location})` };
+  return { ai, model, mode: `Google Cloud Vertex AI (${projectId}/${location})` };
 }
 
 async function executeWithModelRetry<T>(

@@ -57,7 +57,7 @@ function createAgentGenAIClient(apiKey?: string): GoogleGenAI {
   return new GoogleGenAI({
     vertexai: true,
     project: process.env.GOOGLE_CLOUD_PROJECT || "my-project-31-491314",
-    location: process.env.GOOGLE_CLOUD_REGION || "us-west1",
+    location: process.env.VERTEX_AI_LOCATION || process.env.GOOGLE_CLOUD_LOCATION || "global",
   });
 }
 

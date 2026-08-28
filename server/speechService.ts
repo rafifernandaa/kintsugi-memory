@@ -47,7 +47,7 @@ export async function transcribeAudio(options: TranscribeOptions): Promise<Trans
   const apiKey = geminiApiKey || process.env.GEMINI_API_KEY;
   const modelName = geminiModel || process.env.GEMINI_MODEL || "gemini-3.5-flash";
   const projectId = process.env.GOOGLE_CLOUD_PROJECT || "my-project-31-491314";
-  const location = process.env.GOOGLE_CLOUD_REGION || "us-west1";
+  const location = process.env.VERTEX_AI_LOCATION || process.env.GOOGLE_CLOUD_LOCATION || "global";
 
   // 1. Try Vertex AI / Gemini Multimodal Audio
   try {

@@ -1570,7 +1570,7 @@ export const ExamCalendar: React.FC<ExamCalendarProps> = ({
                 {modalVesselSourceTab === 'upload' && (
                   <div className="space-y-3">
                     <p className="text-xs text-[#5A5553] leading-relaxed">
-                      Upload your lecture slides, syllabus PDF, or paste text notes. Gemini 3.7 will analyze causal invariants and synthesize new memory vessels automatically attached to this exam.
+                      Upload your lecture slides, syllabus PDF, or paste text notes. Gemini 3.5 will analyze causal invariants and synthesize new memory vessels automatically attached to this exam.
                     </p>
 
                     {/* File Drop / Select Area */}
@@ -1586,7 +1586,7 @@ export const ExamCalendar: React.FC<ExamCalendarProps> = ({
                         <Upload className="w-6 h-6 text-[#BF9A2A] mx-auto" />
                         <div className="text-xs font-semibold text-[#2B2827]">
                           {uploadedFileName ? (
-                            <span className="text-[#152659] font-mono font-bold">📄 {uploadedFileName}</span>
+                            <span className="text-[#152659] font-mono font-bold">{uploadedFileName}</span>
                           ) : (
                             <span>Click to upload PDF, DOCX, PPTX, or slide image</span>
                           )}
@@ -1626,8 +1626,8 @@ export const ExamCalendar: React.FC<ExamCalendarProps> = ({
                         )}
                         <span>
                           {isExtractingVessels
-                            ? 'Extracting with Gemini 3.7...'
-                            : 'Extract Invariants & Vessels (Gemini 3.7)'}
+                            ? 'Extracting with Gemini 3.5...'
+                            : 'Extract Invariants & Vessels (Gemini 3.5)'}
                         </span>
                       </button>
 

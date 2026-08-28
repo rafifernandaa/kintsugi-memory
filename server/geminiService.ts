@@ -23,7 +23,7 @@ const CANDIDATE_MODELS = [
 export function getGeminiClient(apiKeyOverride?: string): { ai: GoogleGenAI; model: string; mode: string } {
   const apiKey = apiKeyOverride || process.env.GEMINI_API_KEY;
   const projectId = process.env.GOOGLE_CLOUD_PROJECT || "my-project-31-491314";
-  const location = process.env.GOOGLE_CLOUD_REGION || "us-west1";
+  const location = process.env.VERTEX_AI_LOCATION || process.env.GOOGLE_CLOUD_LOCATION || "global";
   const model = process.env.GEMINI_MODEL || "gemini-3.5-flash";
 
   // 1. If API Key is present -> Direct Gemini API Developer Mode

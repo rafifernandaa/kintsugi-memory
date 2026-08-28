@@ -90,26 +90,40 @@ export const Navigation: React.FC<NavigationProps> = ({
             </button>
           )}
 
-          {/* Judge Time-Warp Slider */}
-          <div className="flex items-center gap-2 bg-[#FFFFFF] px-2.5 py-0.5 rounded-lg border border-[#DDD7C8] text-[11px] font-mono shadow-sm">
+          {/* Judge Time-Warp Slider & 30-Day Quick Cliff Buttons */}
+          <div className="flex items-center gap-1.5 bg-[#FFFFFF] px-2.5 py-0.5 rounded-lg border border-[#DDD7C8] text-[11px] font-mono shadow-sm">
             <FastForward className="w-3.5 h-3.5 text-[#BF9A2A]" />
             <span className="text-[#736D6B] hidden md:inline">Time-Warp:</span>
             <span className="text-[#8F6A00] font-bold">+{timeWarpDays.toFixed(1)}d</span>
             <input
               type="range"
               min={0}
-              max={10}
+              max={30}
               step={0.5}
               value={timeWarpDays}
               onChange={(e) => onFastForwardDecay(Number(e.target.value) - timeWarpDays)}
               className="w-16 sm:w-20 accent-[#BF9A2A] cursor-pointer h-1 bg-[#EAE6D6] rounded"
-              title="Fast-forward days of memory decay"
+              title="Fast-forward days of memory decay (up to 30 days)"
             />
+            <button
+              onClick={() => onFastForwardDecay(3)}
+              className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-[#FDF2F0] hover:bg-[#FBE8E4] text-[#993B2B] border border-[#F2C0B8] transition-colors"
+              title="Fast-forward +3 Days (Trigger Forgetting Cliff)"
+            >
+              +3d
+            </button>
+            <button
+              onClick={() => onFastForwardDecay(30)}
+              className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-[#FAF3E0] hover:bg-[#F5ECD2] text-[#8F6A00] border border-[#E8D4A2] transition-colors"
+              title="Fast-forward +30 Days (Deep Biological Forgetting)"
+            >
+              +30d
+            </button>
             {timeWarpDays > 0 && (
               <button
                 onClick={() => onFastForwardDecay(-timeWarpDays)}
-                className="text-[#736D6B] hover:text-[#2B2827]"
-                title="Reset time"
+                className="text-[#736D6B] hover:text-[#2B2827] pl-1"
+                title="Reset time-warp"
               >
                 <RotateCcw className="w-3 h-3" />
               </button>

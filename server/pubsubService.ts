@@ -34,7 +34,7 @@ export const inMemoryPubSubAuditLogs: PubSubNotificationLog[] = [];
 let pubsubClient: PubSub | null = null;
 const projectId = process.env.GOOGLE_CLOUD_PROJECT || "my-project-31-491314";
 const topicName = process.env.GOOGLE_CLOUD_PUBSUB_TOPIC?.split("/topics/")[1] || "kintsugi-cliff-pings";
-const subscriptionName = process.env.GOOGLE_CLOUD_PUBSUB_SUBSCRIPTION || "kintsugi-cliff-pings-sub";
+const subscriptionName = process.env.GOOGLE_CLOUD_PUBSUB_SUBSCRIPTION || "kintsugi-cliff-pings-server-sub";
 
 try {
   pubsubClient = new PubSub({ projectId });
@@ -161,6 +161,10 @@ export async function publishCliffEvent(payload: CliffPingPayload): Promise<{ me
   if (pubsubClient) {
     try {
       const topic = pubsubClient.topic(topicName);
+      const [topicExists] = await topic.exists().catch(() => [false]);
+      if (!topicExists) {
+        await topic.create().catch(() => {});
+      }
       const gcpMessageId = await topic.publishMessage({
         data: dataBuffer,
         attributes: {

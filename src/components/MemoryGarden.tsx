@@ -692,22 +692,36 @@ export const MemoryGarden: React.FC<MemoryGardenProps> = ({
               </span>
               <button
                 onClick={() => onFastForwardDecay(1)}
-                className="px-2 py-0.5 rounded-lg bg-[#FFFFFF] hover:bg-[#EAE6D6] text-[#2B2827] border border-[#DDD7C8] transition-colors font-mono text-[11px] font-semibold shadow-sm"
+                className="px-2 py-0.5 rounded-lg bg-[#FFFFFF] hover:bg-[#EAE6D6] text-[#2B2827] border border-[#DDD7C8] transition-colors font-mono text-[11px] font-semibold shadow-sm cursor-pointer"
                 title="Fast forward 1 day of biological forgetting"
               >
                 +1d
               </button>
               <button
                 onClick={() => onFastForwardDecay(3)}
-                className="px-2 py-0.5 rounded-lg bg-[#FDF2F0] hover:bg-[#FBE8E4] text-[#993B2B] border border-[#F2C0B8] transition-colors font-mono text-[11px] font-bold shadow-sm"
-                title="Fast forward 3 days of biological forgetting"
+                className="px-2 py-0.5 rounded-lg bg-[#FDF2F0] hover:bg-[#FBE8E4] text-[#993B2B] border border-[#F2C0B8] transition-colors font-mono text-[11px] font-bold shadow-sm cursor-pointer"
+                title="Fast forward 3 days (Trigger Forgetting Cliff)"
               >
                 +3d (Cliff)
+              </button>
+              <button
+                onClick={() => onFastForwardDecay(7)}
+                className="px-2 py-0.5 rounded-lg bg-[#FAF3E0] hover:bg-[#F5ECD2] text-[#8F6A00] border border-[#E8D4A2] transition-colors font-mono text-[11px] font-semibold shadow-sm cursor-pointer hidden md:inline"
+                title="Fast forward 7 days (1 Week)"
+              >
+                +7d
+              </button>
+              <button
+                onClick={() => onFastForwardDecay(30)}
+                className="px-2 py-0.5 rounded-lg bg-[#FAF3E0] hover:bg-[#F5ECD2] text-[#8F6A00] border border-[#E8D4A2] transition-colors font-mono text-[11px] font-bold shadow-sm cursor-pointer"
+                title="Fast forward 30 days (Deep Biological Cliff)"
+              >
+                +30d
               </button>
               {timeWarpDays > 0 && (
                 <button
                   onClick={() => onFastForwardDecay(-timeWarpDays)}
-                  className="px-1.5 py-0.5 text-[#8F6A00] hover:underline font-mono text-[10px] font-bold"
+                  className="px-1.5 py-0.5 text-[#8F6A00] hover:underline font-mono text-[10px] font-bold cursor-pointer"
                 >
                   Reset
                 </button>

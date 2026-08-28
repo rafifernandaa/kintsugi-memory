@@ -305,6 +305,7 @@ export default function App() {
                 concepts={concepts}
                 onReviewConcept={handleSelectConceptForReview}
                 onAddTelemetry={addTelemetry}
+                onFastForwardDecay={applyTimeWarp}
               />
             )}
 

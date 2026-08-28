@@ -23,12 +23,14 @@ interface AutonomousDispatcherProps {
   concepts: Concept[];
   onReviewConcept: (concept: Concept) => void;
   onAddTelemetry: (action: string, details: string, role?: any) => void;
+  onFastForwardDecay?: (days: number) => void;
 }
 
 export const AutonomousDispatcher: React.FC<AutonomousDispatcherProps> = ({
   concepts,
   onReviewConcept,
   onAddTelemetry,
+  onFastForwardDecay,
 }) => {
   const [pings, setPings] = useState<AutonomousPing[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -385,13 +387,38 @@ export const AutonomousDispatcher: React.FC<AutonomousDispatcherProps> = ({
         </div>
       )}
 
-      {/* Production Architecture Banner */}
-      <div className="bg-[#FAF8F2] border border-[#DDD7C8] rounded-xl p-4 text-xs font-mono flex flex-col md:flex-row md:items-center justify-between gap-3 text-[#5A5553] shadow-sm">
-        <div className="flex items-center gap-2">
-          <Zap className="w-4 h-4 text-[#8F6A00]" />
-          <span>GCP Project ID: <code className="text-[#8F6A00] font-bold">my-project-31-491314</code> | Topic: <code className="text-[#152659]">kintsugi-cliff-pings</code></span>
+      {/* Production Architecture & 30-Day Cliff Testing Banner */}
+      <div className="bg-[#FAF8F2] border border-[#DDD7C8] rounded-2xl p-4 text-xs font-mono flex flex-col md:flex-row md:items-center justify-between gap-3 text-[#5A5553] shadow-sm">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <Zap className="w-4 h-4 text-[#8F6A00]" />
+            <span>GCP Project ID: <code className="text-[#8F6A00] font-bold">my-project-31-491314</code> | Topic: <code className="text-[#152659]">kintsugi-cliff-pings</code></span>
+          </div>
+          <p className="text-[11px] text-[#736D6B]">
+            Subscriber subscription: <code className="text-[#2F6A38]">kintsugi-cliff-pings-sub</code>
+          </p>
         </div>
-        <span className="text-[#2F6A38] font-semibold text-[11px]">Autonomous Status: Active (1-min Tick)</span>
+
+        <div className="flex items-center gap-2 flex-wrap">
+          {onFastForwardDecay && (
+            <>
+              <button
+                onClick={() => onFastForwardDecay(3)}
+                className="px-3 py-1.5 rounded-xl bg-[#FDF2F0] hover:bg-[#FBE8E4] text-[#993B2B] border border-[#F2C0B8] font-bold text-xs flex items-center gap-1 shadow-xs transition-colors cursor-pointer"
+                title="Fast forward 3 days of forgetting"
+              >
+                <span>+3d Cliff</span>
+              </button>
+              <button
+                onClick={() => onFastForwardDecay(30)}
+                className="px-3 py-1.5 rounded-xl bg-[#FAF3E0] hover:bg-[#F5ECD2] text-[#8F6A00] border border-[#E8D4A2] font-bold text-xs flex items-center gap-1 shadow-xs transition-colors cursor-pointer"
+                title="Fast forward 30 days to breach the forgetting cliff on all vessels"
+              >
+                <span>+30d Month Cliff</span>
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Recent Dispatches Log */}

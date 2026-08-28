@@ -49,18 +49,17 @@ export async function transcribeAudio(options: TranscribeOptions): Promise<Trans
   const modelName = geminiModel || process.env.GEMINI_MODEL || "gemini-3.7-flash";
 
   if (apiKey && apiKey.trim() !== "") {
-    try {
-      const ai = new GoogleGenAI({ apiKey: apiKey.trim() });
-      const base64Data = audioBuffer.toString("base64");
+    const ai = new GoogleGenAI({ apiKey: apiKey.trim() });
+    const base64Data = audioBuffer.toString("base64");
 
-      let normalizedMime = mimeType || "audio/webm";
-      if (normalizedMime.includes("webm")) normalizedMime = "audio/webm";
-      else if (normalizedMime.includes("wav")) normalizedMime = "audio/wav";
-      else if (normalizedMime.includes("mp4") || normalizedMime.includes("m4a")) normalizedMime = "audio/mp4";
-      else if (normalizedMime.includes("mp3") || normalizedMime.includes("mpeg")) normalizedMime = "audio/mp3";
-      else if (normalizedMime.includes("ogg")) normalizedMime = "audio/ogg";
+    let normalizedMime = mimeType || "audio/webm";
+    if (normalizedMime.includes("webm")) normalizedMime = "audio/webm";
+    else if (normalizedMime.includes("wav")) normalizedMime = "audio/wav";
+    else if (normalizedMime.includes("mp4") || normalizedMime.includes("m4a")) normalizedMime = "audio/mp4";
+    else if (normalizedMime.includes("mp3") || normalizedMime.includes("mpeg")) normalizedMime = "audio/mp3";
+    else if (normalizedMime.includes("ogg")) normalizedMime = "audio/ogg";
 
-      const prompt = `
+    const prompt = `
 You are the Academic Speech Transcriber and Scribe Agent for Kintsugi Memory.
 A student recorded spoken lecture audio.
 Topic: ${meetingTitle || subjectHint || "Academic Lecture"}
@@ -74,58 +73,69 @@ TASK:
 5. Extract action items, homework assignments, or upcoming deadlines.
 `;
 
-      const response = await ai.models.generateContent({
-        model: modelName,
-        contents: {
-          parts: [
-            {
-              inlineData: {
-                data: base64Data,
-                mimeType: normalizedMime,
+    const audioCandidateModels = [
+      modelName,
+      "gemini-3.7-flash",
+      "gemini-3.5-transcribe",
+      "gemini-3.5-flash",
+      "gemini-3.6-flash",
+      "gemini-3.5-transcribe-live",
+    ].filter((m, i, arr) => arr.indexOf(m) === i);
+
+    for (const targetModel of audioCandidateModels) {
+      try {
+        console.log(`[SpeechService] Transcribing audio with Gemini model "${targetModel}"...`);
+        const response = await ai.models.generateContent({
+          model: targetModel,
+          contents: {
+            parts: [
+              {
+                inlineData: {
+                  data: base64Data,
+                  mimeType: normalizedMime,
+                },
               },
-            },
-            { text: prompt },
-          ],
-        },
-        config: {
-          systemInstruction:
-            "You are an elite academic speech recognition AI. Produce accurate timestamped transcripts with speaker diarization and extract core theoretical invariants.",
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: Type.OBJECT,
-            properties: {
-              transcript: { type: Type.STRING, description: "Timestamped transcript with speaker tags" },
-              summary: { type: Type.STRING, description: "Executive synthesis of lecture content" },
-              keyInvariants: {
-                type: Type.ARRAY,
-                items: { type: Type.STRING },
-              },
-              examAlerts: {
-                type: Type.ARRAY,
-                items: { type: Type.STRING },
-              },
-              actionItems: {
-                type: Type.ARRAY,
-                items: { type: Type.STRING },
-              },
-              subject: { type: Type.STRING },
-            },
-            required: ["transcript", "summary", "keyInvariants", "examAlerts", "actionItems"],
+              { text: prompt },
+            ],
           },
-        },
-      });
+          config: {
+            systemInstruction:
+              "You are an elite academic speech recognition AI. Produce accurate timestamped transcripts with speaker diarization and extract core theoretical invariants.",
+            responseMimeType: "application/json",
+            responseSchema: {
+              type: Type.OBJECT,
+              properties: {
+                transcript: { type: Type.STRING, description: "Timestamped transcript with speaker tags" },
+                summary: { type: Type.STRING, description: "Executive synthesis of lecture content" },
+                keyInvariants: {
+                  type: Type.ARRAY,
+                  items: { type: Type.STRING },
+                },
+                examAlerts: {
+                  type: Type.ARRAY,
+                  items: { type: Type.STRING },
+                },
+                actionItems: {
+                  type: Type.ARRAY,
+                  items: { type: Type.STRING },
+                },
+                subject: { type: Type.STRING },
+              },
+              required: ["transcript", "summary", "keyInvariants", "examAlerts", "actionItems"],
+            },
+          },
+        });
 
-      if (!response.text) {
-        throw new Error("Gemini returned an empty transcription response.");
+        if (response.text) {
+          const parsed = JSON.parse(response.text);
+          return {
+            ...parsed,
+            engineUsed: "gemini-multimodal-audio",
+          };
+        }
+      } catch (geminiError: any) {
+        console.warn(`[SpeechService] Model "${targetModel}" failed (${geminiError?.message?.slice(0, 100)}), trying next candidate...`);
       }
-
-      const parsed = JSON.parse(response.text);
-      return {
-        ...parsed,
-        engineUsed: "gemini-multimodal-audio",
-      };
-    } catch (geminiError: any) {
-      console.warn("[SpeechService] Gemini multimodal audio error, attempting Google Cloud Speech-to-Text fallback:", geminiError?.message || geminiError);
     }
   }
 

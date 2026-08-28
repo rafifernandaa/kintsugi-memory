@@ -114,6 +114,7 @@ export const ActiveRetrievalRoom: React.FC<ActiveRetrievalRoomProps> = ({
   } | null>(null);
 
   const recognizerRef = useRef<SpeechRecognitionHandler | null>(null);
+  const baseAnswerRef = useRef<string>('');
 
   // Save synaptic points to localStorage
   useEffect(() => {
@@ -366,13 +367,19 @@ export const ActiveRetrievalRoom: React.FC<ActiveRetrievalRoomProps> = ({
         recognizerRef.current.stop();
       }
       setIsListening(false);
+      baseAnswerRef.current = studentAnswer;
       return;
     }
 
     setVoiceError(null);
+    baseAnswerRef.current = studentAnswer.trim();
+
     const recognizer = createSpeechRecognizer(
-      (transcript) => {
-        setStudentAnswer((prev) => (prev ? `${prev} ${transcript}` : transcript));
+      (confirmedText, interimText) => {
+        const base = baseAnswerRef.current;
+        const spoken = [confirmedText, interimText].filter(Boolean).join(' ').trim();
+        const combined = base ? `${base} ${spoken}` : spoken;
+        setStudentAnswer(combined);
       },
       (err) => {
         setVoiceError(err);

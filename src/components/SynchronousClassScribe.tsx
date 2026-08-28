@@ -142,13 +142,13 @@ export const SynchronousClassScribe: React.FC<SynchronousClassScribeProps> = ({
   onAddTelemetry,
   onStartReviewForConcept,
 }) => {
-  // Session State
-  const [meetingTitle, setMeetingTitle] = useState(PRESET_MEETING_SESSIONS[0].title);
-  const [subject, setSubject] = useState(PRESET_MEETING_SESSIONS[0].subject);
-  const [speakerName, setSpeakerName] = useState(PRESET_MEETING_SESSIONS[0].speaker);
-  const [transcript, setTranscript] = useState(PRESET_MEETING_SESSIONS[0].transcript);
-  const [liveStudentNotes, setLiveStudentNotes] = useState(PRESET_MEETING_SESSIONS[0].liveStudentNotes);
-  const [supportMaterials, setSupportMaterials] = useState<SupportMaterial[]>(PRESET_MEETING_SESSIONS[0].supportMaterials);
+  // Session State - starts completely clean and fresh (no mock data)
+  const [meetingTitle, setMeetingTitle] = useState('');
+  const [subject, setSubject] = useState('');
+  const [speakerName, setSpeakerName] = useState('');
+  const [transcript, setTranscript] = useState('');
+  const [liveStudentNotes, setLiveStudentNotes] = useState('');
+  const [supportMaterials, setSupportMaterials] = useState<SupportMaterial[]>([]);
 
   // Live Audio Recording State (MediaRecorder)
   const [isRecording, setIsRecording] = useState(false);
@@ -321,20 +321,28 @@ export const SynchronousClassScribe: React.FC<SynchronousClassScribeProps> = ({
 
   // Execute Real Gemini AI Audio Transcription
   const handleTranscribeWithGemini = async () => {
-    if (!recordedAudioBase64 && !transcript.trim()) {
-      setError('Please record audio or upload an audio file first.');
-      return;
-    }
-
     setIsTranscribingAudio(true);
     setError(null);
     const start = Date.now();
 
-    // If currently recording, stop it first to flush audio chunks
-    if (isRecording && mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
-      mediaRecorderRef.current.stop();
-      setIsRecording(false);
-      await new Promise((resolve) => setTimeout(resolve, 600));
+    // If currently recording, stop it and wait for blob conversion
+    if (isRecording && mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      await new Promise<void>((resolve) => {
+        if (!mediaRecorderRef.current) return resolve();
+        mediaRecorderRef.current.onstop = () => {
+          const mimeType = mediaRecorderRef.current?.mimeType || recordedAudioMime || 'audio/webm';
+          const blob = new Blob(audioChunksRef.current, { type: mimeType });
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            setRecordedAudioBase64(reader.result as string);
+            setRecordedAudioMime(mimeType);
+            resolve();
+          };
+          reader.readAsDataURL(blob);
+        };
+        mediaRecorderRef.current.stop();
+        setIsRecording(false);
+      });
     }
 
     if (!recordedAudioBase64) {

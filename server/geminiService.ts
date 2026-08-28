@@ -13,9 +13,10 @@ import { GoogleGenAI, Type } from "@google/genai";
 
 const CANDIDATE_MODELS = [
   "gemini-3.7-flash",
-  "gemini-3.7-pro",
   "gemini-3.5-flash",
-  "gemini-3.5-pro",
+  "gemini-3.5-flash-lite",
+  "gemini-3.6-flash",
+  "gemini-3.5-transcribe",
 ];
 
 export function getGeminiClient(apiKeyOverride?: string): { ai: GoogleGenAI; model: string } {

@@ -105,17 +105,20 @@ TASK:
     return executeWithModelFallback(this.model, async (modelName) => {
       const response = await this.ai.models.generateContent({
         model: modelName,
-        contents: {
-          parts: [
-            {
-              inlineData: {
-                data: cleanBase64,
-                mimeType: targetMime,
+        contents: [
+          {
+            role: "user",
+            parts: [
+              {
+                inlineData: {
+                  data: cleanBase64,
+                  mimeType: targetMime,
+                },
               },
-            },
-            { text: prompt },
-          ],
-        },
+              { text: prompt },
+            ],
+          },
+        ],
         config: {
           systemInstruction:
             "You are an elite academic speech recognition and lecture transcription AI agent. Transcribe audio with verbatim precision, timestamps, speaker diarization, and extraction of theoretical invariants.",
@@ -192,7 +195,12 @@ ${params.rawText || "(Analyze the attached visual slide / document)"}
     return executeWithModelFallback(this.model, async (modelName) => {
       const response = await this.ai.models.generateContent({
         model: modelName,
-        contents: { parts },
+        contents: [
+          {
+            role: "user",
+            parts,
+          },
+        ],
         config: {
           systemInstruction:
             "You are an expert cognitive knowledge extraction agent. Isolate deep causal models and common misconceptions to combat illusions of competence.",

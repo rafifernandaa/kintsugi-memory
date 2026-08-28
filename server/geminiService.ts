@@ -168,7 +168,12 @@ ${rawText || "(Analyze the attached visual slide / document)"}
   return executeWithModelRetry(ai, model, async (targetModel) => {
     const response = await ai.models.generateContent({
       model: targetModel,
-      contents: { parts },
+      contents: [
+        {
+          role: "user",
+          parts,
+        },
+      ],
       config: {
         systemInstruction:
           "You are an expert cognitive knowledge extraction agent. Isolate causal models and misconceptions to eliminate illusions of competence.",

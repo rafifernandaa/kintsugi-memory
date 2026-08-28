@@ -94,17 +94,20 @@ TASK:
         console.log(`[SpeechService] Transcribing audio with model "${targetModel}"...`);
         const response = await ai.models.generateContent({
           model: targetModel,
-          contents: {
-            parts: [
-              {
-                inlineData: {
-                  data: base64Data,
-                  mimeType: normalizedMime,
+          contents: [
+            {
+              role: "user",
+              parts: [
+                {
+                  inlineData: {
+                    data: base64Data,
+                    mimeType: normalizedMime,
+                  },
                 },
-              },
-              { text: prompt },
-            ],
-          },
+                { text: prompt },
+              ],
+            },
+          ],
           config: {
             systemInstruction:
               "You are an elite academic speech recognition AI. Produce accurate timestamped transcripts with speaker diarization and extract core theoretical invariants.",

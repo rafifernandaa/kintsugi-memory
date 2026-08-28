@@ -1,0 +1,182 @@
+import speech from "@google-cloud/speech";
+import { GoogleGenAI, Type } from "@google/genai";
+
+/**
+ * ============================================================================
+ * 🎙️ SPEECH SERVICE: GOOGLE CLOUD SPEECH-TO-TEXT & GEMINI MULTIMODAL AUDIO
+ * ============================================================================
+ */
+
+let speechClient: speech.SpeechClient | null = null;
+try {
+  speechClient = new speech.SpeechClient();
+} catch (err) {
+  console.warn("[SpeechService] Google Cloud SpeechClient initialization deferred:", (err as any)?.message || err);
+}
+
+export interface TranscribeOptions {
+  audioBuffer: Buffer;
+  mimeType: string;
+  filename?: string;
+  meetingTitle?: string;
+  subjectHint?: string;
+  geminiApiKey?: string;
+  geminiModel?: string;
+}
+
+export interface TranscriptionResult {
+  transcript: string;
+  summary: string;
+  keyInvariants: string[];
+  examAlerts: string[];
+  actionItems: string[];
+  subject: string;
+  engineUsed: "google-cloud-speech" | "gemini-multimodal-audio";
+}
+
+/**
+ * Primary Transcriber: Uses Gemini 3.7 Multimodal Audio or Google Cloud Speech-to-Text
+ */
+export async function transcribeAudio(options: TranscribeOptions): Promise<TranscriptionResult> {
+  const { audioBuffer, mimeType, filename, meetingTitle, subjectHint, geminiApiKey, geminiModel } = options;
+
+  if (!audioBuffer || audioBuffer.length === 0) {
+    throw new Error("Audio payload is empty. Please record audio from your microphone or upload a valid audio file.");
+  }
+
+  // 1. Try Gemini Multimodal Audio (Full diarization + structured invariants)
+  const apiKey = geminiApiKey || process.env.GEMINI_API_KEY;
+  const modelName = geminiModel || process.env.GEMINI_MODEL || "gemini-3.7-flash";
+
+  if (apiKey && apiKey.trim() !== "") {
+    try {
+      const ai = new GoogleGenAI({ apiKey: apiKey.trim() });
+      const base64Data = audioBuffer.toString("base64");
+
+      let normalizedMime = mimeType || "audio/webm";
+      if (normalizedMime.includes("webm")) normalizedMime = "audio/webm";
+      else if (normalizedMime.includes("wav")) normalizedMime = "audio/wav";
+      else if (normalizedMime.includes("mp4") || normalizedMime.includes("m4a")) normalizedMime = "audio/mp4";
+      else if (normalizedMime.includes("mp3") || normalizedMime.includes("mpeg")) normalizedMime = "audio/mp3";
+      else if (normalizedMime.includes("ogg")) normalizedMime = "audio/ogg";
+
+      const prompt = `
+You are the Academic Speech Transcriber and Scribe Agent for Kintsugi Memory.
+A student recorded spoken lecture audio.
+Topic: ${meetingTitle || subjectHint || "Academic Lecture"}
+Filename: ${filename || "lecture_recording"}
+
+TASK:
+1. Provide a verbatim chronological timestamped transcript with speaker diarization (e.g. "[00:12] Professor: ...", "[01:05] Student: ...").
+2. Provide a 2-3 sentence executive synthesis of what was discussed.
+3. Extract core technical invariants, mathematical formulas, or scientific laws.
+4. Extract professor exam warnings and common pitfalls.
+5. Extract action items, homework assignments, or upcoming deadlines.
+`;
+
+      const response = await ai.models.generateContent({
+        model: modelName,
+        contents: {
+          parts: [
+            {
+              inlineData: {
+                data: base64Data,
+                mimeType: normalizedMime,
+              },
+            },
+            { text: prompt },
+          ],
+        },
+        config: {
+          systemInstruction:
+            "You are an elite academic speech recognition AI. Produce accurate timestamped transcripts with speaker diarization and extract core theoretical invariants.",
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              transcript: { type: Type.STRING, description: "Timestamped transcript with speaker tags" },
+              summary: { type: Type.STRING, description: "Executive synthesis of lecture content" },
+              keyInvariants: {
+                type: Type.ARRAY,
+                items: { type: Type.STRING },
+              },
+              examAlerts: {
+                type: Type.ARRAY,
+                items: { type: Type.STRING },
+              },
+              actionItems: {
+                type: Type.ARRAY,
+                items: { type: Type.STRING },
+              },
+              subject: { type: Type.STRING },
+            },
+            required: ["transcript", "summary", "keyInvariants", "examAlerts", "actionItems"],
+          },
+        },
+      });
+
+      if (!response.text) {
+        throw new Error("Gemini returned an empty transcription response.");
+      }
+
+      const parsed = JSON.parse(response.text);
+      return {
+        ...parsed,
+        engineUsed: "gemini-multimodal-audio",
+      };
+    } catch (geminiError: any) {
+      console.warn("[SpeechService] Gemini multimodal audio error, attempting Google Cloud Speech-to-Text fallback:", geminiError?.message || geminiError);
+    }
+  }
+
+  // 2. Fallback: Google Cloud Speech-to-Text API
+  if (speechClient) {
+    let encoding: any = "WEBM_OPUS";
+    let sampleRateHertz = 48000;
+
+    if (mimeType.includes("wav")) {
+      encoding = "LINEAR16";
+      sampleRateHertz = 16000;
+    } else if (mimeType.includes("mp3")) {
+      encoding = "MP3";
+      sampleRateHertz = 44100;
+    }
+
+    const request = {
+      audio: {
+        content: audioBuffer.toString("base64"),
+      },
+      config: {
+        encoding,
+        sampleRateHertz,
+        languageCode: "en-US",
+        enableAutomaticPunctuation: true,
+        model: "latest_long",
+      },
+    };
+
+    const [response] = await speechClient.recognize(request);
+    if (!response.results || response.results.length === 0) {
+      throw new Error("No speech could be recognized from the audio payload via Google Cloud Speech-to-Text.");
+    }
+
+    const rawTranscript = response.results
+      .map((r) => r.alternatives?.[0]?.transcript)
+      .filter(Boolean)
+      .join("\n");
+
+    return {
+      transcript: rawTranscript,
+      summary: `Transcribed audio content (${filename || "audio_recording"}) via Google Cloud Speech-to-Text.`,
+      keyInvariants: ["Extracted speech engram"],
+      examAlerts: ["Review recorded lecture transcript for key exam concepts."],
+      actionItems: ["Review lecture notes and distill atomic concepts."],
+      subject: subjectHint || "Academic Lecture",
+      engineUsed: "google-cloud-speech",
+    };
+  }
+
+  throw new Error(
+    "Transcription failed: Please provide a valid GEMINI_API_KEY in the Judge / API Settings modal, or configure Google Cloud credentials on Cloud Run."
+  );
+}

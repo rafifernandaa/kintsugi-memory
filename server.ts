@@ -3,12 +3,15 @@ import path from "path";
 import fs from "fs";
 import dotenv from "dotenv";
 import { parseUploadedDocument } from "./server/documentParser";
+import { transcribeAudio } from "./server/speechService";
+import { publishCliffEvent, startPubSubSubscriber, inMemoryPubSubAuditLogs } from "./server/pubsubService";
 import {
-  ScribeAgent,
-  SocraticInterviewerAgent,
-  CognitiveEvaluatorAgent,
-  AutonomousCliffAgent,
-} from "./server/googleAgentFramework";
+  extractAtomicConcepts,
+  generateSocraticQuestions,
+  evaluateCognitiveRetrieval,
+  generateForgettingCliffTelegram,
+  processMemory,
+} from "./server/geminiService";
 
 dotenv.config();
 
@@ -18,22 +21,22 @@ const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 app.use(express.json({ limit: "100mb" }));
 app.use(express.urlencoded({ extended: true, limit: "100mb" }));
 
-// Runtime configuration
+// Runtime environment resolution
 let runtimeApiKey = process.env.GEMINI_API_KEY || "";
 let runtimeModel = process.env.GEMINI_MODEL || "gemini-3.7-flash";
 const gcpProjectId = process.env.GOOGLE_CLOUD_PROJECT || "my-project-31-491314";
 const gcpPubSubTopic = process.env.GOOGLE_CLOUD_PUBSUB_TOPIC || `projects/${gcpProjectId}/topics/kintsugi-cliff-pings`;
 
-function resolveApiKey(req: express.Request): string | null {
+function resolveApiKey(req: express.Request): string | undefined {
   const headerKey = (req.headers["x-gemini-api-key"] as string) || (req.headers["authorization"]?.replace(/^Bearer\s+/, ""));
   const key = headerKey || runtimeApiKey || process.env.GEMINI_API_KEY || "";
   if (!key || key.trim() === "" || key === "MY_GEMINI_API_KEY") {
-    return null;
+    return undefined;
   }
   return key.trim();
 }
 
-// In-Memory store for persisted streaks and notification logs
+// In-Memory store for persisted streaks
 let serverStreakStore = {
   currentStreak: 0,
   bestStreak: 0,
@@ -41,18 +44,6 @@ let serverStreakStore = {
   historyDates: [] as string[],
   totalSessionsCompleted: 0,
 };
-
-let serverNotificationLogs: Array<{
-  id: string;
-  recipientEmail: string;
-  conceptTitle: string;
-  editorialSubject: string;
-  teaserQuestion: string;
-  zineMessage: string;
-  dispatchedAt: string;
-  status: "delivered" | "queued" | "failed";
-  gcpPubSubMessageId: string;
-}> = [];
 
 // -------------------------------------------------------------
 // 0. CONFIGURATION & HEALTH ENDPOINTS
@@ -76,6 +67,7 @@ app.post("/api/set-api-key", (req, res) => {
   }
   if (model && typeof model === "string") {
     runtimeModel = model.trim();
+    process.env.GEMINI_MODEL = runtimeModel;
   }
   return res.json({
     success: true,
@@ -93,13 +85,11 @@ app.get("/api/health", async (req, res) => {
   if (apiKey) {
     const start = Date.now();
     try {
-      const scribe = new ScribeAgent(apiKey, runtimeModel);
-      // Fast lightweight ping
       const { GoogleGenAI } = await import("@google/genai");
       const ai = new GoogleGenAI({ apiKey });
       const resp = await ai.models.generateContent({
         model: runtimeModel,
-        contents: "Respond with the word 'OK'.",
+        contents: "Respond with 'OK'.",
       });
       if (resp && resp.text) {
         geminiLiveTest = true;
@@ -144,42 +134,40 @@ app.post("/api/streak", (req, res) => {
 });
 
 // -------------------------------------------------------------
-// 1. LIVE AUDIO SPEECH SCRIBE AGENT (Gemini 3.7 Multimodal Audio)
+// 1. LIVE AUDIO SPEECH & TRANSCRIPTION ENDPOINT
 // -------------------------------------------------------------
 app.post("/api/transcribe-audio", async (req, res) => {
   try {
-    const apiKey = resolveApiKey(req);
-    if (!apiKey) {
-      return res.status(401).json({
-        error: "GEMINI_API_KEY is required for live audio transcription. Please enter your API key in the Judge Modal or configure it on Cloud Run.",
-      });
-    }
-
     const { audioBase64, mimeType, filename, meetingTitle, subjectHint } = req.body;
     if (!audioBase64) {
       return res.status(400).json({ error: "Please provide audio data from microphone or audio file upload." });
     }
 
-    const scribeAgent = new ScribeAgent(apiKey, runtimeModel);
-    const result = await scribeAgent.transcribeAudioStream({
-      audioBase64,
+    const cleanBase64 = audioBase64.replace(/^data:[^;]+;base64,/, "");
+    const audioBuffer = Buffer.from(cleanBase64, "base64");
+    const apiKey = resolveApiKey(req);
+
+    const result = await transcribeAudio({
+      audioBuffer,
       mimeType: mimeType || "audio/webm",
       filename,
-      subjectHint,
       meetingTitle,
+      subjectHint,
+      geminiApiKey: apiKey,
+      geminiModel: runtimeModel,
     });
 
     return res.json(result);
   } catch (error: any) {
-    console.error("[Transcribe Audio Agent Error]:", error);
+    console.error("[Transcribe Audio Route Error]:", error);
     return res.status(500).json({
-      error: `Transcription failed: ${error?.message || "Unknown error"}. Check if your Gemini API key has quota for ${runtimeModel}.`,
+      error: error?.message || "Failed to transcribe audio.",
     });
   }
 });
 
 // -------------------------------------------------------------
-// 2. UNIVERSAL DOCUMENT PARSER & CONCEPT EXTRACTION AGENT
+// 2. UNIVERSAL DOCUMENT PARSER & CONCEPT EXTRACTION ENDPOINTS
 // -------------------------------------------------------------
 app.post("/api/parse-document", async (req, res) => {
   try {
@@ -194,7 +182,7 @@ app.post("/api/parse-document", async (req, res) => {
 
     return res.json(parsed);
   } catch (error: any) {
-    console.error("[Document Parser Error]:", error);
+    console.error("[Document Parser Route Error]:", error);
     return res.status(500).json({ error: "Failed to parse document: " + error.message });
   }
 });
@@ -202,98 +190,72 @@ app.post("/api/parse-document", async (req, res) => {
 app.post("/api/extract-concepts", async (req, res) => {
   try {
     const apiKey = resolveApiKey(req);
-    if (!apiKey) {
-      return res.status(401).json({
-        error: "GEMINI_API_KEY is required for atomic concept distillation. Please configure your key in Judge Modal or Cloud Run.",
-      });
-    }
-
     const { rawText, fileBase64, fileMime, filename, subjectHint } = req.body;
-    if (!rawText && !fileBase64) {
-      return res.status(400).json({ error: "Please provide study notes, text, or an uploaded document/image." });
-    }
 
-    const scribeAgent = new ScribeAgent(apiKey, runtimeModel);
-    const result = await scribeAgent.extractConceptsFromMaterial({
+    const result = await extractAtomicConcepts({
       rawText,
       fileBase64,
       fileMime,
       filename,
       subjectHint,
+      apiKey,
     });
 
     return res.json(result);
   } catch (error: any) {
-    console.error("[Concept Extraction Error]:", error);
+    console.error("[Concept Extraction Route Error]:", error);
     return res.status(500).json({
-      error: `Concept extraction failed: ${error?.message || "Unknown error"}.`,
+      error: error?.message || "Failed to extract concepts.",
     });
   }
 });
 
 // -------------------------------------------------------------
-// 3. SOCRATIC INTERVIEWER AGENT (Active Retrieval Generation)
+// 3. SOCRATIC ACTIVE RETRIEVAL QUESTION GENERATOR
 // -------------------------------------------------------------
 app.post("/api/generate-questions", async (req, res) => {
   try {
     const apiKey = resolveApiKey(req);
-    if (!apiKey) {
-      return res.status(401).json({
-        error: "GEMINI_API_KEY is required to generate Socratic retrieval questions.",
-      });
-    }
-
     const { concept, currentRetention, mode } = req.body;
-    if (!concept || !concept.title) {
-      return res.status(400).json({ error: "Concept data is required to generate questions." });
-    }
 
-    const interviewerAgent = new SocraticInterviewerAgent(apiKey, runtimeModel);
-    const result = await interviewerAgent.generateDiagnosticQuestions({
+    const result = await generateSocraticQuestions({
       concept,
       currentRetention,
       mode,
+      apiKey,
     });
 
     return res.json(result);
   } catch (error: any) {
-    console.error("[Question Generator Error]:", error);
+    console.error("[Question Generator Route Error]:", error);
     return res.status(500).json({
-      error: `Question generation failed: ${error?.message || "Unknown error"}.`,
+      error: error?.message || "Failed to generate questions.",
     });
   }
 });
 
 // -------------------------------------------------------------
-// 4. COGNITIVE EVALUATOR AGENT (Bayesian Scoring & Golden Insight)
+// 4. COGNITIVE RETRIEVAL EVALUATOR & GOLDEN SEAM SYNTHESIZER
 // -------------------------------------------------------------
 const handleEvaluateRetrieval = async (req: express.Request, res: express.Response) => {
   try {
     const apiKey = resolveApiKey(req);
-    if (!apiKey) {
-      return res.status(401).json({
-        error: "GEMINI_API_KEY is required to evaluate active recall and update FSRS parameters.",
-      });
-    }
+    const { concept, question, userAnswer, studentAnswer, timeSpentSeconds } = req.body;
+    const finalAnswer = userAnswer || studentAnswer;
 
-    const { concept, question, userAnswer, timeSpentSeconds } = req.body;
-    if (!concept || !question || typeof userAnswer !== "string") {
-      return res.status(400).json({ error: "Concept, question, and userAnswer are required." });
-    }
-
-    const evaluatorAgent = new CognitiveEvaluatorAgent(apiKey, runtimeModel);
-    const result = await evaluatorAgent.evaluateRetrieval({
+    const result = await evaluateCognitiveRetrieval({
       concept,
       question,
-      userAnswer,
+      userAnswer: finalAnswer,
       timeSpentSeconds,
+      apiKey,
     });
 
     return res.json(result);
   } catch (error: any) {
-    console.error("[Cognitive Evaluator Error]:", error);
+    console.error("[Cognitive Evaluator Route Error]:", error);
     return res.status(500).json({
-      error: `Answer evaluation failed: ${error?.message || "Unknown error"}.`,
+      error: error?.message || "Failed to evaluate answer.",
     });
   }
 };
@@ -302,71 +264,44 @@ app.post("/api/evaluate-answer", handleEvaluateRetrieval);
 app.post("/api/evaluate-retrieval", handleEvaluateRetrieval);
 
 // -------------------------------------------------------------
-// 5. AUTONOMOUS CLIFF AGENT (Forgetting-Cliff Pings & Pub/Sub Dispatch)
+// 5. AUTONOMOUS FORGETTING-CLIFF PINGS & GOOGLE CLOUD PUB/SUB
 // -------------------------------------------------------------
 app.post("/api/generate-cliff-ping", async (req, res) => {
   try {
     const apiKey = resolveApiKey(req);
-    if (!apiKey) {
-      return res.status(401).json({
-        error: "GEMINI_API_KEY is required for autonomous cliff telegram generation.",
-      });
-    }
-
     const { concept, currentRetention, daysSinceReview } = req.body;
-    if (!concept) {
-      return res.status(400).json({ error: "Concept object is required." });
-    }
 
-    const cliffAgent = new AutonomousCliffAgent(apiKey, runtimeModel, gcpProjectId, gcpPubSubTopic);
-    const result = await cliffAgent.generateZineTelegram({
+    const result = await generateForgettingCliffTelegram({
       concept,
       currentRetention: currentRetention || 0.68,
       daysSinceReview: daysSinceReview || 3,
+      apiKey,
     });
 
     return res.json(result);
   } catch (error: any) {
-    console.error("[Cliff Ping Error]:", error);
+    console.error("[Cliff Ping Route Error]:", error);
     return res.status(500).json({
-      error: `Cliff ping generation failed: ${error?.message || "Unknown error"}.`,
+      error: error?.message || "Failed to generate cliff ping.",
     });
   }
 });
 
 app.post("/api/send-cliff-notification", async (req, res) => {
   try {
-    const apiKey = resolveApiKey(req);
     const { email, conceptTitle, currentRetention, editorialSubject, teaserQuestion, zineMessage, urgency } = req.body;
     const recipient = email || process.env.USER_NOTIFICATION_EMAIL || "student@kintsugi-memory.ai";
 
-    const cliffAgent = new AutonomousCliffAgent(apiKey || "anon", runtimeModel, gcpProjectId, gcpPubSubTopic);
-    const pubsubResult = await cliffAgent.publishForgettingCliffAlert({
+    const publishedGcpMessageId = await publishCliffEvent({
       recipientEmail: recipient,
       conceptTitle: conceptTitle || "Active Memory Synapse",
-      currentRetention: currentRetention || 68,
-      editorialSubject: editorialSubject || `[Forgetting Cliff Alert] ${conceptTitle}`,
+      currentRetentionPct: currentRetention || 68,
+      urgency: urgency || "urgent_cliff",
+      subject: editorialSubject || `[Forgetting Cliff Alert] ${conceptTitle}`,
       teaserQuestion: teaserQuestion || "What is the key invariant before synaptic decay?",
       zineMessage: zineMessage || "Your memory vessel is at the forgetting threshold. Take 30 seconds to mend the seam.",
-      urgency: urgency || "urgent_cliff",
+      triggeredBy: "FSRS Autonomous Initiation Governor",
     });
-
-    const notificationRecord = {
-      id: `notif_${Date.now()}`,
-      recipientEmail: recipient,
-      conceptTitle: conceptTitle || "Active Synapse",
-      editorialSubject: editorialSubject || `[Forgetting Cliff] ${conceptTitle}`,
-      teaserQuestion: teaserQuestion || "What is the primary boundary condition?",
-      zineMessage: zineMessage || "Memory vessel nearing forgetting threshold.",
-      dispatchedAt: new Date().toISOString(),
-      status: "delivered" as const,
-      gcpPubSubMessageId: pubsubResult.publishedGcpMessageId,
-    };
-
-    serverNotificationLogs.unshift(notificationRecord);
-    if (serverNotificationLogs.length > 50) {
-      serverNotificationLogs.pop();
-    }
 
     return res.json({
       success: true,
@@ -374,18 +309,17 @@ app.post("/api/send-cliff-notification", async (req, res) => {
       recipientEmail: recipient,
       gcpProjectId,
       gcpPubSubTopic,
-      gcpPubSubMessageId: pubsubResult.publishedGcpMessageId,
-      notificationRecord,
-      message: `Autonomous Editorial Ping successfully published to Google Cloud Pub/Sub and delivered to ${recipient}!`,
+      gcpPubSubMessageId: publishedGcpMessageId,
+      message: `Autonomous Editorial Ping successfully published to Google Cloud Pub/Sub (${publishedGcpMessageId}) and dispatched to ${recipient}!`,
     });
   } catch (error: any) {
-    console.error("[Send Notification Error]:", error);
+    console.error("[Send Notification Route Error]:", error);
     return res.status(500).json({ error: "Failed to dispatch notification: " + error.message });
   }
 });
 
 app.get("/api/notification-logs", (req, res) => {
-  res.json({ logs: serverNotificationLogs });
+  res.json({ logs: inMemoryPubSubAuditLogs });
 });
 
 // -------------------------------------------------------------
@@ -400,6 +334,9 @@ if (fs.existsSync(distPath)) {
     }
   });
 }
+
+// Start background Pub/Sub subscriber
+startPubSubSubscriber();
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`🌸 Kintsugi Memory Server running on port ${PORT}`);

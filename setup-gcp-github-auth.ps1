@@ -10,29 +10,35 @@ Write-Host "Project ID: $PROJECT_ID | Service Account: $SA_EMAIL`n" -ForegroundC
 gcloud config set project $PROJECT_ID
 
 # 2. Enable required GCP services
-Write-Host "Enabling Cloud Run, Cloud Build, Container Registry, Pub/Sub..." -ForegroundColor Cyan
-gcloud services enable run.googleapis.com cloudbuild.googleapis.com containerregistry.googleapis.com pubsub.googleapis.com iam.googleapis.com
+Write-Host "Enabling Cloud Run, Cloud Build, Container Registry, Speech-to-Text, Pub/Sub..." -ForegroundColor Cyan
+gcloud services enable run.googleapis.com cloudbuild.googleapis.com containerregistry.googleapis.com pubsub.googleapis.com speech.googleapis.com iam.googleapis.com
 
 # 3. Create Service Account if not existing
 Write-Host "Creating Service Account $SA_NAME..." -ForegroundColor Cyan
 gcloud iam service-accounts create $SA_NAME --description="GitHub Actions CI/CD Deployer" --display-name="GitHub Actions Deployer" 2>$null
 
 # 4. Grant required IAM roles
-Write-Host "Granting Cloud Run Admin, Storage Admin, Service Account User, and PubSub Publisher roles..." -ForegroundColor Cyan
+Write-Host "Granting Cloud Run Admin, Storage Admin, Service Account User, Speech Client, and PubSub Admin roles..." -ForegroundColor Cyan
 gcloud projects add-iam-policy-binding $PROJECT_ID --member="serviceAccount:$SA_EMAIL" --role="roles/run.admin" --quiet
 gcloud projects add-iam-policy-binding $PROJECT_ID --member="serviceAccount:$SA_EMAIL" --role="roles/storage.admin" --quiet
 gcloud projects add-iam-policy-binding $PROJECT_ID --member="serviceAccount:$SA_EMAIL" --role="roles/iam.serviceAccountUser" --quiet
 gcloud projects add-iam-policy-binding $PROJECT_ID --member="serviceAccount:$SA_EMAIL" --role="roles/pubsub.admin" --quiet
+gcloud projects add-iam-policy-binding $PROJECT_ID --member="serviceAccount:$SA_EMAIL" --role="roles/speech.client" --quiet
 
-# 5. Create and download JSON key
+# 5. Create Pub/Sub Topic and Subscription
+Write-Host "Creating Google Cloud Pub/Sub Topic and Subscription..." -ForegroundColor Cyan
+gcloud pubsub topics create kintsugi-cliff-pings --project=$PROJECT_ID 2>$null
+gcloud pubsub subscriptions create kintsugi-cliff-pings-sub --topic=kintsugi-cliff-pings --ack-deadline=60 --project=$PROJECT_ID 2>$null
+
+# 6. Create and download JSON key
 Write-Host "Generating JSON Key for GitHub Secrets..." -ForegroundColor Cyan
 gcloud iam service-accounts keys create gcp-sa-key.json --iam-account=$SA_EMAIL
 
-# 6. Read and display key
+# 7. Read and display key
 if (Test-Path gcp-sa-key.json) {
     $keyContent = Get-Content gcp-sa-key.json -Raw
     Write-Host "`n======================================================================" -ForegroundColor Green
-    Write-Host "✅ SERVICE ACCOUNT READY!" -ForegroundColor Green
+    Write-Host "✅ SERVICE ACCOUNT & GCP INFRASTRUCTURE READY!" -ForegroundColor Green
     Write-Host "======================================================================" -ForegroundColor Green
     Write-Host "Next Step: Add this secret to your GitHub repository:" -ForegroundColor Yellow
     Write-Host "1. Open https://github.com/rafifernandaa/kintsugi-memory/settings/secrets/actions" -ForegroundColor Cyan

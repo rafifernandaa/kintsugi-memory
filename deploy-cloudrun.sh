@@ -13,15 +13,20 @@ echo "Project ID: $PROJECT_ID | Region: $REGION | Service: $SERVICE_NAME"
 gcloud config set project "$PROJECT_ID"
 
 # Enable required Google Cloud APIs
-echo "⚡ Enabling Google Cloud Services (Cloud Run, Cloud Build, Pub/Sub, Artifact Registry)..."
-gcloud services enable run.googleapis.com cloudbuild.googleapis.com pubsub.googleapis.com artifactregistry.googleapis.com
+echo "⚡ Enabling Google Cloud Services (Cloud Run, Cloud Build, Speech-to-Text, Pub/Sub, Artifact Registry)..."
+gcloud services enable run.googleapis.com cloudbuild.googleapis.com speech.googleapis.com pubsub.googleapis.com artifactregistry.googleapis.com
 
-# Create Cloud Pub/Sub Topic for Autonomous Initiation Notifications
-echo "📬 Setting up Google Cloud Pub/Sub Topic..."
+# Create Cloud Pub/Sub Topic and Subscription
+echo "📬 Setting up Google Cloud Pub/Sub Topic & Subscription..."
 gcloud pubsub topics create kintsugi-cliff-pings --project="$PROJECT_ID" 2>/dev/null || true
+gcloud pubsub subscriptions create kintsugi-cliff-pings-sub --topic=kintsugi-cliff-pings --ack-deadline=60 --project="$PROJECT_ID" 2>/dev/null || true
 
-# Build and Deploy using Google Cloud Build
-echo "🚀 Building container image and deploying to Cloud Run..."
-gcloud builds submit --config=cloudbuild.yaml --project="$PROJECT_ID"
+# Deploy directly to Cloud Run
+echo "🚀 Deploying directly to Google Cloud Run..."
+gcloud run deploy "$SERVICE_NAME" \
+  --source . \
+  --region "$REGION" \
+  --allow-unauthenticated \
+  --set-env-vars GOOGLE_CLOUD_PROJECT="$PROJECT_ID",GOOGLE_CLOUD_REGION="$REGION",GEMINI_MODEL="gemini-3.7-flash",GOOGLE_CLOUD_PUBSUB_TOPIC="projects/$PROJECT_ID/topics/kintsugi-cliff-pings"
 
 echo "✅ Deployment Complete! Service live on Google Cloud Run."

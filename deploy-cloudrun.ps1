@@ -5,33 +5,33 @@ $SERVICE_NAME = "kintsugi-memory-service"
 $SA_NAME = "kintsugi-runner"
 $SA_EMAIL = "$SA_NAME@$PROJECT_ID.iam.gserviceaccount.com"
 
-Write-Host "🌸 ====================================================================" -ForegroundColor Cyan
-Write-Host "🌸 Deploying Kintsugi Memory Agent to Google Cloud Run" -ForegroundColor Cyan
-Write-Host "🌸 Project: $PROJECT_ID | Region: $REGION | Service: $SERVICE_NAME" -ForegroundColor Yellow
-Write-Host "🌸 Dedicated Service Account: $SA_EMAIL" -ForegroundColor Yellow
-Write-Host "🌸 ====================================================================" -ForegroundColor Cyan
+Write-Host "====================================================================" -ForegroundColor Cyan
+Write-Host "Deploying Kintsugi Memory Agent to Google Cloud Run" -ForegroundColor Cyan
+Write-Host "Project: $PROJECT_ID | Region: $REGION | Service: $SERVICE_NAME" -ForegroundColor Yellow
+Write-Host "Dedicated Service Account: $SA_EMAIL" -ForegroundColor Yellow
+Write-Host "====================================================================" -ForegroundColor Cyan
 
 # 0. Check gcloud CLI
 if (-not (Get-Command gcloud -ErrorAction SilentlyContinue)) {
-    Write-Host "❌ Error: Google Cloud SDK (gcloud) is not installed or not found in PATH." -ForegroundColor Red
+    Write-Host "Error: Google Cloud SDK (gcloud) is not installed or not found in PATH." -ForegroundColor Red
     Write-Host "   Please install gcloud from https://cloud.google.com/sdk/docs/install" -ForegroundColor Yellow
     exit 1
 }
 
 # 1. Set active project
-Write-Host "⚙️ Setting active GCP project to $PROJECT_ID..." -ForegroundColor Cyan
+Write-Host "Setting active GCP project to $PROJECT_ID..." -ForegroundColor Cyan
 gcloud config set project $PROJECT_ID
 
 # 2. Enable required Google Cloud APIs
-Write-Host "⚡ Enabling Google Cloud Services (Vertex AI, Cloud Run, Cloud Build, Speech-to-Text, Pub/Sub, IAM, Artifact Registry)..." -ForegroundColor Cyan
+Write-Host "Enabling Google Cloud Services (Vertex AI, Cloud Run, Cloud Build, Speech-to-Text, Pub/Sub, IAM, Artifact Registry)..." -ForegroundColor Cyan
 gcloud services enable aiplatform.googleapis.com run.googleapis.com cloudbuild.googleapis.com speech.googleapis.com pubsub.googleapis.com artifactregistry.googleapis.com iam.googleapis.com
 
 # 3. Create Dedicated Service Account if not exists
-Write-Host "👤 Ensuring dedicated Service Account ($SA_NAME) exists..." -ForegroundColor Cyan
+Write-Host "Ensuring dedicated Service Account ($SA_NAME) exists..." -ForegroundColor Cyan
 gcloud iam service-accounts create $SA_NAME --display-name="Kintsugi Memory Dedicated Service Account" --description="Runtime service account for Kintsugi Memory Cloud Run container" 2>$null
 
 # 4. Grant required IAM roles to Dedicated Service Account
-Write-Host "🔐 Binding IAM roles to $SA_EMAIL..." -ForegroundColor Cyan
+Write-Host "Binding IAM roles to $SA_EMAIL..." -ForegroundColor Cyan
 $ROLES = @(
   "roles/aiplatform.user",
   "roles/pubsub.publisher",
@@ -47,12 +47,12 @@ foreach ($ROLE in $ROLES) {
 }
 
 # 5. Create Cloud Pub/Sub Topic and Subscription
-Write-Host "📬 Ensuring Google Cloud Pub/Sub Topic & Subscription exist..." -ForegroundColor Cyan
+Write-Host "Ensuring Google Cloud Pub/Sub Topic & Subscription exist..." -ForegroundColor Cyan
 gcloud pubsub topics create kintsugi-cliff-pings --project=$PROJECT_ID 2>$null
 gcloud pubsub subscriptions create kintsugi-cliff-pings-sub --topic=kintsugi-cliff-pings --ack-deadline=60 --project=$PROJECT_ID 2>$null
 
 # 6. Deploy to Google Cloud Run using Dedicated Service Account
-Write-Host "🚀 Deploying directly to Google Cloud Run from source..." -ForegroundColor Cyan
+Write-Host "Deploying directly to Google Cloud Run from source..." -ForegroundColor Cyan
 gcloud run deploy $SERVICE_NAME `
   --source . `
   --region $REGION `

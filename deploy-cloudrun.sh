@@ -8,25 +8,25 @@ SERVICE_NAME="kintsugi-memory-service"
 SA_NAME="kintsugi-runner"
 SA_EMAIL="${SA_NAME}@${PROJECT_ID}.iam.gserviceaccount.com"
 
-echo "🌸 ===================================================================="
-echo "🌸 Deploying Kintsugi Memory Agent to Google Cloud Run"
-echo "🌸 Project: $PROJECT_ID | Region: $REGION | Service: $SERVICE_NAME"
-echo "🌸 Dedicated Service Account: $SA_EMAIL"
-echo "🌸 ===================================================================="
+echo "===================================================================="
+echo "Deploying Kintsugi Memory Agent to Google Cloud Run"
+echo "Project: $PROJECT_ID | Region: $REGION | Service: $SERVICE_NAME"
+echo "Dedicated Service Account: $SA_EMAIL"
+echo "===================================================================="
 
 # 0. Check gcloud CLI
 if ! command -v gcloud &> /dev/null; then
-    echo "❌ Error: Google Cloud SDK (gcloud) is not installed or not in PATH."
-    echo "   Please install gcloud from https://cloud.google.com/sdk/docs/install"
+    echo "Error: Google Cloud SDK (gcloud) is not installed or not in PATH."
+    echo "Please install gcloud from https://cloud.google.com/sdk/docs/install"
     exit 1
 fi
 
 # 1. Set active project
-echo "⚙️ Setting active GCP project to $PROJECT_ID..."
+echo "Setting active GCP project to $PROJECT_ID..."
 gcloud config set project "$PROJECT_ID"
 
 # 2. Enable required Google Cloud APIs
-echo "⚡ Enabling GCP Services (Vertex AI, Cloud Run, Cloud Build, Speech-to-Text, Pub/Sub, IAM, Artifact Registry)..."
+echo "Enabling GCP Services (Vertex AI, Cloud Run, Cloud Build, Speech-to-Text, Pub/Sub, IAM, Artifact Registry)..."
 gcloud services enable \
   aiplatform.googleapis.com \
   run.googleapis.com \
@@ -37,13 +37,13 @@ gcloud services enable \
   iam.googleapis.com
 
 # 3. Create Dedicated Service Account if not exists
-echo "👤 Ensuring dedicated Service Account ($SA_NAME) exists..."
+echo "Ensuring dedicated Service Account ($SA_NAME) exists..."
 gcloud iam service-accounts create "$SA_NAME" \
   --display-name="Kintsugi Memory Dedicated Service Account" \
   --description="Runtime service account for Kintsugi Memory Cloud Run container" 2>/dev/null || echo "Service account $SA_NAME already exists."
 
 # 4. Grant required IAM roles to Dedicated Service Account
-echo "🔐 Binding IAM roles to $SA_EMAIL..."
+echo "Binding IAM roles to $SA_EMAIL..."
 ROLES=(
   "roles/aiplatform.user"
   "roles/pubsub.publisher"
@@ -62,12 +62,12 @@ for ROLE in "${ROLES[@]}"; do
 done
 
 # 5. Create Cloud Pub/Sub Topic and Subscription
-echo "📬 Ensuring Google Cloud Pub/Sub Topic & Subscription exist..."
+echo "Ensuring Google Cloud Pub/Sub Topic & Subscription exist..."
 gcloud pubsub topics create kintsugi-cliff-pings --project="$PROJECT_ID" 2>/dev/null || true
 gcloud pubsub subscriptions create kintsugi-cliff-pings-sub --topic=kintsugi-cliff-pings --ack-deadline=60 --project="$PROJECT_ID" 2>/dev/null || true
 
 # 6. Deploy to Google Cloud Run using Dedicated Service Account
-echo "🚀 Deploying directly to Google Cloud Run from source..."
+echo "Deploying directly to Google Cloud Run from source..."
 gcloud run deploy "$SERVICE_NAME" \
   --source . \
   --region "$REGION" \

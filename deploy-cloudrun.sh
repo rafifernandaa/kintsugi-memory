@@ -14,12 +14,19 @@ echo "🌸 Project: $PROJECT_ID | Region: $REGION | Service: $SERVICE_NAME"
 echo "🌸 Dedicated Service Account: $SA_EMAIL"
 echo "🌸 ===================================================================="
 
+# 0. Check gcloud CLI
+if ! command -v gcloud &> /dev/null; then
+    echo "❌ Error: Google Cloud SDK (gcloud) is not installed or not in PATH."
+    echo "   Please install gcloud from https://cloud.google.com/sdk/docs/install"
+    exit 1
+fi
+
 # 1. Set active project
 echo "⚙️ Setting active GCP project to $PROJECT_ID..."
 gcloud config set project "$PROJECT_ID"
 
 # 2. Enable required Google Cloud APIs
-echo "⚡ Enabling GCP Services (Vertex AI, Cloud Run, Cloud Build, Speech-to-Text, Pub/Sub, IAM)..."
+echo "⚡ Enabling GCP Services (Vertex AI, Cloud Run, Cloud Build, Speech-to-Text, Pub/Sub, IAM, Artifact Registry)..."
 gcloud services enable \
   aiplatform.googleapis.com \
   run.googleapis.com \
@@ -30,7 +37,7 @@ gcloud services enable \
   iam.googleapis.com
 
 # 3. Create Dedicated Service Account if not exists
-echo "👤 Creating dedicated Service Account ($SA_NAME)..."
+echo "👤 Ensuring dedicated Service Account ($SA_NAME) exists..."
 gcloud iam service-accounts create "$SA_NAME" \
   --display-name="Kintsugi Memory Dedicated Service Account" \
   --description="Runtime service account for Kintsugi Memory Cloud Run container" 2>/dev/null || echo "Service account $SA_NAME already exists."
@@ -60,15 +67,29 @@ gcloud pubsub topics create kintsugi-cliff-pings --project="$PROJECT_ID" 2>/dev/
 gcloud pubsub subscriptions create kintsugi-cliff-pings-sub --topic=kintsugi-cliff-pings --ack-deadline=60 --project="$PROJECT_ID" 2>/dev/null || true
 
 # 6. Deploy to Google Cloud Run using Dedicated Service Account
-echo "🚀 Deploying directly to Google Cloud Run with Dedicated Service Account..."
+echo "🚀 Deploying directly to Google Cloud Run from source..."
 gcloud run deploy "$SERVICE_NAME" \
   --source . \
   --region "$REGION" \
   --service-account "$SA_EMAIL" \
   --allow-unauthenticated \
+  --memory 1Gi \
+  --cpu 1 \
+  --timeout 300 \
+  --concurrency 80 \
+  --min-instances 0 \
+  --max-instances 10 \
+  --ingress all \
   --set-env-vars GOOGLE_CLOUD_PROJECT="$PROJECT_ID",GOOGLE_CLOUD_REGION="$REGION",GEMINI_MODEL="gemini-3.7-flash",USE_VERTEX_AI="true",GOOGLE_CLOUD_PUBSUB_TOPIC="projects/$PROJECT_ID/topics/kintsugi-cliff-pings"
+
+# 7. Print deployed URL
+SERVICE_URL=$(gcloud run services describe "$SERVICE_NAME" --region "$REGION" --format='value(status.url)' 2>/dev/null || echo "")
 
 echo "🌸 ===================================================================="
 echo "✅ DEPLOYMENT COMPLETE! Service is live on Google Cloud Run."
-echo "🌸 Dedicated Service Account ($SA_EMAIL) authenticated for Vertex AI & Pub/Sub."
+if [ -n "$SERVICE_URL" ]; then
+  echo "🌐 Live Application URL: $SERVICE_URL"
+fi
+echo "🌸 Dedicated Service Account: $SA_EMAIL"
+echo "🌸 Region: $REGION | Model: gemini-3.7-flash | Mode: Vertex AI ADC"
 echo "🌸 ===================================================================="

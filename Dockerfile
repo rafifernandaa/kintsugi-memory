@@ -4,7 +4,7 @@ FROM node:22-slim AS builder
 WORKDIR /app
 
 # Install all build dependencies
-COPY package.json ./
+COPY package*.json ./
 RUN npm install
 
 # Copy source code and build frontend & backend bundle
@@ -18,7 +18,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=8080
 
-COPY package.json ./
+COPY package*.json ./
 RUN npm install --omit=dev
 
 # Copy built server and static assets from builder

@@ -56,7 +56,7 @@ function createAgentGenAIClient(apiKey?: string): GoogleGenAI {
   }
   return new GoogleGenAI({
     vertexai: true,
-    project: process.env.GOOGLE_CLOUD_PROJECT || "my-project-31-491314",
+    project: process.env.GOOGLE_CLOUD_PROJECT || "kintsugi-memory-service",
     location: process.env.VERTEX_AI_LOCATION || process.env.GOOGLE_CLOUD_LOCATION || "global",
   });
 }
@@ -616,8 +616,8 @@ export class AutonomousCliffAgent {
   constructor(
     apiKey?: string,
     model = "gemini-3.7-flash",
-    projectId = "my-project-31-491314",
-    pubSubTopic = "projects/my-project-31-491314/topics/kintsugi-cliff-pings"
+    projectId = process.env.GOOGLE_CLOUD_PROJECT || "kintsugi-memory-service",
+    pubSubTopic = process.env.GOOGLE_CLOUD_PUBSUB_TOPIC || "projects/kintsugi-memory-service/topics/kintsugi-cliff-pings"
   ) {
     this.ai = createAgentGenAIClient(apiKey);
     this.model = model;

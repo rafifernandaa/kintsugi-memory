@@ -462,7 +462,7 @@ export const MemoryGarden: React.FC<MemoryGardenProps> = ({
             </div>
 
             <div className="flex items-center justify-between text-[11px] font-mono text-[#736D6B] pt-0.5">
-              <span>Stability S: {concept.stability}d</span>
+              <span>Stability S: {Number((concept.stability || 1.5).toFixed(1))}d</span>
               <span>Difficulty D: {concept.difficulty}/10</span>
               <span>Reviewed: {concept.reviewCount}x</span>
             </div>

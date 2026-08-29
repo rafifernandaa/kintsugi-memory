@@ -32,7 +32,7 @@ export interface PubSubNotificationLog {
 export const inMemoryPubSubAuditLogs: PubSubNotificationLog[] = [];
 
 let pubsubClient: PubSub | null = null;
-const projectId = process.env.GOOGLE_CLOUD_PROJECT || "my-project-31-491314";
+const projectId = process.env.GOOGLE_CLOUD_PROJECT || "kintsugi-memory-service";
 const topicName = process.env.GOOGLE_CLOUD_PUBSUB_TOPIC?.split("/topics/")[1] || "kintsugi-cliff-pings";
 const subscriptionName = process.env.GOOGLE_CLOUD_PUBSUB_SUBSCRIPTION || "kintsugi-cliff-pings-server-sub";
 

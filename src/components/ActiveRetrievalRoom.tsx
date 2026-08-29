@@ -466,8 +466,8 @@ export const ActiveRetrievalRoom: React.FC<ActiveRetrievalRoomProps> = ({
         misconceptionsIdentified: Array.isArray(rawData.misconceptionsIdentified) ? rawData.misconceptionsIdentified : [],
         missingElements: Array.isArray(rawData.missingElements) ? rawData.missingElements : [],
         strengths: Array.isArray(rawData.strengths) ? rawData.strengths : [],
-        updatedStabilityDays: typeof rawData.updatedStabilityDays === 'number' ? rawData.updatedStabilityDays : (typeof rawData.newStability === 'number' ? rawData.newStability : Number((concept.stability * (score >= 70 ? 2.2 : 0.5)).toFixed(1))),
-        newPredictedRetention: typeof rawData.newPredictedRetention === 'number' ? rawData.newPredictedRetention : (score >= 70 ? 0.94 : 0.65),
+        updatedStabilityDays: typeof rawData.updatedStabilityDays === 'number' ? Number(rawData.updatedStabilityDays.toFixed(1)) : (typeof rawData.newStability === 'number' ? Number(rawData.newStability.toFixed(1)) : Number(((concept.stability || 2.0) * (score >= 70 ? 2.2 : 0.5)).toFixed(1))),
+        newPredictedRetention: typeof rawData.newPredictedRetention === 'number' ? Number(rawData.newPredictedRetention.toFixed(3)) : (score >= 70 ? 0.94 : 0.65),
         retentionConfidenceInterval: Array.isArray(rawData.retentionConfidenceInterval) ? rawData.retentionConfidenceInterval : (score >= 70 ? [0.88, 0.98] : [0.55, 0.75]),
       };
 
@@ -528,12 +528,13 @@ export const ActiveRetrievalRoom: React.FC<ActiveRetrievalRoomProps> = ({
       const newKintsugiCount = isGold ? concept.kintsugiRepairs + 1 : concept.kintsugiRepairs;
       const newRetention = evalData.newPredictedRetention || 0.92;
       const [newLow, newHigh] = evalData.retentionConfidenceInterval || [0.8, 0.95];
+      const nextStability = Number((evalData.updatedStabilityDays || (concept.stability || 2.0) * 1.8).toFixed(1));
 
       const updatedConcept: Concept = {
         ...concept,
-        stability: evalData.updatedStabilityDays || concept.stability * 1.8,
+        stability: nextStability,
         lastReviewedAt: new Date().toISOString(),
-        nextReviewAt: new Date(Date.now() + (evalData.updatedStabilityDays || 3) * 24 * 60 * 60 * 1000).toISOString(),
+        nextReviewAt: new Date(Date.now() + (nextStability || 3) * 24 * 60 * 60 * 1000).toISOString(),
         currentRetention: newRetention,
         confidenceLow: newLow,
         confidenceHigh: newHigh,
@@ -553,7 +554,7 @@ export const ActiveRetrievalRoom: React.FC<ActiveRetrievalRoomProps> = ({
             misconceptionsFound: evalData.misconceptionsIdentified || [],
             priorRetention: concept.currentRetention,
             postRetention: newRetention,
-            newStability: evalData.updatedStabilityDays || concept.stability,
+            newStability: nextStability,
           },
         ],
       };
@@ -653,7 +654,7 @@ export const ActiveRetrievalRoom: React.FC<ActiveRetrievalRoomProps> = ({
           </div>
           <h2 className="text-2xl font-serif font-bold text-[#2B2827]">{concept.title}</h2>
           <div className="flex items-center gap-3 text-xs font-mono text-[#5A5553] pt-1 flex-wrap">
-            <span>Prior Stability S: {concept.stability}d</span>
+            <span>Prior Stability S: {Number((concept.stability || 1.5).toFixed(1))}d</span>
             <span>•</span>
             <span>Current Retention: {Math.round(concept.currentRetention * 100)}%</span>
             <span>•</span>
@@ -1023,7 +1024,7 @@ export const ActiveRetrievalRoom: React.FC<ActiveRetrievalRoomProps> = ({
                 <div className="bg-[#FAF8F2] px-4 py-2 rounded-xl border border-[#DDD7C8] text-center shadow-sm">
                   <div className="text-xs text-[#736D6B] font-mono font-semibold">New Stability (S)</div>
                   <div className="text-lg font-bold font-mono text-[#8F6A00]">
-                    {evaluationResult.updatedStabilityDays || 1.5} Days
+                    {Number((evaluationResult.updatedStabilityDays || 1.5).toFixed(1))} Days
                   </div>
                 </div>
               </div>
@@ -1461,7 +1462,7 @@ export const ActiveRetrievalRoom: React.FC<ActiveRetrievalRoomProps> = ({
                       >
                         <div className="text-[10px] uppercase text-[#94A3B8]">New Stability</div>
                         <div className="text-xl font-bold text-[#BF9A2A]">
-                          {evaluationResult.updatedStabilityDays} Days
+                          {Number((evaluationResult.updatedStabilityDays || 1.5).toFixed(1))} Days
                         </div>
                       </div>
                     </div>
@@ -1534,7 +1535,7 @@ export const ActiveRetrievalRoom: React.FC<ActiveRetrievalRoomProps> = ({
             <div className="flex items-center gap-4">
               <span>Question {currentQIndex + 1} of {questions.length}</span>
               <span>•</span>
-              <span>FSRS Stability S={concept.stability}d</span>
+              <span>FSRS Stability S={Number((concept.stability || 1.5).toFixed(1))}d</span>
             </div>
           </div>
         </div>

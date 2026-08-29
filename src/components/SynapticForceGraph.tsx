@@ -39,6 +39,7 @@ export const SynapticForceGraph: React.FC<SynapticForceGraphProps> = ({
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
+  const zoomBehaviorRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
   const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
   const [hoveredNode, setHoveredNode] = useState<GraphNode | null>(null);
   const [densityThreshold, setDensityThreshold] = useState<number>(0.2);
@@ -211,6 +212,7 @@ export const SynapticForceGraph: React.FC<SynapticForceGraphProps> = ({
         g.attr('transform', event.transform);
       });
 
+    zoomBehaviorRef.current = zoomBehavior;
     svg.call(zoomBehavior);
 
     const simulationNodes: GraphNode[] = nodes.map((d) => ({ ...d }));
@@ -427,9 +429,9 @@ export const SynapticForceGraph: React.FC<SynapticForceGraphProps> = ({
   }, [nodes, links, chargeStrength, linkDistance]);
 
   const handleResetZoom = () => {
-    if (!svgRef.current) return;
+    if (!svgRef.current || !zoomBehaviorRef.current) return;
     const svg = d3.select(svgRef.current);
-    svg.transition().duration(500).call(d3.zoom<SVGSVGElement, unknown>().transform, d3.zoomIdentity);
+    svg.transition().duration(400).call(zoomBehaviorRef.current.transform, d3.zoomIdentity);
   };
 
   return (

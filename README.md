@@ -1,24 +1,26 @@
-# 🌸 Kintsugi Memory (金継ぎ)
+# 🏺 Kintsugi Memory (金継ぎ)
 ### Autonomous Forgetting-Cliff Partner for Universal Knowledge & Language Mastery
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-gold.svg)](https://opensource.org/licenses/MIT)
 [![Google Cloud Run](https://img.shields.io/badge/Google%20Cloud-Run%20%7C%20Pub%2FSub%20%7C%20Vertex%20AI-4285F4?logo=googlecloud&logoColor=white)](https://cloud.google.com)
 [![Gemini Models](https://img.shields.io/badge/Powered%20By-Gemini%203.5%20%26%203.7%20Flash-8E75B2?logo=google&logoColor=white)](https://ai.google.dev)
+[![Live Production Demo](https://img.shields.io/badge/Live%20Demo-Google%20Cloud%20Run-success?logo=googlecloud&logoColor=white)](https://kintsugi-memory-service-47yk7p6ytq-uw.a.run.app/)
 
 ---
 
 ## 🏛️ The Kintsugi Philosophy: Proactive Cognitive Synthesis
 
-In traditional spaced repetition (Anki, Flashcards, Quizlet), software is **passive**: it sits silent on your device waiting for you to remember to open it. When life gets busy, memory decay follows a steep biological power-law drop, leading to the *illusion of competence* (passively re-reading notes instead of forced generative recall).
+In traditional spaced repetition systems (Anki, flashcard decks), software remains **passive**: it sits silent on your device waiting for you to open it. When daily schedules get busy, memory decay follows a steep biological power-law drop, frequently leading to the *illusion of competence* (passively re-reading notes instead of forced generative recall).
 
-**Kintsugi Memory** is an **autonomous, proactive cognitive partner** inspired by the Japanese art of *Kintsugi* (金継ぎ — repairing broken ceramics with gold lacquer). In cognitive neuroscience, when a memory trace begins to destabilize at the **Forgetting Cliff (retention < 70%)**, forced active retrieval triggers synaptic protein synthesis (Long-Term Potentiation), leaving the memory trace stronger than before.
+**Kintsugi Memory** is an **autonomous, proactive cognitive partner** inspired by the Japanese art of *Kintsugi* (金継ぎ — repairing broken ceramics with gold lacquer). In cognitive neuroscience, when a memory trace begins to destabilize at the **Forgetting Cliff (retention < 70%)**, forced active retrieval triggers synaptic protein synthesis (Long-Term Potentiation), leaving the neural trace stronger and more resilient than before.
 
-Instead of waiting for user prompts, Kintsugi Memory acts autonomously:
-1. **Continuous Bayesian FSRS Modeling**: Tracks retrievability curves for academic concepts, foreign language vocabulary, and sentence structures.
-2. **Proactive Forgetting-Cliff Telegrams**: When a memory vessel approaches the 70% retention boundary, the agent proactively dispatches a Socratic challenge directly to your Gmail inbox and browser alerts via **Google Cloud Pub/Sub**.
-3. **Conversational Socratic Voice & Text Tutor**: Conducts live verbal and text dialogues, evaluates nuances, identifies subtle misconceptions, and highlights the *Golden Insight* (the gold joinery).
-4. **Synchronous Speech & Slide Scribe**: Listens to live lectures, conversations, or language classes with **Record / Pause / Resume / Stop** controls, aligning speech transcripts with slide decks (PDF, PPTX, DOCX) to distill atomic knowledge vessels.
-5. **Cognitive & Polyglot Learning Journal**: A dedicated journal for recording vocabulary nuances, grammar invariants, pronunciation observations, and philosophical reflections.
+### 🌟 What Makes Kintsugi Memory Autonomous:
+1. **Continuous Bayesian FSRS Modeling**: Dynamically calculates memory stability $S$ and retrievability $R(t)$ for academic subjects, complex system architectures, and foreign language invariants.
+2. **Proactive Forgetting-Cliff Telegrams**: When a memory vessel approaches the 70% retention boundary, the background governor dispatches a Socratic challenge directly to your Gmail inbox and browser alerts via **Google Cloud Pub/Sub**.
+3. **Conversational Socratic Voice & Text Tutor**: Conducts interactive verbal and text dialogues, evaluates nuances, isolates misconceptions, and highlights the *Golden Insight* (the gold joinery).
+4. **Live Lecture & Dialogue Scribe**: Listens to live lectures, conversations, or language classes with **Record / Pause / Resume / Stop** controls, aligning speech transcripts with slide decks (PDF, PPTX, DOCX) to distill atomic knowledge vessels.
+5. **Cognitive & Polyglot Learning Journal**: Full markdown support for logging vocabulary nuance, grammar rules (such as the WEIRDO subjunctive rule), and audio reflections converted into active flashcards.
+6. **Interactive D3.js Synaptic Knowledge Graph**: Force-directed network showing shared-tag bridges, memory density, and visual Kintsugi gold seams.
 
 ---
 
@@ -27,9 +29,9 @@ Instead of waiting for user prompts, Kintsugi Memory acts autonomously:
 ```mermaid
 flowchart TB
     subgraph Client["Frontend Client (React 19, TypeScript, Tailwind CSS)"]
-        UI["Zen Wabi-Sabi Dashboard & Navigation"]
+        UI["Zen Wabi-Sabi Dashboard & Liquid Glass Navigation"]
         AudioEngine["Web Audio & Speech API (Record / Pause / Stop)"]
-        D3Graph["D3.js Synaptic Knowledge Graph"]
+        D3Graph["D3.js Force-Directed Synaptic Knowledge Graph"]
         FSRSEngine["Client Bayesian FSRS v4.5 Decay Engine"]
         JournalEngine["Cognitive & Language Learning Journal"]
         ErrBoundary["Global React Error Boundary"]
@@ -50,15 +52,15 @@ flowchart TB
     end
 
     subgraph AutonomousAgents["4 Collaborative Autonomous Gemini Agents"]
-        AgentScribe["1. Synchronous Lecture & Dialogue Scribe Agent"]
+        AgentScribe["1. Live Lecture & Audio Diarization Scribe Agent"]
         AgentSocratic["2. Socratic Interviewer & Evaluator Agent"]
         AgentGovernor["3. Autonomous Forgetting-Cliff Governor"]
-        AgentSynthesizer["4. Multimodal Knowledge & Language Distillation Agent"]
+        AgentSynthesizer["4. Multimodal Knowledge Distillation Agent"]
     end
 
     %% Client to Backend
     UI -->|REST API Calls| Server
-    AudioEngine -->|Live Stream & Audio| Server
+    AudioEngine -->|Live Stream & Audio Payload| Server
     FSRSEngine -->|Cliff Alerts & Retrievability| UI
     JournalEngine -->|Reflections & Vocab Logs| UI
 
@@ -84,9 +86,9 @@ flowchart TB
 ## 🌐 Designed for Universal Learning & Polyglots
 
 ### 1. 🗣️ Language Acquisition & Polyglot Fluency
-- **Vocabulary in Context**: Memorize words not in isolation, but attached to cultural nuances and syntactic patterns.
-- **Grammar Invariant Dissection**: Master subtle boundaries that trip up learners (e.g. Japanese `〜わけにはいかない` vs `〜ざるを得ない`, Spanish Indicative vs Subjunctive triggers, Mandarin `把字句` constructions).
-- **Spoken Socratic Retrieval**: Practice speaking sentences aloud with real-time speech recognition and text-to-speech feedback.
+- **Vocabulary in Context**: Memorize words attached to cultural nuances and syntactic patterns.
+- **Grammar Invariant Dissection**: Master subtle boundaries that trip up learners (e.g. Spanish Subjunctive WEIRDO rules, Japanese conditional particles, Mandarin directional complements).
+- **Spoken Socratic Retrieval**: Practice speaking sentences aloud with real-time speech recognition and text-to-speech audio feedback.
 
 ### 2. 🎓 Academic & Engineering Concepts
 - Distill distributed consensus (Raft, Paxos, 2PC), machine learning memory bounds (KV Cache, FlashAttention), neurobiology of memory, and quantum systems into atomic vessels.
@@ -104,7 +106,7 @@ flowchart TB
 | **📬 Autonomous Cliff Governor** | Background agent calculating Bayesian FSRS decay $R(t) = (1 + \text{factor} \cdot \frac{t}{S})^{-d}$. Dispatches email alerts when retrievability drops to 70%. |
 | **🥋 Socratic Voice Tutor** | Verbal retrieval sessions evaluating accuracy, isolating misconceptions, and delivering *Golden Insights*. |
 | **📔 Cognitive Journal** | Full reflective space for logging language grammar rules, sentence formulations, and daily synaptic breakthroughs. |
-| **🕸️ D3 Synaptic Knowledge Graph** | Interactive, force-directed graph visualizing concept stability, inter-concept links, and forgetting risks. |
+| **🕸️ D3 Synaptic Knowledge Graph** | Interactive, force-directed graph visualizing concept stability, inter-concept links, and forgetting risks with smooth reset zoom controls. |
 | **🔥 Synaptic Streak Continuum** | Power-law streak tracking, milestone rewards, and interactive 7-day practice calendar. |
 
 ---
@@ -129,9 +131,9 @@ Edit your `.env`:
 ```env
 PORT=3000
 GEMINI_API_KEY=your-gemini-api-key-here
-GOOGLE_CLOUD_PROJECT=my-project-31-491314
-GOOGLE_CLOUD_PUBSUB_TOPIC=projects/my-project-31-491314/topics/kintsugi-cliff-pings
-GOOGLE_CLOUD_PUBSUB_SUBSCRIPTION=kintsugi-cliff-pings-server-sub
+GOOGLE_CLOUD_PROJECT=your-google-cloud-project-id
+GOOGLE_CLOUD_PUBSUB_TOPIC=projects/your-google-cloud-project-id/topics/kintsugi-cliff-pings
+GOOGLE_CLOUD_PUBSUB_SUBSCRIPTION=kintsugi-cliff-pings-sub
 
 # Optional: Real Gmail Delivery (can also be configured directly inside the web UI)
 SMTP_USER=your-email@gmail.com
@@ -148,61 +150,38 @@ npm start
 npm run dev
 ```
 
-Open `http://localhost:3000` (or `http://localhost:5173` for Vite dev server) in your browser.
+Visit `http://localhost:3000` in your browser.
 
 ---
 
-### Option 2: Personal Google Cloud Run Deployment
+### Option 2: Google Cloud Run Deployment
 
-#### On Linux / macOS / Google Cloud Shell:
+#### Automated Shell Deployment:
 ```bash
-# 1. Login and set your GCP project
-gcloud auth login
-gcloud config set project YOUR_PROJECT_ID
-
-# 2. Make script executable and run deployment
-chmod +x deploy-cloudrun.sh
+# Linux / macOS
 ./deploy-cloudrun.sh
-```
 
-#### On Windows PowerShell:
-```powershell
-.\deploy-cloudrun.ps1
+# Windows PowerShell
+./deploy-cloudrun.ps1
 ```
 
 The script automatically:
-1. Enables required Google Cloud APIs (`aiplatform`, `run`, `pubsub`, `speech`).
-2. Creates the dedicated IAM service account `kintsugi-runner`.
-3. Sets up the Google Cloud Pub/Sub topic `kintsugi-cliff-pings`.
-4. Builds the container and deploys it to **Google Cloud Run** in `us-west1`.
+1. Enables Cloud Run, Artifact Registry, Pub/Sub, and Vertex AI APIs.
+2. Builds the container image via Google Cloud Build.
+3. Provisions Cloud Pub/Sub topics and dead-letter queues.
+4. Deploys the service with autoscaling to Google Cloud Run.
 
 ---
 
-### Option 3: Run with Docker Locally
+## 🛡️ Security & Privacy
 
-```bash
-# 1. Build Docker image
-docker build -t kintsugi-memory .
-
-# 2. Run container
-docker run -p 3000:3000 --env-file .env kintsugi-memory
-```
+- **Safe Credential Management**: User API keys and SMTP credentials can be configured at runtime and stored locally in browser storage or encrypted environment variables.
+- **Zero Raw Key Leakage**: Keys are never transmitted in telemetry logs or client bundles.
+- **Dedicated Service Account**: Runs under the least-privilege `kintsugi-runner` IAM role in Google Cloud.
 
 ---
 
-## 🧪 Testing & Verification Guide
+## 📜 License
 
-1. **Test Live Audio Scribe**: Go to **Materials (Scribe)**, click **"Record Live Class Audio"**, speak into the mic, test **"Pause"** and **"Resume"**, and click **"Stop & Finalize"**.
-2. **Test Forgetting Cliff Simulation**: Go to **Insights** or **Garden**, click **`+30d Month Cliff`** to simulate 30 days of memory decay.
-3. **Test Direct Email Delivery**: Go to **Insights**, click **"Configure App Password"** or **"Send Test Email"**, and check your Gmail inbox at [mail.google.com](https://mail.google.com).
-4. **Test Cloud Pub/Sub**: In Google Cloud Shell, pull published messages:
-   ```bash
-   gcloud pubsub subscriptions pull kintsugi-cliff-pings-sub --auto-ack --limit=5 --project=YOUR_PROJECT_ID
-   ```
-
----
-
-## 📄 License
-
-Distributed under the **MIT License**. Crafted with wabi-sabi aesthetics and cognitive science for learners everywhere.
-
+MIT License — Copyright (c) 2026 Kintsugi Memory.
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files.

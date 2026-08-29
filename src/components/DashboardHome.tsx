@@ -151,16 +151,6 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({
               </span>
             )}
           </button>
-
-          {onReturnToLanding && (
-            <button
-              onClick={onReturnToLanding}
-              className="p-2.5 rounded-xl bg-[#FFFFFF] hover:bg-[#FAF8F2] border border-[#DDD7C8] text-[#5A5553] hover:text-[#8F6A00] transition-colors relative shadow-sm cursor-pointer group"
-              title="Return to Kintsugi Memory Landing Sanctuary"
-            >
-              <Sparkles className="w-4 h-4 text-[#BF9A2A] group-hover:scale-110 transition-transform" />
-            </button>
-          )}
         </div>
       </div>
 

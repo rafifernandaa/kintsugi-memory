@@ -221,7 +221,7 @@ export const AboutTab: React.FC<AboutTabProps> = ({ onNavigateToTab }) => {
               Google Cloud Platform Production Infrastructure
             </h2>
             <div className="text-xs font-mono text-[#736D6B]">
-              Project: my-project-31-491314 | Region: us-west1
+              Google Cloud Run • Enterprise Managed Infrastructure
             </div>
           </div>
         </div>

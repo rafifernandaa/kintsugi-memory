@@ -4,7 +4,15 @@ import fs from "fs";
 import dotenv from "dotenv";
 import { parseUploadedDocument } from "./server/documentParser";
 import { transcribeAudio } from "./server/speechService";
-import { publishCliffEvent, startPubSubSubscriber, inMemoryPubSubAuditLogs, getSmtpStatus } from "./server/pubsubService";
+import {
+  publishCliffEvent,
+  startPubSubSubscriber,
+  inMemoryPubSubAuditLogs,
+  getSmtpStatus,
+  updateRuntimeSmtp,
+  verifySmtpConnection,
+  sendDirectTestEmail,
+} from "./server/pubsubService";
 import {
   extractAtomicConcepts,
   generateSocraticQuestions,
@@ -396,6 +404,58 @@ app.post("/api/send-cliff-notification", async (req, res) => {
 
 app.get("/api/smtp-status", (req, res) => {
   res.json(getSmtpStatus());
+});
+
+app.post("/api/configure-smtp", async (req, res) => {
+  try {
+    const { smtpUser, smtpPass } = req.body;
+    if (!smtpUser || !smtpPass) {
+      return res.status(400).json({ error: "Both email (SMTP_USER) and App Password (SMTP_PASS) are required." });
+    }
+
+    updateRuntimeSmtp(smtpUser, smtpPass);
+    const verification = await verifySmtpConnection();
+
+    if (!verification.success) {
+      return res.status(400).json({
+        success: false,
+        error: `SMTP authentication failed: ${verification.error}. Please ensure 2-Step Verification is enabled and a valid 16-character App Password is used.`,
+      });
+    }
+
+    return res.json({
+      success: true,
+      message: `SMTP successfully authenticated for ${smtpUser}!`,
+      status: getSmtpStatus(),
+    });
+  } catch (error: any) {
+    return res.status(500).json({ error: "Failed to configure SMTP: " + error.message });
+  }
+});
+
+app.post("/api/test-email", async (req, res) => {
+  try {
+    const { email } = req.body;
+    const targetEmail = (email || process.env.USER_NOTIFICATION_EMAIL || process.env.SMTP_USER || "cubetestxyz@gmail.com").trim();
+
+    const result = await sendDirectTestEmail(targetEmail);
+    if (!result.success) {
+      return res.status(400).json({
+        success: false,
+        error: result.error,
+        htmlPreview: result.htmlPreview,
+      });
+    }
+
+    return res.json({
+      success: true,
+      message: `Test email successfully delivered to ${targetEmail}! Check your inbox.`,
+      messageId: result.messageId,
+      htmlPreview: result.htmlPreview,
+    });
+  } catch (error: any) {
+    return res.status(500).json({ error: "Failed to send test email: " + error.message });
+  }
 });
 
 app.get("/api/notification-logs", (req, res) => {

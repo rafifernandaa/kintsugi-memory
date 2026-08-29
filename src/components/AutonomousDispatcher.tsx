@@ -58,6 +58,79 @@ export const AutonomousDispatcher: React.FC<AutonomousDispatcherProps> = ({
       .catch(() => {});
   }, []);
 
+  const [smtpConfigModalOpen, setSmtpConfigModalOpen] = useState(false);
+  const [inputSmtpUser, setInputSmtpUser] = useState(userEmail || 'cubetestxyz@gmail.com');
+  const [inputSmtpPass, setInputSmtpPass] = useState('');
+  const [isVerifyingSmtp, setIsVerifyingSmtp] = useState(false);
+  const [smtpFeedback, setSmtpFeedback] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  const handleSaveAndTestSmtp = async () => {
+    setIsVerifyingSmtp(true);
+    setSmtpFeedback(null);
+    try {
+      const res = await fetch('/api/configure-smtp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ smtpUser: inputSmtpUser, smtpPass: inputSmtpPass }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        setSmtpFeedback({ type: 'error', text: data.error || 'Failed to authenticate SMTP credentials.' });
+        return;
+      }
+
+      setSmtpInfo(data.status);
+      setUserEmail(inputSmtpUser);
+      localStorage.setItem('kintsugi_registered_email', inputSmtpUser);
+
+      // Trigger instant verification email
+      const testRes = await fetch('/api/test-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: inputSmtpUser }),
+      });
+      const testData = await testRes.json();
+
+      if (testData.success) {
+        setSmtpFeedback({ type: 'success', text: `✨ Verified & Test Email delivered to ${inputSmtpUser}! Check your Gmail inbox.` });
+        if (testData.htmlPreview) {
+          setEmailPreviewHtml(testData.htmlPreview);
+        }
+      } else {
+        setSmtpFeedback({ type: 'error', text: `SMTP authenticated, but delivery note: ${testData.error}` });
+      }
+    } catch (err: any) {
+      setSmtpFeedback({ type: 'error', text: err.message || 'Connection error while contacting server.' });
+    } finally {
+      setIsVerifyingSmtp(false);
+    }
+  };
+
+  const handleSendInstantTestEmail = async () => {
+    setIsGenerating(true);
+    try {
+      const testRes = await fetch('/api/test-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: userEmail }),
+      });
+      const testData = await testRes.json();
+      if (testData.htmlPreview) {
+        setEmailPreviewHtml(testData.htmlPreview);
+      }
+      if (testData.success) {
+        setDispatchedMessage(`Test Socratic email successfully sent to ${userEmail}! Check your inbox.`);
+        setTimeout(() => setDispatchedMessage(null), 6000);
+      } else {
+        alert(testData.error || 'Failed to deliver test email.');
+      }
+    } catch (e: any) {
+      console.error(e);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   const [recentDispatches, setRecentDispatches] = useState<Array<{
     id: string;
     conceptTitle: string;
@@ -387,22 +460,39 @@ export const AutonomousDispatcher: React.FC<AutonomousDispatcherProps> = ({
         </div>
 
         {/* Live SMTP Status Indicator */}
-        <div className="pt-2 border-t border-[#DDD7C8] flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[11px] font-mono">
-          {smtpInfo?.configured ? (
-            <div className="flex items-center gap-1.5 text-[#2F6A38]">
-              <CheckCircle2 className="w-3.5 h-3.5 text-[#2F6A38]" />
-              <span>Live Gmail / SMTP Delivery <b>Active</b> (Transmitter: {smtpInfo.user})</span>
-            </div>
-          ) : (
-            <div className="flex items-center gap-1.5 text-[#8F6A00]">
-              <AlertTriangle className="w-3.5 h-3.5 text-[#8F6A00]" />
-              <span>In-App Preview & GCP Pub/Sub active. For direct Gmail arrival, set <code className="bg-[#FAF3E0] px-1 py-0.5 rounded text-[#8F6A00]">SMTP_PASS</code> in <code className="font-bold">.env</code>.</span>
-            </div>
-          )}
+        <div className="pt-2 border-t border-[#DDD7C8] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-[11px] font-mono">
+          <div className="flex items-center gap-2 flex-wrap">
+            {smtpInfo?.configured ? (
+              <div className="flex items-center gap-1.5 text-[#2F6A38]">
+                <CheckCircle2 className="w-3.5 h-3.5 text-[#2F6A38]" />
+                <span>Live Gmail Delivery <b>Active</b> ({smtpInfo.user})</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1.5 text-[#8F6A00]">
+                <AlertTriangle className="w-3.5 h-3.5 text-[#8F6A00]" />
+                <span>In-App Preview & GCP Pub/Sub active. Real email delivery needs Gmail App Password.</span>
+              </div>
+            )}
+          </div>
 
-          <div className="text-[11px] font-mono text-[#736D6B] flex items-center gap-2">
-            <ShieldCheck className="w-3.5 h-3.5 text-[#2F6A38]" />
-            <span>Zen wabi-sabi formatting.</span>
+          <div className="flex items-center gap-2 flex-wrap">
+            <button
+              onClick={() => setSmtpConfigModalOpen(true)}
+              className="px-2.5 py-1 rounded-lg bg-[#FAF8F2] hover:bg-[#EAE6D6] text-[#2B2827] border border-[#DDD7C8] text-[10px] font-mono font-semibold flex items-center gap-1 transition-colors shadow-xs cursor-pointer"
+            >
+              <Settings className="w-3 h-3 text-[#8F6A00]" />
+              <span>Configure App Password</span>
+            </button>
+            {smtpInfo?.configured && (
+              <button
+                onClick={handleSendInstantTestEmail}
+                disabled={isGenerating}
+                className="px-2.5 py-1 rounded-lg bg-[#152659] hover:bg-[#1E357A] text-[#FFFFFF] text-[10px] font-mono font-bold flex items-center gap-1 transition-colors shadow-xs cursor-pointer"
+              >
+                <Mail className="w-3 h-3 text-[#BF9A2A]" />
+                <span>Send Test Email</span>
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -614,6 +704,124 @@ export const AutonomousDispatcher: React.FC<AutonomousDispatcherProps> = ({
                 className="flex-1 py-2 rounded-xl bg-[#152659] hover:bg-[#1E357A] text-[#FFFFFF] font-mono text-xs font-bold"
               >
                 Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* In-App SMTP / Gmail App Password Configuration Modal */}
+      {smtpConfigModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
+          <div className="bg-[#FFFFFF] border border-[#DDD7C8] rounded-3xl p-6 max-w-lg w-full shadow-2xl space-y-4 max-h-[90vh] flex flex-col animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between border-b border-[#DDD7C8] pb-3">
+              <div className="flex items-center gap-2">
+                <Settings className="w-5 h-5 text-[#8F6A00]" />
+                <div>
+                  <h3 className="text-base font-serif font-bold text-[#2B2827]">
+                    Configure Gmail SMTP Email Delivery
+                  </h3>
+                  <span className="text-[11px] font-mono text-[#736D6B]">
+                    Enables direct delivery from agent to your inbox
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  setSmtpConfigModalOpen(false);
+                  setSmtpFeedback(null);
+                }}
+                className="p-1.5 rounded-xl hover:bg-[#EAE6D6] text-[#736D6B] hover:text-[#2B2827]"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-3.5 text-xs">
+              <div className="bg-[#FAF8F2] border border-[#DDD7C8] rounded-2xl p-3.5 space-y-1.5 text-[#5A5553]">
+                <div className="font-bold text-[#2B2827] flex items-center gap-1.5">
+                  <ShieldCheck className="w-4 h-4 text-[#2F6A38]" /> How to get a Google App Password (1 minute):
+                </div>
+                <ol className="list-decimal list-inside space-y-1 text-[11px] text-[#736D6B] leading-relaxed">
+                  <li>Visit <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noreferrer" className="text-[#8F6A00] font-bold underline">Google App Passwords</a>.</li>
+                  <li>Name it <b>Kintsugi Memory</b> and click <b>Create</b>.</li>
+                  <li>Copy the 16-character code (e.g. <code className="bg-[#FFFFFF] px-1 py-0.5 rounded border border-[#DDD7C8]">izrv aolv hmgg wxyz</code>) and paste below.</li>
+                </ol>
+              </div>
+
+              <div className="space-y-1">
+                <label className="block text-[11px] font-mono font-bold text-[#2B2827]">
+                  Sender Gmail Address (SMTP_USER)
+                </label>
+                <input
+                  type="email"
+                  value={inputSmtpUser}
+                  onChange={(e) => setInputSmtpUser(e.target.value)}
+                  placeholder="e.g. cubetestxyz@gmail.com"
+                  className="w-full bg-[#FAF8F2] border border-[#DDD7C8] rounded-xl px-3.5 py-2 text-xs font-mono text-[#2B2827] focus:outline-none focus:border-[#BF9A2A]"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="block text-[11px] font-mono font-bold text-[#2B2827]">
+                  16-Character Google App Password (SMTP_PASS)
+                </label>
+                <input
+                  type="password"
+                  value={inputSmtpPass}
+                  onChange={(e) => setInputSmtpPass(e.target.value)}
+                  placeholder="e.g. izrv aolv hmgg wxyz"
+                  className="w-full bg-[#FAF8F2] border border-[#DDD7C8] rounded-xl px-3.5 py-2 text-xs font-mono text-[#2B2827] focus:outline-none focus:border-[#BF9A2A]"
+                />
+                <p className="text-[10px] text-[#736D6B] font-mono">
+                  Spaces are automatically stripped by the server.
+                </p>
+              </div>
+
+              {smtpFeedback && (
+                <div
+                  className={`p-3 rounded-xl border text-xs font-mono flex items-start gap-2 ${
+                    smtpFeedback.type === 'success'
+                      ? 'bg-[#F0F7F1] border-[#BFE0C4] text-[#2F6A38]'
+                      : 'bg-[#FDF2F0] border-[#F2C0B8] text-[#993B2B]'
+                  }`}
+                >
+                  {smtpFeedback.type === 'success' ? (
+                    <CheckCircle2 className="w-4 h-4 shrink-0 text-[#2F6A38] mt-0.5" />
+                  ) : (
+                    <AlertTriangle className="w-4 h-4 shrink-0 text-[#993B2B] mt-0.5" />
+                  )}
+                  <span className="leading-relaxed">{smtpFeedback.text}</span>
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center gap-3 pt-2 border-t border-[#DDD7C8]">
+              <button
+                type="button"
+                onClick={() => {
+                  setSmtpConfigModalOpen(false);
+                  setSmtpFeedback(null);
+                }}
+                className="flex-1 py-2.5 rounded-xl bg-[#FAF8F2] hover:bg-[#EAE6D6] text-[#5A5553] border border-[#DDD7C8] font-mono text-xs font-semibold"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveAndTestSmtp}
+                disabled={isVerifyingSmtp || !inputSmtpUser || !inputSmtpPass}
+                className="flex-1 py-2.5 rounded-xl bg-[#152659] hover:bg-[#1E357A] disabled:opacity-50 text-[#FFFFFF] font-mono text-xs font-bold flex items-center justify-center gap-2"
+              >
+                {isVerifyingSmtp ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" /> Verifying & Sending...
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4 text-[#BF9A2A]" /> Authenticate & Send Test Email
+                  </>
+                )}
               </button>
             </div>
           </div>

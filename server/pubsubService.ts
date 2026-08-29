@@ -48,13 +48,24 @@ dotenv.config();
 
 import nodemailer from "nodemailer";
 
+// In-Memory runtime SMTP storage (allows configuring directly from UI or .env)
+let runtimeSmtpUser = process.env.SMTP_USER || process.env.MAIL_USER || process.env.GMAIL_USER || "";
+let runtimeSmtpPass = process.env.SMTP_PASS || process.env.MAIL_PASS || process.env.GMAIL_APP_PASSWORD || "";
+
+export function updateRuntimeSmtp(user: string, pass: string): void {
+  runtimeSmtpUser = (user || "").trim();
+  runtimeSmtpPass = (pass || "").trim().replace(/\s+/g, "");
+  process.env.SMTP_USER = runtimeSmtpUser;
+  process.env.SMTP_PASS = runtimeSmtpPass;
+}
+
 // Configure SMTP email transport with auto-sanitization for Gmail App Passwords
 function createEmailTransporter() {
   dotenv.config();
   const smtpHost = process.env.SMTP_HOST || process.env.MAIL_HOST;
   const smtpPort = Number(process.env.SMTP_PORT || process.env.MAIL_PORT || 465);
-  const rawUser = process.env.SMTP_USER || process.env.MAIL_USER || process.env.GMAIL_USER;
-  const rawPass = process.env.SMTP_PASS || process.env.MAIL_PASS || process.env.GMAIL_APP_PASSWORD;
+  const rawUser = runtimeSmtpUser || process.env.SMTP_USER || process.env.MAIL_USER || process.env.GMAIL_USER;
+  const rawPass = runtimeSmtpPass || process.env.SMTP_PASS || process.env.MAIL_PASS || process.env.GMAIL_APP_PASSWORD;
 
   if (!rawUser || !rawPass) {
     return null;
@@ -92,7 +103,66 @@ function createEmailTransporter() {
   });
 }
 
-const emailTransporter = createEmailTransporter();
+export async function verifySmtpConnection(): Promise<{ success: boolean; error?: string }> {
+  const transporter = createEmailTransporter();
+  if (!transporter) {
+    return { success: false, error: "SMTP credentials not provided in .env or settings." };
+  }
+  try {
+    await transporter.verify();
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err?.message || String(err) };
+  }
+}
+
+export async function sendDirectTestEmail(toEmail: string): Promise<{ success: boolean; messageId?: string; error?: string; htmlPreview: string }> {
+  const payload: CliffPingPayload = {
+    recipientEmail: toEmail,
+    conceptTitle: "The Markov Property & State Space",
+    currentRetentionPct: 48,
+    urgency: "urgent_cliff",
+    subject: "✨ [Live Test] The Golden Joinery of Markovian Paths",
+    teaserQuestion: "If a state transition depends only on the present coordinate, what prior memories can we safely let go of?",
+    zineMessage: "Your memory of stochastic systems is undergoing its own elegant wabi-sabi decay. This is a verified test delivery from Kintsugi Memory Autonomous Agent.",
+    triggeredBy: "Manual In-App SMTP Verification",
+  };
+
+  const dummyMsgId = `test-pubsub-${Date.now()}`;
+  const html = buildCliffEditorialEmailHtml(payload, dummyMsgId);
+  const transporter = createEmailTransporter();
+
+  if (!transporter) {
+    return {
+      success: false,
+      error: "SMTP credentials (SMTP_USER and SMTP_PASS) not configured.",
+      htmlPreview: html,
+    };
+  }
+
+  try {
+    const sender = process.env.SMTP_FROM || `"Kintsugi Memory Agent" <${runtimeSmtpUser || process.env.SMTP_USER || toEmail}>`;
+    const info = await transporter.sendMail({
+      from: sender,
+      to: toEmail,
+      subject: payload.subject,
+      text: `${payload.conceptTitle}\n\n${payload.teaserQuestion}\n\n${payload.zineMessage}`,
+      html,
+    });
+
+    return {
+      success: true,
+      messageId: info.messageId,
+      htmlPreview: html,
+    };
+  } catch (err: any) {
+    return {
+      success: false,
+      error: err?.message || String(err),
+      htmlPreview: html,
+    };
+  }
+}
 
 /**
  * Builds a styled HTML Zen Kintsugi editorial email
@@ -156,8 +226,8 @@ export function buildCliffEditorialEmailHtml(payload: CliffPingPayload, messageI
 
 export function getSmtpStatus(): { configured: boolean; user: string | null; rawUser: string | null; host: string | null } {
   dotenv.config();
-  const user = process.env.SMTP_USER || process.env.MAIL_USER || process.env.GMAIL_USER || null;
-  const pass = process.env.SMTP_PASS || process.env.MAIL_PASS || process.env.GMAIL_APP_PASSWORD || null;
+  const user = runtimeSmtpUser || process.env.SMTP_USER || process.env.MAIL_USER || process.env.GMAIL_USER || null;
+  const pass = runtimeSmtpPass || process.env.SMTP_PASS || process.env.MAIL_PASS || process.env.GMAIL_APP_PASSWORD || null;
   const host = process.env.SMTP_HOST || process.env.MAIL_HOST || (user ? "smtp.gmail.com" : null);
 
   return {

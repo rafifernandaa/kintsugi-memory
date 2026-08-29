@@ -1,10 +1,10 @@
-import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
-import { animate } from 'animejs';
-import { ArrowRight, ChevronDown, Sparkles, Brain, Shield, Layers } from 'lucide-react';
+import React, { useEffect, useRef, useCallback } from 'react';
+import { createTimeline } from 'animejs';
+import { ArrowRight } from 'lucide-react';
 
 interface SynapticVesselHeroProps {
   onEnterApp: () => void;
-  onScrollToFeatures?: () => void;
+  onNavigateTab?: (tab: 'philosophy' | 'collection' | 'process' | 'journal') => void;
 }
 
 // Coordinate definitions for 16 ceramic shards
@@ -332,97 +332,140 @@ const SYNAPTIC_CONNECTIONS = [
   { from: 6, to: 3, cp1: [120, -110], cp2: [180, -130] },
 ];
 
-// Easing function for smooth organic trajectory
-function easeInOutCubic(t: number): number {
-  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-}
-
 export const SynapticVesselHero: React.FC<SynapticVesselHeroProps> = ({
   onEnterApp,
-  onScrollToFeatures,
+  onNavigateTab,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [scrollProgress, setScrollProgress] = useState<number>(0);
-  const [isAutoPlaying, setIsAutoPlaying] = useState<boolean>(false);
-  const animProgressObj = useRef<{ value: number }>({ value: 0 });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const timelineRef = useRef<any>(null);
 
-  // Sync natural window scroll to 0.0 -> 1.0 progress
-  // Reaches full 1.0 assembly at ~65% of scroll and holds locked in view through 100%
-  const handleScroll = useCallback(() => {
-    if (!containerRef.current || isAutoPlaying) return;
-
-    const rect = containerRef.current.getBoundingClientRect();
-    const windowHeight = window.innerHeight;
-    const totalScrollable = containerRef.current.offsetHeight - windowHeight;
-
-    if (totalScrollable <= 0) return;
-
-    const currentScrolled = -rect.top;
-    // Scale so it completes assembly smoothly and holds the assembled vessel in view
-    const normalized = Math.max(0, Math.min(1, currentScrolled / (totalScrollable * 0.75)));
-
-    setScrollProgress(normalized);
-    animProgressObj.current.value = normalized;
-  }, [isAutoPlaying]);
-
+  // Initialize Anime.js scroll-scrubbed timeline
   useEffect(() => {
+    // Total virtual animation duration = 1000ms (maps 1-to-1 with scroll progress 0.0 -> 1.0)
+    const tl = createTimeline({
+      autoplay: false,
+      defaults: {
+        ease: 'inOutQuad',
+      },
+    });
+
+    // 1. Shards convergence animation (0ms -> 650ms, i.e., 0% -> 65% scroll)
+    SHARDS.forEach((shard) => {
+      const el = document.getElementById(`shard-node-${shard.id}`);
+      if (el) {
+        tl.add(
+          el,
+          {
+            translateX: [shard.scatterX, shard.targetX],
+            translateY: [shard.scatterY, shard.targetY],
+            rotate: [shard.scatterRot, shard.targetRot],
+            scale: [shard.scatterScale, shard.targetScale],
+            duration: 650,
+            ease: 'inOutCubic',
+          },
+          0
+        );
+      }
+    });
+
+    // 2. Synaptic neural lines fade out (0ms -> 350ms)
+    const linesEl = document.getElementById('synapse-lines-layer');
+    if (linesEl) {
+      tl.add(linesEl, { opacity: [1, 0], duration: 350, ease: 'linear' }, 0);
+    }
+
+    // 3. "SCROLL TO BEGIN" prompt fades out (0ms -> 220ms)
+    const promptEl = document.getElementById('scroll-begin-prompt');
+    if (promptEl) {
+      tl.add(promptEl, { opacity: [1, 0], translateY: [0, -25], duration: 220, ease: 'linear' }, 0);
+    }
+
+    // 4. Shards container cross-fades out as completed vase takes over (580ms -> 700ms)
+    const shardsContainer = document.getElementById('shards-layer');
+    if (shardsContainer) {
+      tl.add(shardsContainer, { opacity: [1, 0], duration: 120, ease: 'linear' }, 580);
+    }
+
+    // 5. Completed porcelain vase with 24K gold joinery fades in smoothly (580ms -> 700ms)
+    const vaseLayer = document.getElementById('completed-vase-layer');
+    if (vaseLayer) {
+      tl.add(vaseLayer, { opacity: [0, 1], scale: [0.95, 1.0], duration: 140, ease: 'outQuad' }, 580);
+    }
+
+    // 6. Upward radiating golden filaments fade in (650ms -> 800ms)
+    const radianceLayer = document.getElementById('radiating-synapses');
+    if (radianceLayer) {
+      tl.add(radianceLayer, { opacity: [0, 0.95], duration: 150, ease: 'outCubic' }, 650);
+    }
+
+    // 7. Grand Hero Typography & CTA reveal (700ms -> 1000ms, i.e., 70% -> 100% scroll)
+    const typographyLayer = document.getElementById('hero-typography-layer');
+    if (typographyLayer) {
+      tl.add(
+        typographyLayer,
+        {
+          opacity: [0, 1],
+          translateY: [35, 0],
+          duration: 300,
+          ease: 'outCubic',
+        },
+        700
+      );
+    }
+
+    // Initial seek to frame 0
+    tl.seek(0);
+    timelineRef.current = tl;
+
+    // Direct scroll scrubber (no setState, zero frame lag)
+    const handleScroll = () => {
+      if (!containerRef.current || !timelineRef.current) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      const totalScrollable = containerRef.current.offsetHeight - window.innerHeight;
+      if (totalScrollable <= 0) return;
+
+      const progress = Math.max(0, Math.min(1, -rect.top / totalScrollable));
+      timelineRef.current.seek(progress * 1000);
+    };
+
     window.addEventListener('scroll', handleScroll, { passive: true });
     handleScroll();
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [handleScroll]);
 
-  // Smooth Auto-Assemble Glide (when clicking "SCROLL TO BEGIN")
-  const handleGlideToProgress = (targetProgress: number) => {
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
+  // Smooth scroll to 100% assembly when clicking "SCROLL TO BEGIN"
+  const handleScrollToAssemble = useCallback(() => {
     if (!containerRef.current) return;
-    setIsAutoPlaying(true);
-
     const totalScrollable = containerRef.current.offsetHeight - window.innerHeight;
-    const targetScrollY = containerRef.current.offsetTop + (targetProgress * totalScrollable * 0.75);
-
     window.scrollTo({
-      top: targetScrollY,
+      top: containerRef.current.offsetTop + totalScrollable,
       behavior: 'smooth',
     });
-
-    animate(animProgressObj.current, {
-      value: targetProgress,
-      duration: 1100,
-      ease: 'inOutCubic',
-      onUpdate: () => {
-        setScrollProgress(animProgressObj.current.value);
-      },
-      onComplete: () => {
-        setIsAutoPlaying(false);
-      },
-    });
-  };
-
-  // Eased progress for trajectory convergence
-  const pEased = useMemo(() => easeInOutCubic(scrollProgress), [scrollProgress]);
-
-  // Vase reveal threshold
-  const vaseOpacity = Math.max(0, Math.min(1, (scrollProgress - 0.4) / 0.45));
-  const shardsOpacity = Math.max(0, Math.min(1, 1 - (scrollProgress - 0.55) / 0.35));
-  const textOpacity = Math.max(0, Math.min(1, (scrollProgress - 0.5) / 0.4));
-  const textTranslateY = (1 - textOpacity) * 25;
-  const promptOpacity = Math.max(0, 1 - scrollProgress * 2.2);
+  }, []);
 
   return (
     <div
       ref={containerRef}
-      className="relative w-full min-h-[220vh] bg-[#F4F0E8] text-[#2B2827] font-sans selection:bg-[#BF9A2A]/30 overflow-hidden"
+      className="relative w-full h-[300vh] bg-[#F4F0E8] text-[#2B2827] font-sans selection:bg-[#BF9A2A]/30"
     >
-      {/* Sticky Viewport Hero Stage */}
+      {/* Pinned Sticky Viewport: Remains fixed throughout the 300vh scroll */}
       <div className="sticky top-0 h-screen w-full flex flex-col justify-between overflow-hidden">
         
-        {/* Background Light Flare */}
+        {/* Ambient Warm Studio Backdrop Glow */}
         <div className="absolute inset-0 pointer-events-none z-0">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] sm:w-[900px] h-[700px] sm:h-[900px] rounded-full bg-[radial-gradient(circle_at_center,rgba(242,227,182,0.38)_0%,rgba(244,240,232,0)_70%)]" />
         </div>
 
-        {/* Minimalist Top Header (Matching Reference Image) */}
+        {/* Minimalist Top Navigation Header */}
         <header className="relative z-30 w-full max-w-7xl mx-auto px-6 sm:px-10 py-5 flex items-center justify-between">
-          <div className="flex flex-col cursor-pointer" onClick={() => handleGlideToProgress(0)}>
+          <div
+            className="flex flex-col cursor-pointer"
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          >
             <span className="font-serif tracking-[0.28em] text-sm sm:text-base font-bold text-[#152659] uppercase">
               K I N T S U G I &nbsp; M E M O R Y
             </span>
@@ -433,22 +476,22 @@ export const SynapticVesselHero: React.FC<SynapticVesselHeroProps> = ({
 
           <nav className="flex items-center gap-6 sm:gap-8 text-xs font-mono tracking-wider uppercase">
             <button
-              onClick={() => onScrollToFeatures ? onScrollToFeatures() : handleGlideToProgress(1)}
+              onClick={() => onNavigateTab ? onNavigateTab('philosophy') : handleScrollToAssemble()}
               className="text-[#5A5553] hover:text-[#BF9A2A] transition-colors hidden sm:inline-block cursor-pointer"
             >
-              Features
+              Philosophy
             </button>
             <button
-              onClick={() => onScrollToFeatures ? onScrollToFeatures() : handleGlideToProgress(1)}
+              onClick={() => onNavigateTab ? onNavigateTab('process') : handleScrollToAssemble()}
               className="text-[#5A5553] hover:text-[#BF9A2A] transition-colors hidden md:inline-block cursor-pointer"
             >
-              Neuroplasticity
+              Process
             </button>
             <button
-              onClick={() => onScrollToFeatures ? onScrollToFeatures() : handleGlideToProgress(1)}
+              onClick={() => onNavigateTab ? onNavigateTab('collection') : handleScrollToAssemble()}
               className="text-[#5A5553] hover:text-[#BF9A2A] transition-colors hidden lg:inline-block cursor-pointer"
             >
-              About
+              Collection
             </button>
             <button
               onClick={onEnterApp}
@@ -460,18 +503,18 @@ export const SynapticVesselHero: React.FC<SynapticVesselHeroProps> = ({
           </nav>
         </header>
 
-        {/* Central Visual Animation Canvas */}
-        <div className="relative flex-1 w-full max-w-5xl mx-auto flex items-center justify-center">
+        {/* Central Visual Stage: Anchors both scattered shards and assembled vase */}
+        <div className="relative flex-1 w-full max-w-5xl mx-auto flex flex-col items-center justify-center">
           
-          <div className="relative w-[340px] sm:w-[460px] md:w-[560px] h-[340px] sm:h-[420px] md:h-[480px] flex items-center justify-center">
+          {/* Visual Pottery Canvas Container */}
+          <div className="relative w-[340px] sm:w-[460px] md:w-[560px] h-[300px] sm:h-[360px] md:h-[400px] flex items-center justify-center">
             
             {/* Layer 1: Synaptic Neural Network Filaments (Visible in Scatter Phase) */}
             <svg
-              className="absolute inset-0 w-full h-full pointer-events-none z-10 transition-opacity duration-300"
+              id="synapse-lines-layer"
+              className="absolute inset-0 w-full h-full pointer-events-none z-10 will-change-transform"
               viewBox="-280 -250 560 500"
-              style={{
-                opacity: Math.max(0, 1 - scrollProgress * 1.8),
-              }}
+              style={{ opacity: 1 }}
             >
               <defs>
                 <linearGradient id="synapse-gold-line" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -502,8 +545,6 @@ export const SynapticVesselHero: React.FC<SynapticVesselHeroProps> = ({
                       strokeWidth="1.2"
                       strokeDasharray="3 4"
                       filter="url(#synapse-glow)"
-                      className="animate-pulse"
-                      style={{ animationDuration: `${2.5 + (idx % 3)}s` }}
                     />
                     <circle
                       cx={conn.cp1[0] * 0.7}
@@ -519,9 +560,10 @@ export const SynapticVesselHero: React.FC<SynapticVesselHeroProps> = ({
 
             {/* Layer 2: Radiating Golden Synaptic Filaments (Radiating upward when assembled) */}
             <svg
-              className="absolute inset-0 w-full h-full pointer-events-none z-15 transition-opacity duration-500"
+              id="radiating-synapses"
+              className="absolute inset-0 w-full h-full pointer-events-none z-15 will-change-transform"
               viewBox="-280 -250 560 500"
-              style={{ opacity: vaseOpacity }}
+              style={{ opacity: 0 }}
             >
               <defs>
                 <linearGradient id="radiance-gold" x1="0%" y1="100%" x2="0%" y2="0%">
@@ -561,80 +603,76 @@ export const SynapticVesselHero: React.FC<SynapticVesselHeroProps> = ({
               />
             </svg>
 
-            {/* Layer 3: The 16 Animated Ceramic Shards (Anime.js Trajectory Interpolation) */}
+            {/* Layer 3: The 16 Animated Ceramic Shards (Controlled by Anime.js) */}
             <div
-              className="absolute inset-0 flex items-center justify-center pointer-events-none z-20 transition-opacity duration-300"
-              style={{ opacity: shardsOpacity }}
+              id="shards-layer"
+              className="absolute inset-0 flex items-center justify-center pointer-events-none z-20 will-change-transform"
+              style={{ opacity: 1 }}
             >
-              {SHARDS.map((shard, index) => {
-                const currentX = shard.scatterX + (shard.targetX - shard.scatterX) * pEased;
-                const currentY = shard.scatterY + (shard.targetY - shard.scatterY) * pEased;
-                const currentRot = shard.scatterRot + (shard.targetRot - shard.scatterRot) * pEased;
-                const currentScale = shard.scatterScale + (shard.targetScale - shard.scatterScale) * pEased;
+              {SHARDS.map((shard, index) => (
+                <div
+                  key={shard.id}
+                  id={`shard-node-${shard.id}`}
+                  className="absolute will-change-transform drop-shadow-md"
+                  style={{
+                    width: shard.size,
+                    height: shard.size,
+                    transform: `translate3d(${shard.scatterX}px, ${shard.scatterY}px, 0) rotate(${shard.scatterRot}deg) scale(${shard.scatterScale})`,
+                  }}
+                >
+                  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+                    <defs>
+                      <linearGradient id={`shard-grad-${index}`} x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="#FAF8F5" />
+                        <stop offset="45%" stopColor={shard.color} />
+                        <stop offset="100%" stopColor="#B3ACA0" />
+                      </linearGradient>
+                      <linearGradient id={`shard-gold-${index}`} x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="#BF8D30" />
+                        <stop offset="50%" stopColor="#F2E3B6" />
+                        <stop offset="100%" stopColor="#8F6A00" />
+                      </linearGradient>
+                      <filter id={`shard-glow-${index}`}>
+                        <feDropShadow dx="0" dy="1" stdDeviation="1" floodColor="#8F6A00" floodOpacity="0.4" />
+                      </filter>
+                    </defs>
 
-                return (
-                  <div
-                    key={shard.id}
-                    className="absolute will-change-transform drop-shadow-md"
-                    style={{
-                      width: shard.size,
-                      height: shard.size,
-                      transform: `translate(${currentX}px, ${currentY}px) rotate(${currentRot}deg) scale(${currentScale})`,
-                    }}
-                  >
-                    <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
-                      <defs>
-                        <linearGradient id={`shard-grad-${index}`} x1="0%" y1="0%" x2="100%" y2="100%">
-                          <stop offset="0%" stopColor="#FAF8F5" />
-                          <stop offset="45%" stopColor={shard.color} />
-                          <stop offset="100%" stopColor="#B3ACA0" />
-                        </linearGradient>
-                        <linearGradient id={`shard-gold-${index}`} x1="0%" y1="0%" x2="100%" y2="100%">
-                          <stop offset="0%" stopColor="#BF8D30" />
-                          <stop offset="50%" stopColor="#F2E3B6" />
-                          <stop offset="100%" stopColor="#8F6A00" />
-                        </linearGradient>
-                        <filter id={`shard-glow-${index}`}>
-                          <feDropShadow dx="0" dy="1" stdDeviation="1" floodColor="#8F6A00" floodOpacity="0.4" />
-                        </filter>
-                      </defs>
+                    {/* Shard Porcelain Body */}
+                    <path
+                      d={shard.path}
+                      fill={`url(#shard-grad-${index})`}
+                      stroke="#8C8377"
+                      strokeWidth="0.75"
+                    />
 
-                      {/* Shard Porcelain Body */}
+                    {/* Gold Seam Line */}
+                    {shard.goldEdgePath && (
                       <path
-                        d={shard.path}
-                        fill={`url(#shard-grad-${index})`}
-                        stroke="#8C8377"
-                        strokeWidth="0.75"
+                        d={shard.goldEdgePath}
+                        fill="none"
+                        stroke={`url(#shard-gold-${index})`}
+                        strokeWidth="3.2"
+                        strokeLinecap="round"
+                        filter={`url(#shard-glow-${index})`}
                       />
+                    )}
 
-                      {/* Gold Seam Line */}
-                      {shard.goldEdgePath && (
-                        <path
-                          d={shard.goldEdgePath}
-                          fill="none"
-                          stroke={`url(#shard-gold-${index})`}
-                          strokeWidth="3.2"
-                          strokeLinecap="round"
-                          filter={`url(#shard-glow-${index})`}
-                        />
-                      )}
-
-                      {/* Gold Specks */}
-                      {shard.id.includes('gold-dust') && (
-                        <circle cx="10" cy="10" r="4" fill="#F2E3B6" filter={`url(#shard-glow-${index})`} />
-                      )}
-                    </svg>
-                  </div>
-                );
-              })}
+                    {/* Gold Specks */}
+                    {shard.id.includes('gold-dust') && (
+                      <circle cx="10" cy="10" r="4" fill="#F2E3B6" filter={`url(#shard-glow-${index})`} />
+                    )}
+                  </svg>
+                </div>
+              ))}
             </div>
 
             {/* Layer 4: Completed High-Definition Kintsugi Ceramic Vase */}
             <div
-              className="absolute inset-0 flex items-center justify-center pointer-events-none z-25 transition-all duration-500"
+              id="completed-vase-layer"
+              className="absolute inset-0 flex items-center justify-center pointer-events-none z-25 will-change-transform"
               style={{
-                opacity: vaseOpacity,
-                transform: `scale(${0.96 + vaseOpacity * 0.04})`,
+                opacity: 0,
+                transform: 'scale(0.95)',
               }}
             >
               <div className="relative w-52 sm:w-64 md:w-72 aspect-[3/4] flex items-center justify-center">
@@ -751,48 +789,48 @@ export const SynapticVesselHero: React.FC<SynapticVesselHeroProps> = ({
               </div>
             </div>
           </div>
+
+          {/* Layer 5: Grand Hero Typography & CTA (Revealed at 70% - 100% Scroll in Same Viewport) */}
+          <div
+            id="hero-typography-layer"
+            className="mt-3 flex flex-col items-center justify-center text-center px-4 pointer-events-auto will-change-transform"
+            style={{
+              opacity: 0,
+              transform: 'translate3d(0, 35px, 0)',
+            }}
+          >
+            <h1 className="text-3xl sm:text-5xl md:text-6xl font-serif font-bold text-[#152659] tracking-[0.18em] uppercase">
+              KINTSUGI
+            </h1>
+            <h2 className="text-lg sm:text-2xl md:text-3xl font-serif text-[#BF9A2A] tracking-[0.45em] uppercase font-light -mt-1 mb-2">
+              M E M O R Y
+            </h2>
+            <p className="text-xs sm:text-sm font-serif text-[#5A5553] max-w-md mx-auto mb-4 leading-relaxed">
+              Remember more. Forget less. Grow always.
+            </p>
+
+            <div className="flex items-center gap-3">
+              <button
+                onClick={onEnterApp}
+                className="px-7 py-3 rounded-full bg-[#152659] hover:bg-[#1E357A] text-[#FFFFFF] font-mono text-xs sm:text-sm font-semibold tracking-wider flex items-center gap-2.5 shadow-xl hover:shadow-2xl transition-all cursor-pointer group"
+              >
+                <span>Start Your Journey</span>
+                <ArrowRight className="w-4 h-4 text-[#BF9A2A] group-hover:translate-x-1 transition-transform" />
+              </button>
+            </div>
+          </div>
         </div>
 
-        {/* Phase 1: "SCROLL TO BEGIN" Prompt (Top Initial State) */}
+        {/* Bottom Initial Guide Prompt: "SCROLL TO BEGIN" */}
         <div
-          className="relative z-30 pb-8 flex flex-col items-center justify-center cursor-pointer transition-opacity duration-300"
-          style={{ opacity: promptOpacity }}
-          onClick={() => handleGlideToProgress(1)}
+          id="scroll-begin-prompt"
+          className="relative z-30 pb-8 flex flex-col items-center justify-center cursor-pointer will-change-transform"
+          onClick={handleScrollToAssemble}
         >
           <span className="text-[11px] font-mono tracking-[0.3em] text-[#5A5553] uppercase font-medium hover:text-[#8F6A00] transition-colors">
             SCROLL TO BEGIN
           </span>
           <div className="w-[1px] h-8 bg-gradient-to-b from-[#8F6A00] to-transparent mt-2 animate-pulse" />
-        </div>
-
-        {/* Phase 2: Grand Hero Typography & CTA (Revealed as Pottery Assembles) */}
-        <div
-          className="absolute inset-x-0 bottom-6 sm:bottom-10 z-30 flex flex-col items-center justify-center text-center px-4 pointer-events-auto transition-all duration-500"
-          style={{
-            opacity: textOpacity,
-            transform: `translateY(${textTranslateY}px)`,
-            pointerEvents: textOpacity > 0.4 ? 'auto' : 'none',
-          }}
-        >
-          <h1 className="text-3xl sm:text-5xl md:text-6xl font-serif font-bold text-[#152659] tracking-[0.18em] uppercase">
-            KINTSUGI
-          </h1>
-          <h2 className="text-lg sm:text-2xl md:text-3xl font-serif text-[#BF9A2A] tracking-[0.45em] uppercase font-light -mt-1 mb-2">
-            M E M O R Y
-          </h2>
-          <p className="text-xs sm:text-sm font-serif text-[#5A5553] max-w-md mx-auto mb-5 leading-relaxed">
-            Remember more. Forget less. Grow always.
-          </p>
-
-          <div className="flex items-center gap-3">
-            <button
-              onClick={onEnterApp}
-              className="px-7 py-3 rounded-full bg-[#152659] hover:bg-[#1E357A] text-[#FFFFFF] font-mono text-xs sm:text-sm font-semibold tracking-wider flex items-center gap-2.5 shadow-xl hover:shadow-2xl transition-all cursor-pointer group"
-            >
-              <span>Start Your Journey</span>
-              <ArrowRight className="w-4 h-4 text-[#BF9A2A] group-hover:translate-x-1 transition-transform" />
-            </button>
-          </div>
         </div>
       </div>
     </div>

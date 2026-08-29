@@ -45,85 +45,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
 
   if (activeTab === 'home') {
     return (
-      <div className="min-h-screen bg-[#F4F0E8] text-[#2B2827] flex flex-col font-sans selection:bg-[#BF9A2A]/30 selection:text-[#2B2827] relative overflow-x-hidden">
-        {/* Animated Anime.js Synaptic Vessel Scroll Hero */}
-        <SynapticVesselHero
-          onEnterApp={onEnterApp}
-          onScrollToFeatures={() => setActiveTab('process')}
-        />
-
-        {/* The Philosophy & Memory Mending Breakdown below the Hero */}
-        <section className="relative z-10 w-full max-w-7xl mx-auto px-6 sm:px-10 py-16 grid grid-cols-1 lg:grid-cols-12 gap-8 border-t border-[#BF9A2A]/25 items-center">
-          {/* Left Column: Philosophy Highlights */}
-          <div className="lg:col-span-7 space-y-6">
-            <div className="flex items-center gap-2 text-xs font-mono tracking-[0.25em] text-[#8F6A00] uppercase font-bold">
-              <Sparkles className="w-4 h-4 text-[#BF9A2A]" /> THE PHILOSOPHY OF GOLDEN REPAIR
-            </div>
-            <h2 className="text-3xl sm:text-4xl font-serif text-[#152659] font-bold tracking-tight">
-              Embracing Memory Decay as the Seam of Lifelong Mastery
-            </h2>
-            <p className="text-sm sm:text-base text-[#5A5553] font-serif leading-relaxed">
-              In traditional study habits, forgotten concepts are treated as failures. Kintsugi inverts this mental model: every cognitive fracture exposes the exact boundary condition where active Socratic retrieval can seal knowledge permanently with gold.
-            </p>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
-              <div className="p-4 rounded-2xl bg-[#FFFFFF] border border-[#DDD7C8] shadow-xs space-y-1">
-                <span className="text-xl font-serif font-bold text-[#8F6A00]">01</span>
-                <h4 className="text-xs font-mono font-bold text-[#2B2827]">Bayesian FSRS</h4>
-                <p className="text-[11px] text-[#736D6B]">Real-time power law tracking of cognitive decay.</p>
-              </div>
-              <div className="p-4 rounded-2xl bg-[#FFFFFF] border border-[#DDD7C8] shadow-xs space-y-1">
-                <span className="text-xl font-serif font-bold text-[#8F6A00]">02</span>
-                <h4 className="text-xs font-mono font-bold text-[#2B2827]">Socratic Dialogue</h4>
-                <p className="text-[11px] text-[#736D6B]">Applied challenges probing causal invariants.</p>
-              </div>
-              <div className="p-4 rounded-2xl bg-[#FFFFFF] border border-[#DDD7C8] shadow-xs space-y-1">
-                <span className="text-xl font-serif font-bold text-[#8F6A00]">03</span>
-                <h4 className="text-xs font-mono font-bold text-[#2B2827]">Urushi Sealing</h4>
-                <p className="text-[11px] text-[#736D6B]">Retrieved memory gains 3x stability growth.</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column: Zen Philosophy Quote & Exploration */}
-          <div className="lg:col-span-5 flex flex-col justify-between p-6 sm:p-8 bg-[#FAF8F2] border border-[#BF9A2A]/40 rounded-3xl shadow-sm space-y-4">
-            <span className="text-4xl font-serif text-[#BF9A2A] leading-none select-none">“</span>
-            <blockquote className="text-sm sm:text-base font-serif italic text-[#2B2827] leading-relaxed -mt-2">
-              The beauty of Kintsugi is not in pretending the vessel never broke, but in celebrating how the golden joinery made it stronger and more resilient than before.
-            </blockquote>
-            <div className="pt-3 border-t border-[#DDD7C8] flex items-center justify-between text-xs font-mono">
-              <span className="text-[#8F6A00] font-bold">Wabi-Sabi Cognitive Principle</span>
-              <button
-                onClick={onEnterApp}
-                className="px-4 py-2 rounded-full bg-[#152659] text-white font-mono text-xs font-bold hover:bg-[#1E357A] transition-colors"
-              >
-                Enter App →
-              </button>
-            </div>
-          </div>
-        </section>
-
-        {/* Footer Navigation */}
-        <footer className="relative z-20 w-full border-t border-[#DDD7C8] bg-[#FAF8F2] py-5 px-6 sm:px-10 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] font-mono text-[#736D6B] uppercase tracking-wider">
-          <div className="flex items-center gap-4">
-            <span>ACTIVE RETRIEVAL</span>
-            <span>•</span>
-            <span>BAYESIAN FSRS</span>
-            <span>•</span>
-            <span>AI SOCRATIC</span>
-          </div>
-
-          <button
-            onClick={onEnterApp}
-            className="px-5 py-2 rounded-full bg-[#152659] text-white font-mono font-bold hover:bg-[#1E357A] transition-all flex items-center gap-2"
-          >
-            <span className="w-1.5 h-1.5 rounded-full bg-[#BF9A2A] animate-ping" />
-            <span>ENTER KINTSUGI MEMORY</span>
-          </button>
-
-          <div>KYOTO • © 2026 KINTSUGI MEMORY</div>
-        </footer>
-      </div>
+      <SynapticVesselHero
+        onEnterApp={onEnterApp}
+        onNavigateTab={(tab) => setActiveTab(tab)}
+      />
     );
   }
 

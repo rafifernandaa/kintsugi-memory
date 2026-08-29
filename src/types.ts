@@ -80,11 +80,14 @@ export interface IngestionResult {
 export interface EvaluationResult {
   score: number; // 0 to 100
   rating: 'AGAIN' | 'HARD' | 'GOOD' | 'EASY';
-  comprehensionLevel: 'superficial_recognition' | 'partial_retrieval' | 'deep_mastery';
+  comprehensionLevel: 'deep_mastery' | 'sound_recall' | 'partial_gap' | 'critical_fracture' | 'off_topic' | 'superficial_recognition' | 'partial_retrieval' | string;
+  isCorrect?: boolean;
+  isOffTopic?: boolean;
   feedback: string;
   goldenInsight: string; // The Kintsugi repair note
   misconceptionsIdentified: string[];
   missingElements: string[];
+  strengths?: string[];
   updatedStabilityDays: number;
   newPredictedRetention: number;
   retentionConfidenceInterval: [number, number];

@@ -329,10 +329,10 @@ export async function evaluateCognitiveRetrieval(options: {
 
   const prompt = `
 You are the Cognitive Evaluator and Kintsugi Synthesis Agent.
-Evaluate the student's retrieval response with precision and philosophical depth.
+Evaluate the student's retrieval response with precision, pedagogical clarity, and philosophical depth.
 
 Target Concept: "${concept.title}"
-Underlying Mechanisms: ${JSON.stringify(concept.keyMechanisms || [])}
+Underlying Invariants & Mechanisms: ${JSON.stringify(concept.keyMechanisms || [])}
 Common Traps: ${JSON.stringify(concept.commonMisconceptions || [])}
 Question Asked: "${question.promptText || question.prompt}"
 Model Reference Answer: "${question.modelAnswer}"
@@ -344,10 +344,10 @@ Student's Response:
 Time Spent: ${timeSpentSeconds || 30} seconds.
 
 EVALUATE:
-1. Score from 0 to 100 on conceptual fidelity and mechanistic understanding.
-2. Identify specifically what the student understood correctly (strengths).
-3. Identify cognitive traps, misconceptions, or incomplete reasoning (gaps).
-4. Synthesize the "Golden Insight" (the Kintsugi Gold Seam) — a memorable 1-2 sentence realization that repairs their understanding stronger than before.
+1. Relevance Check: Is the student's response on-topic? If it is gibberish, spam, or completely unrelated to "${concept.title}", set isOffTopic=true, score=0-15, comprehensionLevel="off_topic", rating="AGAIN".
+2. If on-topic and correct: Grade 75-100. Set isCorrect=true, comprehensionLevel="deep_mastery" (90-100) or "sound_recall" (75-89), rating="EASY" or "GOOD". Highlight what they got right.
+3. If on-topic but incorrect or incomplete: Grade 20-69. Set isCorrect=false, comprehensionLevel="partial_gap" (50-69) or "critical_fracture" (0-49), rating="HARD" or "AGAIN". Identify the exact misconception or missing causal link.
+4. Golden Insight: Synthesize a memorable 1-2 sentence realization (the Kintsugi Gold Seam) that repairs their mental model permanently.
 `;
 
   return executeWithModelRetry(ai, model, async (targetModel) => {
@@ -356,19 +356,32 @@ EVALUATE:
       contents: prompt,
       config: {
         systemInstruction:
-          "You are a master cognitive scientist and philosophical tutor in the tradition of Kintsugi (repairing flaws with gold). Provide constructive, mathematically rigorous cognitive feedback.",
+          "You are a master cognitive scientist and philosophical tutor in the tradition of Kintsugi (repairing flaws with gold). Provide constructive, compassionate, mathematically rigorous cognitive feedback. Correctly distinguish between accurate answers, conceptual misconceptions, and off-topic/gibberish responses.",
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.OBJECT,
           properties: {
             score: { type: Type.INTEGER, description: "0 to 100 score" },
             isCorrect: { type: Type.BOOLEAN },
-            feedback: { type: Type.STRING, description: "Detailed feedback on understanding" },
+            isOffTopic: { type: Type.BOOLEAN, description: "True if the answer is completely unrelated, random, or gibberish" },
+            comprehensionLevel: {
+              type: Type.STRING,
+              description: "deep_mastery | sound_recall | partial_gap | critical_fracture | off_topic",
+            },
+            rating: {
+              type: Type.STRING,
+              description: "EASY | GOOD | HARD | AGAIN",
+            },
+            feedback: { type: Type.STRING, description: "Detailed feedback explaining why it is correct, incorrect, or off-topic" },
             strengths: {
               type: Type.ARRAY,
               items: { type: Type.STRING },
             },
             misconceptionsIdentified: {
+              type: Type.ARRAY,
+              items: { type: Type.STRING },
+            },
+            missingElements: {
               type: Type.ARRAY,
               items: { type: Type.STRING },
             },
@@ -380,9 +393,13 @@ EVALUATE:
           required: [
             "score",
             "isCorrect",
+            "isOffTopic",
+            "comprehensionLevel",
+            "rating",
             "feedback",
             "strengths",
             "misconceptionsIdentified",
+            "missingElements",
             "goldenInsight",
           ],
         },
@@ -395,29 +412,60 @@ EVALUATE:
 
     const parsed = JSON.parse(response.text);
 
+    // Normalize and enforce safe fields
+    const isOffTopic = Boolean(parsed.isOffTopic || parsed.comprehensionLevel === "off_topic");
+    const score = isOffTopic ? Math.min(15, parsed.score || 0) : (parsed.score ?? (parsed.isCorrect ? 85 : 45));
+    const isCorrect = isOffTopic ? false : (score >= 70);
+
+    const comprehensionLevel = isOffTopic
+      ? "off_topic"
+      : (parsed.comprehensionLevel || (score >= 90 ? "deep_mastery" : score >= 70 ? "sound_recall" : score >= 50 ? "partial_gap" : "critical_fracture"));
+
+    const rating = isOffTopic
+      ? "AGAIN"
+      : (parsed.rating || (score >= 90 ? "EASY" : score >= 70 ? "GOOD" : score >= 50 ? "HARD" : "AGAIN"));
+
     // Apply Bayesian FSRS Stability Updating Equation
-    const prevStability = concept.stability || 1.5;
-    const prevDifficulty = concept.difficulty || 5.0;
-    const score = parsed.score || (parsed.isCorrect ? 85 : 45);
+    const prevStability = concept.stability || concept.fsrs?.stability || 1.5;
+    const prevDifficulty = concept.difficulty || concept.fsrs?.difficulty || 5.0;
 
     let newStability: number;
     let newDifficulty: number;
 
     if (score >= 70) {
-      const recallFactor = 1 + 0.9 * (11 - prevDifficulty) * Math.pow(prevStability, -0.2);
-      newStability = Math.min(365, Number((prevStability * recallFactor).toFixed(2)));
-      newDifficulty = Math.max(1, Number((prevDifficulty - 0.2).toFixed(2)));
+      const recallFactor = 1 + 0.9 * (11 - prevDifficulty) * Math.pow(Math.max(0.1, prevStability), -0.2);
+      newStability = Math.min(365, Number((prevStability * recallFactor).toFixed(1)));
+      newDifficulty = Math.max(1, Number((prevDifficulty - 0.2).toFixed(1)));
     } else {
-      newStability = Math.max(0.5, Number((prevStability * 0.4).toFixed(2)));
-      newDifficulty = Math.min(10, Number((prevDifficulty + 0.4).toFixed(2)));
+      newStability = Math.max(0.5, Number((prevStability * 0.4).toFixed(1)));
+      newDifficulty = Math.min(10, Number((prevDifficulty + 0.4).toFixed(1)));
     }
+
+    const newPredictedRetention = Number(Math.exp(-1 / Math.max(0.5, newStability)).toFixed(2));
+    const retentionConfidenceInterval: [number, number] = [
+      Math.max(0.1, Number((newPredictedRetention - 0.05).toFixed(2))),
+      Math.min(0.99, Number((newPredictedRetention + 0.04).toFixed(2))),
+    ];
 
     return {
       ...parsed,
+      score,
+      isCorrect,
+      isOffTopic,
+      comprehensionLevel,
+      rating,
+      feedback: parsed.feedback || (isOffTopic ? "Your answer is unrelated to the question. Please focus on the core mechanisms." : isCorrect ? "Excellent recall!" : "Some gaps were detected in your explanation."),
+      strengths: parsed.strengths || [],
+      misconceptionsIdentified: parsed.misconceptionsIdentified || [],
+      missingElements: parsed.missingElements || [],
+      goldenInsight: parsed.goldenInsight || `Anchor the invariants of ${concept.title} to stabilize long-term retention.`,
       previousStability: prevStability,
       newStability,
+      updatedStabilityDays: newStability,
       previousDifficulty: prevDifficulty,
       newDifficulty,
+      newPredictedRetention,
+      retentionConfidenceInterval,
       reviewedAt: new Date().toISOString(),
     };
   });

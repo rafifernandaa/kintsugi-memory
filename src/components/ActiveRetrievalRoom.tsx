@@ -444,31 +444,36 @@ export const ActiveRetrievalRoom: React.FC<ActiveRetrievalRoomProps> = ({
       });
 
       const contentType = res.headers.get('content-type');
-      let evalData: EvaluationResult;
+      let rawData: any = {};
       if (res.ok && contentType && contentType.includes('application/json')) {
-        evalData = await res.json();
-      } else {
-        const isCorrectMcq = currentQ.type === 'mcq' && selectedMcqOption === currentQ.correctOptionIndex;
-        evalData = {
-          score: isCorrectMcq ? 95 : 85,
-          rating: 'GOOD',
-          feedback: isCorrectMcq
-            ? 'Excellent identification of core systemic constraints and misconceptions.'
-            : 'Strong recall of fundamental mechanisms. Your explanation demonstrates genuine causal comprehension.',
-          goldenInsight: `True mastery of ${concept.title} emerges from anchoring the invariant constraints rather than memorizing surface terminology.`,
-          misconceptionsIdentified: [],
-          missingElements: [],
-          updatedStabilityDays: Number((concept.stability * 2.2).toFixed(1)),
-          newPredictedRetention: 0.94,
-          retentionConfidenceInterval: [0.88, 0.98],
-          comprehensionLevel: 'deep_mastery',
-        };
+        rawData = await res.json();
       }
+
+      const isCorrectMcq = currentQ.type === 'mcq' && selectedMcqOption === currentQ.correctOptionIndex;
+      const fallbackScore = currentQ.type === 'mcq' ? (isCorrectMcq ? 95 : 35) : (finalAnswer.trim().length > 15 ? 75 : 30);
+      const isOffTopic = Boolean(rawData.isOffTopic || rawData.comprehensionLevel === 'off_topic');
+      const score = typeof rawData.score === 'number' ? rawData.score : fallbackScore;
+
+      const evalData: EvaluationResult = {
+        score,
+        isCorrect: isOffTopic ? false : (typeof rawData.isCorrect === 'boolean' ? rawData.isCorrect : score >= 70),
+        isOffTopic,
+        rating: rawData.rating || (isOffTopic ? 'AGAIN' : score >= 90 ? 'EASY' : score >= 70 ? 'GOOD' : score >= 40 ? 'HARD' : 'AGAIN'),
+        comprehensionLevel: rawData.comprehensionLevel || (isOffTopic ? 'off_topic' : score >= 90 ? 'deep_mastery' : score >= 70 ? 'sound_recall' : score >= 50 ? 'partial_gap' : 'critical_fracture'),
+        feedback: rawData.feedback || (isOffTopic ? 'Your answer appears to be off-topic or unrelated to this concept. Please focus on the underlying invariants.' : score >= 70 ? 'Strong recall of fundamental mechanisms. Your explanation demonstrates genuine causal comprehension.' : 'Some cognitive gaps were identified in this explanation. Review the golden insight to reinforce understanding.'),
+        goldenInsight: rawData.goldenInsight || `True mastery of ${concept.title} emerges from anchoring the invariant constraints rather than memorizing surface terminology.`,
+        misconceptionsIdentified: Array.isArray(rawData.misconceptionsIdentified) ? rawData.misconceptionsIdentified : [],
+        missingElements: Array.isArray(rawData.missingElements) ? rawData.missingElements : [],
+        strengths: Array.isArray(rawData.strengths) ? rawData.strengths : [],
+        updatedStabilityDays: typeof rawData.updatedStabilityDays === 'number' ? rawData.updatedStabilityDays : (typeof rawData.newStability === 'number' ? rawData.newStability : Number((concept.stability * (score >= 70 ? 2.2 : 0.5)).toFixed(1))),
+        newPredictedRetention: typeof rawData.newPredictedRetention === 'number' ? rawData.newPredictedRetention : (score >= 70 ? 0.94 : 0.65),
+        retentionConfidenceInterval: Array.isArray(rawData.retentionConfidenceInterval) ? rawData.retentionConfidenceInterval : (score >= 70 ? [0.88, 0.98] : [0.55, 0.75]),
+      };
 
       setEvaluationResult(evalData);
 
       // Play Kintsugi sound effect & celebratory particle burst (inline, no blocking modal)
-      if (evalData.score >= 70) {
+      if (evalData.score >= 70 && !evalData.isOffTopic) {
         playGoldenKintsugiChime();
         confetti({
           particleCount: 60,
@@ -991,35 +996,96 @@ export const ActiveRetrievalRoom: React.FC<ActiveRetrievalRoomProps> = ({
               {/* Score & Rating Banner */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#DDD7C8] pb-4 relative z-20">
                 <div className="space-y-1">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <span className={`px-2.5 py-0.5 rounded-full text-xs font-mono font-bold ${
-                      evaluationResult.score >= 70
+                      evaluationResult.isOffTopic || evaluationResult.comprehensionLevel === 'off_topic'
+                        ? 'bg-[#FAF3E0] text-[#8F6A00] border border-[#E8D4A2]'
+                        : evaluationResult.score >= 70
                         ? 'bg-[#F0F7F1] text-[#2F6A38] border border-[#BFE0C4]'
                         : 'bg-[#FDF2F0] text-[#993B2B] border border-[#F2C0B8]'
                     }`}>
-                      FSRS Grade: {evaluationResult.rating} ({evaluationResult.score}/100)
+                      FSRS Grade: {evaluationResult.rating || (evaluationResult.score >= 70 ? 'GOOD' : 'AGAIN')} ({evaluationResult.score}/100)
                     </span>
                     <span className="text-xs font-mono text-[#736D6B]">
-                      Level: {evaluationResult.comprehensionLevel.replace('_', ' ')}
+                      Level: {String(evaluationResult.comprehensionLevel || 'evaluated').replace(/_/g, ' ')}
                     </span>
                   </div>
                   <h4 className="text-lg font-serif font-bold text-[#2B2827]">
-                    {evaluationResult.score >= 75 ? '🌸 Synaptic Crack Repaired with Gold!' : '⚠️ Neural Gap Detected — Re-anchoring'}
+                    {evaluationResult.isOffTopic || evaluationResult.comprehensionLevel === 'off_topic'
+                      ? '⚠️ Off-Topic Response — Re-focus on Concept'
+                      : evaluationResult.score >= 70
+                      ? '🌸 Synaptic Crack Repaired with Gold!'
+                      : '⚠️ Neural Gap Detected — Re-anchoring Synapse'}
                   </h4>
                 </div>
 
                 <div className="bg-[#FAF8F2] px-4 py-2 rounded-xl border border-[#DDD7C8] text-center shadow-sm">
                   <div className="text-xs text-[#736D6B] font-mono font-semibold">New Stability (S)</div>
                   <div className="text-lg font-bold font-mono text-[#8F6A00]">
-                    {evaluationResult.updatedStabilityDays} Days
+                    {evaluationResult.updatedStabilityDays || 1.5} Days
                   </div>
                 </div>
               </div>
+
+              {/* Off-Topic Special Banner */}
+              {(evaluationResult.isOffTopic || evaluationResult.comprehensionLevel === 'off_topic') && (
+                <div className="bg-[#FAF3E0] border border-[#E8D4A2] rounded-xl p-3.5 space-y-1">
+                  <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-[#8F6A00]">
+                    <AlertTriangle className="w-4 h-4 text-[#BF9A2A]" />
+                    Divergent / Off-Topic Answer Detected
+                  </div>
+                  <p className="text-xs text-[#5A5553] leading-relaxed">
+                    Your response did not engage with the core mechanism of <b>{concept.title}</b>. In spaced retrieval practice, actively explaining the question's causal constraints is required to strengthen biological memory traces.
+                  </p>
+                </div>
+              )}
 
               {/* Feedback Body */}
               <div className="space-y-2 text-xs text-[#5A5553] leading-relaxed">
                 <p>{evaluationResult.feedback}</p>
               </div>
+
+              {/* Strengths / Accurate Points */}
+              {evaluationResult.strengths && evaluationResult.strengths.length > 0 && (
+                <div className="space-y-1 bg-[#F0F7F1] p-3 rounded-xl border border-[#BFE0C4] text-xs">
+                  <div className="text-[11px] font-mono text-[#2F6A38] font-bold flex items-center gap-1">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#2F6A38]" /> Accurate Mechanisms Recalled:
+                  </div>
+                  <ul className="list-disc list-inside text-[#2F6A38] space-y-0.5 pt-0.5">
+                    {evaluationResult.strengths.map((s, i) => (
+                      <li key={i}>{s}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Misconceptions Caught */}
+              {evaluationResult.misconceptionsIdentified && evaluationResult.misconceptionsIdentified.length > 0 && (
+                <div className="space-y-1 bg-[#FDF2F0] p-3 rounded-xl border border-[#F2C0B8] text-xs">
+                  <div className="text-[11px] font-mono text-[#993B2B] font-bold flex items-center gap-1">
+                    <AlertTriangle className="w-3.5 h-3.5 text-[#993B2B]" /> Illusion of Competence Corrected:
+                  </div>
+                  <ul className="list-disc list-inside text-[#993B2B] space-y-0.5 pt-0.5">
+                    {evaluationResult.misconceptionsIdentified.map((m, i) => (
+                      <li key={i}>{m}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Missing Core Elements */}
+              {evaluationResult.missingElements && evaluationResult.missingElements.length > 0 && (
+                <div className="space-y-1 bg-[#FAF8F2] p-3 rounded-xl border border-[#DDD7C8] text-xs">
+                  <div className="text-[11px] font-mono text-[#8F6A00] font-bold flex items-center gap-1">
+                    <HelpCircle className="w-3.5 h-3.5 text-[#8F6A00]" /> Missing Invariant Details:
+                  </div>
+                  <ul className="list-disc list-inside text-[#5A5553] space-y-0.5 pt-0.5">
+                    {evaluationResult.missingElements.map((el, i) => (
+                      <li key={i}>{el}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
               {/* Kintsugi Golden Insight Seam */}
               {evaluationResult.goldenInsight && (
@@ -1030,20 +1096,6 @@ export const ActiveRetrievalRoom: React.FC<ActiveRetrievalRoomProps> = ({
                   <p className="text-xs text-[#2B2827] font-serif italic leading-relaxed">
                     "{evaluationResult.goldenInsight}"
                   </p>
-                </div>
-              )}
-
-              {/* Misconceptions Caught */}
-              {evaluationResult.misconceptionsIdentified?.length > 0 && (
-                <div className="space-y-1 bg-[#FDF2F0] p-3 rounded-xl border border-[#F2C0B8] text-xs">
-                  <div className="text-[11px] font-mono text-[#993B2B] font-bold flex items-center gap-1">
-                    <AlertTriangle className="w-3.5 h-3.5 text-[#993B2B]" /> Illusion of Competence Corrected:
-                  </div>
-                  <ul className="list-disc list-inside text-[#5A5553] space-y-0.5 pt-0.5">
-                    {evaluationResult.misconceptionsIdentified.map((m, i) => (
-                      <li key={i}>{m}</li>
-                    ))}
-                  </ul>
                 </div>
               )}
 

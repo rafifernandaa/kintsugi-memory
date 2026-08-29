@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import {
   Sparkles,
   Brain,
@@ -19,178 +19,35 @@ import {
   Award,
   BookOpen,
   Mail,
-  Key,
-  Shield,
-  Settings,
   User,
-  Check,
-  Languages,
 } from 'lucide-react';
 
 interface AboutTabProps {
-  onNavigateToTab: (tab: 'home' | 'materials' | 'calendar' | 'review' | 'neuroplasticity' | 'progress' | 'journal' | 'insights') => void;
+  onNavigateToTab: (tab: 'home' | 'materials' | 'calendar' | 'review' | 'neuroplasticity' | 'progress' | 'journal' | 'insights' | 'selene') => void;
 }
 
 export const AboutTab: React.FC<AboutTabProps> = ({ onNavigateToTab }) => {
-  const [smtpUser, setSmtpUser] = useState(() => localStorage.getItem('kintsugi_smtp_user') || 'cubetestxyz@gmail.com');
-  const [smtpPass, setSmtpPass] = useState('');
-  const [isConfiguringSmtp, setIsConfiguringSmtp] = useState(false);
-  const [smtpStatusMsg, setSmtpStatusMsg] = useState<{ text: string; success: boolean } | null>(null);
-  const [smtpConfigured, setSmtpConfigured] = useState<boolean>(false);
-
-  useEffect(() => {
-    fetch('/api/smtp-status')
-      .then((res) => res.json())
-      .then((data) => {
-        if (data && data.configured) {
-          setSmtpConfigured(true);
-          if (data.user) setSmtpUser(data.user);
-        }
-      })
-      .catch(() => {});
-  }, []);
-
-  const handleSaveSmtp = async () => {
-    if (!smtpUser || !smtpPass) {
-      setSmtpStatusMsg({ text: 'Please provide both Gmail address and 16-character App Password.', success: false });
-      return;
-    }
-
-    setIsConfiguringSmtp(true);
-    setSmtpStatusMsg(null);
-
-    try {
-      const res = await fetch('/api/configure-smtp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user: smtpUser.trim(), pass: smtpPass.trim() }),
-      });
-      const data = await res.json();
-
-      if (data.success) {
-        setSmtpConfigured(true);
-        localStorage.setItem('kintsugi_smtp_user', smtpUser.trim());
-        localStorage.setItem('kintsugi_user_email', smtpUser.trim());
-        setSmtpStatusMsg({ text: `SMTP Verified! Real emails will be delivered to ${smtpUser.trim()}.`, success: true });
-        setSmtpPass('');
-      } else {
-        setSmtpStatusMsg({ text: data.error || 'Failed to authenticate Gmail credentials.', success: false });
-      }
-    } catch (e: any) {
-      setSmtpStatusMsg({ text: e.message || 'Network error while configuring SMTP.', success: false });
-    } finally {
-      setIsConfiguringSmtp(false);
-    }
-  };
-
   return (
-    <div className="space-y-8 max-w-5xl mx-auto pb-16">
+    <div className="space-y-8 max-w-5xl mx-auto pb-16 animate-in fade-in duration-200">
       {/* Header */}
       <div className="border-b border-[#DDD7C8] pb-6 space-y-2">
         <div className="flex items-center gap-2">
           <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-[#BF9A2A]/15 text-[#8F6A00] border border-[#BF9A2A]/30">
-            Account, Settings & System Architecture
+            Cognitive Science & System Architecture
           </span>
           <span className="text-xs font-mono text-[#736D6B]">
             Kintsugi Memory Platform
           </span>
         </div>
         <h1 className="text-2xl sm:text-3xl font-serif font-bold text-[#2B2827] tracking-tight">
-          System Overview & Account Settings
+          How Kintsugi Memory Works
         </h1>
         <p className="text-sm text-[#5A5553] max-w-3xl leading-relaxed">
-          Configure notification credentials, inspect the biological Free Spaced Repetition (FSRS) decay model, and explore how multi-agent cognitive mending works across universal disciplines and language acquisition.
+          Kintsugi Memory is an autonomous cognitive partner that models biological power-law forgetting curves and repairs fragile synapses with Socratic gold.
         </p>
       </div>
 
-      {/* 1. Account & Gmail SMTP Notification Settings */}
-      <div className="bg-[#FFFFFF] border border-[#DDD7C8] rounded-3xl p-6 sm:p-8 shadow-sm space-y-5 relative overflow-hidden">
-        <div className="flex items-center justify-between gap-3 border-b border-[#DDD7C8] pb-4 flex-wrap">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-[#F0F7F1] border border-[#BFE0C4] flex items-center justify-center text-[#2F6A38]">
-              <Mail className="w-5 h-5" />
-            </div>
-            <div>
-              <h2 className="text-lg sm:text-xl font-serif font-bold text-[#2B2827]">
-                Gmail SMTP & Autonomous Delivery Settings
-              </h2>
-              <div className="text-xs font-mono text-[#736D6B]">
-                Configure real email delivery for proactive forgetting-cliff micro-questions
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            {smtpConfigured ? (
-              <span className="px-3 py-1 rounded-full bg-[#F0F7F1] text-[#2F6A38] border border-[#BFE0C4] text-xs font-mono font-bold flex items-center gap-1.5">
-                <CheckCircle2 className="w-3.5 h-3.5" /> Real Email Delivery Active
-              </span>
-            ) : (
-              <span className="px-3 py-1 rounded-full bg-[#FAF3E0] text-[#8F6A00] border border-[#E8D4A2] text-xs font-mono font-bold flex items-center gap-1.5">
-                <AlertTriangle className="w-3.5 h-3.5" /> In-App & Pub/Sub Preview Mode
-              </span>
-            )}
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="space-y-1.5">
-            <label className="block text-xs font-mono font-bold text-[#2B2827]">
-              Registered Gmail Address
-            </label>
-            <input
-              type="email"
-              value={smtpUser}
-              onChange={(e) => setSmtpUser(e.target.value)}
-              placeholder="e.g. yourname@gmail.com"
-              className="w-full bg-[#FAF8F2] border border-[#DDD7C8] rounded-xl px-3.5 py-2.5 text-xs text-[#2B2827] focus:outline-none focus:border-[#BF9A2A]"
-            />
-          </div>
-
-          <div className="space-y-1.5">
-            <label className="block text-xs font-mono font-bold text-[#2B2827]">
-              Google App Password (16 characters)
-            </label>
-            <input
-              type="password"
-              value={smtpPass}
-              onChange={(e) => setSmtpPass(e.target.value)}
-              placeholder="e.g. abcd efgh ijkl mnop"
-              className="w-full bg-[#FAF8F2] border border-[#DDD7C8] rounded-xl px-3.5 py-2.5 text-xs text-[#2B2827] focus:outline-none focus:border-[#BF9A2A]"
-            />
-          </div>
-        </div>
-
-        {smtpStatusMsg && (
-          <div
-            className={`p-3.5 rounded-xl border text-xs font-mono flex items-center gap-2 ${
-              smtpStatusMsg.success
-                ? 'bg-[#F0F7F1] border-[#BFE0C4] text-[#2F6A38]'
-                : 'bg-[#FDF2F0] border-[#F2C0B8] text-[#993B2B]'
-            }`}
-          >
-            {smtpStatusMsg.success ? <Check className="w-4 h-4" /> : <AlertTriangle className="w-4 h-4" />}
-            <span>{smtpStatusMsg.text}</span>
-          </div>
-        )}
-
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
-          <p className="text-xs text-[#736D6B] leading-relaxed">
-            Generate a 16-character password in your Google Account under <b>Security → 2-Step Verification → App Passwords</b>.
-          </p>
-
-          <button
-            onClick={handleSaveSmtp}
-            disabled={isConfiguringSmtp}
-            className="px-5 py-2.5 rounded-xl bg-[#152659] hover:bg-[#1E357A] text-white text-xs font-mono font-bold flex items-center justify-center gap-2 transition-all shadow-xs shrink-0 cursor-pointer disabled:opacity-50"
-          >
-            <Shield className="w-4 h-4 text-[#BF9A2A]" />
-            <span>{isConfiguringSmtp ? 'Verifying with Google...' : 'Save & Verify App Password'}</span>
-          </button>
-        </div>
-      </div>
-
-      {/* 2. The Core Metaphor & Philosophy */}
+      {/* 1. The Core Metaphor & Philosophy */}
       <div className="bg-[#FFFFFF] border border-[#DDD7C8] rounded-3xl p-6 sm:p-8 shadow-sm space-y-5 relative overflow-hidden">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-2xl bg-[#FAF3E0] border border-[#E8D4A2] flex items-center justify-center text-[#8F6A00]">
@@ -240,7 +97,7 @@ export const AboutTab: React.FC<AboutTabProps> = ({ onNavigateToTab }) => {
         </div>
       </div>
 
-      {/* 3. Bayesian FSRS Mathematical Engine */}
+      {/* 2. Bayesian FSRS Mathematical Engine */}
       <div className="bg-[#FFFFFF] border border-[#DDD7C8] rounded-3xl p-6 sm:p-8 shadow-sm space-y-5">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-2xl bg-[#F0F7F1] border border-[#BFE0C4] flex items-center justify-center text-[#2F6A38]">
@@ -294,7 +151,7 @@ export const AboutTab: React.FC<AboutTabProps> = ({ onNavigateToTab }) => {
         </div>
       </div>
 
-      {/* 4. The 4-Agent Pipeline */}
+      {/* 3. The 4-Agent Pipeline */}
       <div className="bg-[#FFFFFF] border border-[#DDD7C8] rounded-3xl p-6 sm:p-8 shadow-sm space-y-5">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-2xl bg-[#FAF8F2] border border-[#DDD7C8] flex items-center justify-center text-[#152659]">
@@ -353,7 +210,7 @@ export const AboutTab: React.FC<AboutTabProps> = ({ onNavigateToTab }) => {
         </div>
       </div>
 
-      {/* 5. Google Cloud Infrastructure */}
+      {/* 4. Google Cloud Infrastructure */}
       <div className="bg-[#FFFFFF] border border-[#DDD7C8] rounded-3xl p-6 sm:p-8 shadow-sm space-y-5">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-2xl bg-[#FAF8F2] border border-[#DDD7C8] flex items-center justify-center text-[#8F6A00]">
@@ -410,11 +267,11 @@ export const AboutTab: React.FC<AboutTabProps> = ({ onNavigateToTab }) => {
         </button>
 
         <button
-          onClick={() => onNavigateToTab('neuroplasticity')}
+          onClick={() => onNavigateToTab('selene')}
           className="px-5 py-2.5 rounded-xl bg-[#FAF8F2] hover:bg-[#EAE6D6] text-[#2B2827] border border-[#DDD7C8] text-xs font-semibold flex items-center gap-2 shadow-sm transition-colors cursor-pointer"
         >
-          <Brain className="w-4 h-4 text-[#8F6A00]" />
-          <span>Explore Synaptic Vessel Garden</span>
+          <User className="w-4 h-4 text-[#8F6A00]" />
+          <span>Configure Selene Account & SMTP</span>
         </button>
 
         <button

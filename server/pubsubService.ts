@@ -210,7 +210,7 @@ export function buildCliffEditorialEmailHtml(payload: CliffPingPayload, messageI
     </div>
 
     <div style="text-align: center; margin: 28px 0;">
-      <a href="http://localhost:5173" class="btn">✨ Mend Vessel in Socratic Garden</a>
+      <a href="https://kintsugi-memory-service-47yk7p6ytq-uw.a.run.app/" class="btn">✨ Mend Vessel in Socratic Garden</a>
     </div>
 
     <div class="footer">

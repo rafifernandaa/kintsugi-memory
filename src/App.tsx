@@ -15,6 +15,8 @@ import { LandingPage } from './components/LandingPage';
 import { ExamCalendar } from './components/ExamCalendar';
 import { AboutTab } from './components/AboutTab';
 import { CognitiveJournal } from './components/CognitiveJournal';
+import { SeleneAccountTab } from './components/SeleneAccountTab';
+import { AppSettingsModal } from './components/AppSettingsModal';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { PubSubNotificationPopover } from './components/PubSubNotificationPopover';
 import { Home, Sparkles, FastForward, RotateCcw, Award, Terminal, Brain } from 'lucide-react';
@@ -42,6 +44,7 @@ export default function App() {
   const [selectedOracleConceptId, setSelectedOracleConceptId] = useState<string | undefined>();
   const [telemetryDrawerOpen, setTelemetryDrawerOpen] = useState(false);
   const [dailySummaryOpen, setDailySummaryOpen] = useState<boolean>(false);
+  const [settingsModalOpen, setSettingsModalOpen] = useState<boolean>(false);
 
   const [telemetryLogs, setTelemetryLogs] = useState<TelemetryLog[]>([
     {
@@ -219,6 +222,7 @@ export default function App() {
         onOpenPubSubAlerts={() => setPubSubAlertsOpen(true)}
         onToggleTelemetry={() => setTelemetryDrawerOpen((prev) => !prev)}
         telemetryCount={telemetryLogs.length}
+        onOpenSettingsModal={() => setSettingsModalOpen(true)}
         onUpdateStreak={setStreak}
       />
 
@@ -242,6 +246,7 @@ export default function App() {
                   else if ((t as string) === 'calendar') setCurrentTab('calendar');
                   else if ((t as string) === 'about') setCurrentTab('about');
                   else if ((t as string) === 'journal') setCurrentTab('journal');
+                  else if ((t as string) === 'selene') setCurrentTab('selene');
                 }}
                 onOpenJournal={() => setCurrentTab('journal')}
                 onOpenDailySummary={() => setDailySummaryOpen(true)}
@@ -329,6 +334,14 @@ export default function App() {
                 }}
               />
             )}
+
+            {currentTab === 'selene' && (
+              <SeleneAccountTab
+                concepts={concepts}
+                onNavigateToTab={(t) => setCurrentTab(t)}
+                onAddTelemetry={addTelemetry}
+              />
+            )}
           </ErrorBoundary>
         </main>
       </div>
@@ -359,6 +372,13 @@ export default function App() {
         onClose={() => setTelemetryDrawerOpen(false)}
         logs={telemetryLogs}
         onClearLogs={() => setTelemetryLogs([])}
+      />
+
+      {/* App Preferences & Socratic Settings Modal */}
+      <AppSettingsModal
+        isOpen={settingsModalOpen}
+        onClose={() => setSettingsModalOpen(false)}
+        onAddTelemetry={addTelemetry}
       />
     </div>
   );

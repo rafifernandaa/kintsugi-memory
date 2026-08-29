@@ -20,11 +20,12 @@ import {
   RotateCcw,
   Calendar,
   Info,
+  Radio,
 } from 'lucide-react';
 import { SynapticStreakData } from '../types';
 import { SynapticStreakTracker } from './SynapticStreakTracker';
 
-export type TabKey = 'home' | 'materials' | 'calendar' | 'review' | 'neuroplasticity' | 'progress' | 'journal' | 'insights' | 'about';
+export type TabKey = 'home' | 'materials' | 'calendar' | 'review' | 'neuroplasticity' | 'progress' | 'journal' | 'insights' | 'about' | 'selene';
 
 interface SidebarNavigationProps {
   currentTab: TabKey;
@@ -38,6 +39,7 @@ interface SidebarNavigationProps {
   onOpenPubSubAlerts?: () => void;
   onToggleTelemetry: () => void;
   telemetryCount: number;
+  onOpenSettingsModal?: () => void;
   onUpdateStreak?: (updated: SynapticStreakData) => void;
 }
 
@@ -53,58 +55,58 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
   onOpenPubSubAlerts,
   onToggleTelemetry,
   telemetryCount,
+  onOpenSettingsModal,
   onUpdateStreak,
 }) => {
   const navItems: { key: TabKey; label: string; icon: React.FC<{ className?: string }>; badge?: number }[] = [
     { key: 'home', label: 'Home', icon: Home },
     { key: 'calendar', label: 'Exam Calendar', icon: Calendar },
-    { key: 'materials', label: 'Materials', icon: FileText },
-    { key: 'review', label: 'Review', icon: Target, badge: urgentCount > 0 ? urgentCount : undefined },
-    { key: 'neuroplasticity', label: 'Garden', icon: Brain },
-    { key: 'progress', label: 'Progress', icon: TrendingUp },
+    { key: 'materials', label: 'Materials', icon: BookOpen },
+    { key: 'review', label: 'Active Retrieval', icon: Brain },
+    { key: 'neuroplasticity', label: 'Memory Garden', icon: Sparkles, badge: urgentCount },
+    { key: 'progress', label: 'Retention Oracle', icon: Activity },
     { key: 'journal', label: 'Journal', icon: BookOpen },
-    { key: 'insights', label: 'Insights', icon: Lightbulb },
-    { key: 'about', label: 'About', icon: Info },
+    { key: 'insights', label: 'Insights (Pub/Sub)', icon: Radio },
+    { key: 'about', label: 'Architecture', icon: Info },
   ];
 
   return (
     <>
-      {/* Desktop Left Sidebar (hidden on mobile, visible on lg+) */}
-      <aside className="hidden lg:flex flex-col justify-between w-56 xl:w-60 bg-[#FAF8F2] border-r border-[#DDD7C8] p-3 xl:p-3.5 shrink-0 h-screen sticky top-0 overflow-hidden">
-        <div className="space-y-2 xl:space-y-2.5">
-          {/* Brand Header & Streak Tracker */}
-          <div className="space-y-2">
+      {/* Desktop Sidebar (visible on lg+) */}
+      <aside className="hidden lg:flex w-60 h-screen sticky top-0 bg-[#FAF8F2] border-r border-[#DDD7C8] flex-col justify-between p-3.5 z-30 shrink-0 select-none">
+        <div className="space-y-4">
+          {/* Brand Header */}
+          <div className="flex items-center justify-between px-2 pt-1">
             <div
-              onClick={onReturnToLanding || (() => onChangeTab('home'))}
-              className="cursor-pointer group pt-0.5"
+              onClick={() => onChangeTab('home')}
+              className="flex items-center gap-2.5 cursor-pointer group"
             >
-              <div className="space-y-0.5">
-                <h1 className="text-base xl:text-lg font-serif font-bold text-[#2B2827] tracking-[0.18em] uppercase leading-none group-hover:text-[#8F6A00] transition-colors">
-                  Kintsugi
-                </h1>
-                <div className="flex items-center gap-1.5">
-                  <h2 className="text-[10px] xl:text-[11px] font-serif font-semibold text-[#5A5553] tracking-[0.2em] uppercase">
-                    Memory
-                  </h2>
-                  <span className="text-[9px] xl:text-[10px] font-serif text-[#8F6A00] tracking-widest">
-                    金継ぎ
-                  </span>
+              <div className="w-7 h-7 rounded-lg bg-[#152659] text-white flex items-center justify-center font-serif text-sm font-bold shadow-xs">
+                金
+              </div>
+              <div className="space-y-0">
+                <div className="text-xs font-serif font-bold text-[#2B2827] group-hover:text-[#8F6A00] transition-colors leading-tight">
+                  Kintsugi Memory
+                </div>
+                <div className="text-[10px] font-mono text-[#736D6B] leading-tight">
+                  Cognitive Synthesis
                 </div>
               </div>
             </div>
 
-            {/* Synaptic Daily Streak Tracker Bar */}
-            <div className="pt-0.5">
-              <SynapticStreakTracker
-                streak={streak}
-                onStartRetrieval={() => onChangeTab('review')}
-                onUpdateStreak={onUpdateStreak}
-              />
-            </div>
+            {onReturnToLanding && (
+              <button
+                onClick={onReturnToLanding}
+                className="p-1 rounded-md hover:bg-[#EAE6D6] text-[#736D6B] hover:text-[#2B2827] transition-colors"
+                title="Return to Philosophy Landing"
+              >
+                <Home className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
 
           {/* Navigation Links */}
-          <nav className="space-y-0.5">
+          <nav className="space-y-1">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = currentTab === item.key;
@@ -128,57 +130,28 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
                     <span>{item.label}</span>
                   </div>
 
-                  <div className="flex items-center gap-1.5">
-                    {item.badge && (
-                      <span className="px-1.5 py-0.2 text-[9px] font-mono font-bold bg-[#993B2B] text-white rounded-full">
-                        {item.badge}
-                      </span>
-                    )}
-                    {/* Golden right tab indicator on active item */}
-                    {isActive && (
-                      <span className="w-1 h-3 rounded-full bg-[#BF9A2A]" />
-                    )}
-                  </div>
+                  {item.badge !== undefined && item.badge > 0 && (
+                    <span className="px-1.5 py-0.2 rounded-full text-[9px] font-mono font-bold bg-[#993B2B] text-white">
+                      {item.badge}
+                    </span>
+                  )}
                 </button>
               );
             })}
           </nav>
+        </div>
 
-          {/* Wabi-Sabi Branch Card */}
-          <div className="pt-0.5">
-            <div className="rounded-xl border border-[#DDD7C8] bg-[#FFFFFF] p-2 overflow-hidden shadow-xs space-y-1">
-              <div className="h-10 xl:h-12 w-full rounded-lg bg-[#FAF8F2] border border-[#DDD7C8] flex items-center justify-center relative overflow-hidden">
-                {/* Stylized Ceramic Vase & Branch SVG */}
-                <svg viewBox="0 0 100 80" className="w-full h-full p-1">
-                  <path
-                    d="M 50 50 Q 40 32 25 20 M 50 50 Q 60 28 75 16 M 50 50 Q 48 24 45 8 M 25 20 Q 20 12 15 8 M 75 16 Q 85 12 90 6"
-                    stroke="#5A5553"
-                    strokeWidth="1.5"
-                    fill="none"
-                    strokeLinecap="round"
-                  />
-                  {/* Vase */}
-                  <ellipse cx="50" cy="68" rx="14" ry="8" fill="#EAE6D6" stroke="#DDD7C8" />
-                  <path d="M 40 56 Q 34 64 50 70 Q 66 64 60 56 Z" fill="#DDD7C8" />
-                  <ellipse cx="50" cy="56" rx="10" ry="3" fill="#FAF8F2" stroke="#DDD7C8" />
-                  {/* Gold crack on branch vase */}
-                  <path d="M 50 56 Q 46 62 54 68" stroke="#BF9A2A" strokeWidth="1.5" fill="none" />
-                </svg>
-              </div>
-
-              <div className="text-[9.5px] font-serif italic text-[#5A5553] leading-tight text-center">
-                “Nothing is perfect, nothing is permanent. Everything is practice.”
-                <div className="text-[8.5px] font-sans not-italic text-[#736D6B] pt-0.5">
-                  — Wabi-Sabi
-                </div>
-              </div>
-            </div>
-          </div>
+        {/* Synaptic Streak Widget */}
+        <div className="my-2">
+          <SynapticStreakTracker
+            streak={streak}
+            onUpdateStreak={onUpdateStreak}
+          />
         </div>
 
         {/* Bottom User Profile Section */}
         <div className="pt-2 border-t border-[#DDD7C8] space-y-2">
-          {/* Telemetry & Settings Quick Links */}
+          {/* Telemetry Quick Link */}
           <div className="flex items-center justify-between text-[10px] font-mono text-[#736D6B]">
             <button
               onClick={onToggleTelemetry}
@@ -187,37 +160,33 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
               <Terminal className="w-3 h-3 text-[#BF9A2A]" />
               Telemetry ({telemetryCount})
             </button>
-
-            <button
-              onClick={() => onChangeTab('about')}
-              className="text-[#8F6A00] hover:underline font-bold flex items-center gap-1 cursor-pointer"
-            >
-              <Settings className="w-3 h-3 text-[#8F6A00]" /> Settings
-            </button>
           </div>
 
-          <div className="flex items-center justify-between pt-1">
+          <div className="flex items-center justify-between pt-0.5">
             <div
-              onClick={() => onChangeTab('about')}
-              className="flex items-center gap-2 cursor-pointer group"
+              onClick={() => onChangeTab('selene')}
+              className={`flex items-center gap-2 cursor-pointer group p-1 rounded-xl transition-all ${
+                currentTab === 'selene' ? 'bg-[#EAE6D6]' : 'hover:bg-[#F2F0E4]'
+              }`}
+              title="View Selene Profile & Notification Settings"
             >
-              <div className="w-7 h-7 rounded-full bg-[#152659] text-[#FFFFFF] font-serif font-bold text-xs flex items-center justify-center shadow-xs">
+              <div className="w-7 h-7 rounded-full bg-[#152659] text-[#FFFFFF] font-serif font-bold text-xs flex items-center justify-center shadow-xs border border-[#BF9A2A]">
                 S
               </div>
               <div className="space-y-0">
                 <div className="text-xs font-semibold text-[#2B2827] group-hover:text-[#8F6A00] transition-colors leading-tight">Selene</div>
                 <div className="text-[9px] text-[#736D6B] italic font-serif leading-tight">
-                  Lifelong Learner
+                  User Account & SMTP
                 </div>
               </div>
             </div>
 
             <button
-              onClick={() => onChangeTab('about')}
-              className="p-1 rounded-md hover:bg-[#EAE6D6] text-[#736D6B] hover:text-[#2B2827] transition-colors cursor-pointer"
-              title="Account, Settings & Architecture"
+              onClick={onOpenSettingsModal}
+              className="p-1.5 rounded-lg hover:bg-[#EAE6D6] text-[#736D6B] hover:text-[#2B2827] transition-colors cursor-pointer"
+              title="App Preferences & Socratic Settings"
             >
-              <Settings className="w-3.5 h-3.5" />
+              <Settings className="w-3.5 h-3.5 text-[#5A5553] hover:text-[#8F6A00]" />
             </button>
           </div>
         </div>

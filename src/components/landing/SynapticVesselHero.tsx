@@ -347,6 +347,7 @@ export const SynapticVesselHero: React.FC<SynapticVesselHeroProps> = ({
   const animProgressObj = useRef<{ value: number }>({ value: 0 });
 
   // Sync natural window scroll to 0.0 -> 1.0 progress
+  // Reaches full 1.0 assembly at ~65% of scroll and holds locked in view through 100%
   const handleScroll = useCallback(() => {
     if (!containerRef.current || isAutoPlaying) return;
 
@@ -357,10 +358,11 @@ export const SynapticVesselHero: React.FC<SynapticVesselHeroProps> = ({
     if (totalScrollable <= 0) return;
 
     const currentScrolled = -rect.top;
-    const rawProgress = Math.max(0, Math.min(1, currentScrolled / totalScrollable));
+    // Scale so it completes assembly smoothly and holds the assembled vessel in view
+    const normalized = Math.max(0, Math.min(1, currentScrolled / (totalScrollable * 0.75)));
 
-    setScrollProgress(rawProgress);
-    animProgressObj.current.value = rawProgress;
+    setScrollProgress(normalized);
+    animProgressObj.current.value = normalized;
   }, [isAutoPlaying]);
 
   useEffect(() => {
@@ -369,20 +371,18 @@ export const SynapticVesselHero: React.FC<SynapticVesselHeroProps> = ({
     return () => window.removeEventListener('scroll', handleScroll);
   }, [handleScroll]);
 
-  // Smooth Auto-Assemble Glide (when clicking "SCROLL TO BEGIN" or pagination dots)
+  // Smooth Auto-Assemble Glide (when clicking "SCROLL TO BEGIN")
   const handleGlideToProgress = (targetProgress: number) => {
     if (!containerRef.current) return;
     setIsAutoPlaying(true);
 
     const totalScrollable = containerRef.current.offsetHeight - window.innerHeight;
-    const targetScrollY = containerRef.current.offsetTop + targetProgress * totalScrollable;
+    const targetScrollY = containerRef.current.offsetTop + (targetProgress * totalScrollable * 0.75);
 
     window.scrollTo({
       top: targetScrollY,
       behavior: 'smooth',
     });
-
-    const startVal = animProgressObj.current.value;
 
     animate(animProgressObj.current, {
       value: targetProgress,
@@ -401,16 +401,16 @@ export const SynapticVesselHero: React.FC<SynapticVesselHeroProps> = ({
   const pEased = useMemo(() => easeInOutCubic(scrollProgress), [scrollProgress]);
 
   // Vase reveal threshold
-  const vaseOpacity = Math.max(0, Math.min(1, (scrollProgress - 0.55) / 0.4));
-  const shardsOpacity = Math.max(0, Math.min(1, 1 - (scrollProgress - 0.65) / 0.35));
-  const textOpacity = Math.max(0, Math.min(1, (scrollProgress - 0.6) / 0.35));
-  const textTranslateY = (1 - textOpacity) * 35;
-  const promptOpacity = Math.max(0, 1 - scrollProgress * 2.5);
+  const vaseOpacity = Math.max(0, Math.min(1, (scrollProgress - 0.4) / 0.45));
+  const shardsOpacity = Math.max(0, Math.min(1, 1 - (scrollProgress - 0.55) / 0.35));
+  const textOpacity = Math.max(0, Math.min(1, (scrollProgress - 0.5) / 0.4));
+  const textTranslateY = (1 - textOpacity) * 25;
+  const promptOpacity = Math.max(0, 1 - scrollProgress * 2.2);
 
   return (
     <div
       ref={containerRef}
-      className="relative w-full min-h-[200vh] bg-[#F4F0E8] text-[#2B2827] font-sans selection:bg-[#BF9A2A]/30 overflow-hidden"
+      className="relative w-full min-h-[220vh] bg-[#F4F0E8] text-[#2B2827] font-sans selection:bg-[#BF9A2A]/30 overflow-hidden"
     >
       {/* Sticky Viewport Hero Stage */}
       <div className="sticky top-0 h-screen w-full flex flex-col justify-between overflow-hidden">
@@ -755,32 +755,32 @@ export const SynapticVesselHero: React.FC<SynapticVesselHeroProps> = ({
 
         {/* Phase 1: "SCROLL TO BEGIN" Prompt (Top Initial State) */}
         <div
-          className="relative z-30 pb-10 flex flex-col items-center justify-center cursor-pointer transition-opacity duration-300"
+          className="relative z-30 pb-8 flex flex-col items-center justify-center cursor-pointer transition-opacity duration-300"
           style={{ opacity: promptOpacity }}
           onClick={() => handleGlideToProgress(1)}
         >
           <span className="text-[11px] font-mono tracking-[0.3em] text-[#5A5553] uppercase font-medium hover:text-[#8F6A00] transition-colors">
             SCROLL TO BEGIN
           </span>
-          <div className="w-[1px] h-9 bg-gradient-to-b from-[#8F6A00] to-transparent mt-2.5 animate-pulse" />
+          <div className="w-[1px] h-8 bg-gradient-to-b from-[#8F6A00] to-transparent mt-2 animate-pulse" />
         </div>
 
         {/* Phase 2: Grand Hero Typography & CTA (Revealed as Pottery Assembles) */}
         <div
-          className="absolute inset-x-0 bottom-8 sm:bottom-12 z-30 flex flex-col items-center justify-center text-center px-4 pointer-events-auto transition-all duration-500"
+          className="absolute inset-x-0 bottom-6 sm:bottom-10 z-30 flex flex-col items-center justify-center text-center px-4 pointer-events-auto transition-all duration-500"
           style={{
             opacity: textOpacity,
             transform: `translateY(${textTranslateY}px)`,
             pointerEvents: textOpacity > 0.4 ? 'auto' : 'none',
           }}
         >
-          <h1 className="text-4xl sm:text-6xl md:text-7xl font-serif font-bold text-[#152659] tracking-[0.18em] uppercase">
+          <h1 className="text-3xl sm:text-5xl md:text-6xl font-serif font-bold text-[#152659] tracking-[0.18em] uppercase">
             KINTSUGI
           </h1>
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-serif text-[#BF9A2A] tracking-[0.45em] uppercase font-light -mt-1 mb-2">
+          <h2 className="text-lg sm:text-2xl md:text-3xl font-serif text-[#BF9A2A] tracking-[0.45em] uppercase font-light -mt-1 mb-2">
             M E M O R Y
           </h2>
-          <p className="text-xs sm:text-sm md:text-base font-serif text-[#5A5553] max-w-md mx-auto mb-6 leading-relaxed">
+          <p className="text-xs sm:text-sm font-serif text-[#5A5553] max-w-md mx-auto mb-5 leading-relaxed">
             Remember more. Forget less. Grow always.
           </p>
 
@@ -793,29 +793,6 @@ export const SynapticVesselHero: React.FC<SynapticVesselHeroProps> = ({
               <ArrowRight className="w-4 h-4 text-[#BF9A2A] group-hover:translate-x-1 transition-transform" />
             </button>
           </div>
-        </div>
-
-        {/* Right-Side Minimalist Dot Pagination Rail (Matching Reference Image) */}
-        <div className="absolute right-6 sm:right-10 top-1/2 -translate-y-1/2 z-30 flex flex-col items-center gap-3">
-          {[0, 0.33, 0.66, 1.0].map((stepVal, stepIdx) => {
-            const isActive = Math.abs(scrollProgress - stepVal) < 0.2;
-            return (
-              <button
-                key={`dot-${stepIdx}`}
-                onClick={() => handleGlideToProgress(stepVal)}
-                className="group relative flex items-center justify-center p-1 cursor-pointer"
-                title={`Progress ${(stepVal * 100).toFixed(0)}%`}
-              >
-                <span
-                  className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
-                    isActive
-                      ? 'bg-[#BF9A2A] scale-150 ring-2 ring-[#BF9A2A]/40'
-                      : 'bg-[#C7C1B5] hover:bg-[#8F6A00]'
-                  }`}
-                />
-              </button>
-            );
-          })}
         </div>
       </div>
     </div>

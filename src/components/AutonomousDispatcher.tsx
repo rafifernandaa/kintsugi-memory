@@ -43,12 +43,18 @@ export const AutonomousDispatcher: React.FC<AutonomousDispatcherProps> = ({
   const [browserNotifsEnabled, setBrowserNotifsEnabled] = useState<boolean>(() => {
     return typeof Notification !== 'undefined' && Notification.permission === 'granted';
   });
-  const [smtpInfo, setSmtpInfo] = useState<{ configured: boolean; user: string | null; host: string | null } | null>(null);
+  const [smtpInfo, setSmtpInfo] = useState<{ configured: boolean; user: string | null; rawUser: string | null; host: string | null } | null>(null);
 
   useEffect(() => {
     fetch('/api/smtp-status')
       .then((r) => r.json())
-      .then((d) => setSmtpInfo(d))
+      .then((d) => {
+        setSmtpInfo(d);
+        if (d?.rawUser && (!localStorage.getItem('kintsugi_registered_email') || userEmail === 'student@kintsugi-memory.ai')) {
+          setUserEmail(d.rawUser);
+          localStorage.setItem('kintsugi_registered_email', d.rawUser);
+        }
+      })
       .catch(() => {});
   }, []);
 

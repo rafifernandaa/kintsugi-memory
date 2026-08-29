@@ -357,7 +357,10 @@ app.post("/api/generate-cliff-ping", async (req, res) => {
 app.post("/api/send-cliff-notification", async (req, res) => {
   try {
     const { email, conceptTitle, currentRetention, editorialSubject, teaserQuestion, zineMessage, urgency } = req.body;
-    const recipient = email || process.env.USER_NOTIFICATION_EMAIL || "student@kintsugi-memory.ai";
+    let recipient = (email || "").trim();
+    if (!recipient || recipient === "student@kintsugi-memory.ai") {
+      recipient = process.env.USER_NOTIFICATION_EMAIL || process.env.SMTP_USER || process.env.GMAIL_USER || "student@kintsugi-memory.ai";
+    }
 
     const dispatchResult = await publishCliffEvent({
       recipientEmail: recipient,

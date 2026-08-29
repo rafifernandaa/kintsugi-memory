@@ -43,16 +43,28 @@ try {
   console.warn("[PubSub] PubSub client initialization notice:", err?.message || err);
 }
 
+import dotenv from "dotenv";
+dotenv.config();
+
 import nodemailer from "nodemailer";
 
-// Configure SMTP email transport
+// Configure SMTP email transport with auto-sanitization for Gmail App Passwords
 function createEmailTransporter() {
+  dotenv.config();
   const smtpHost = process.env.SMTP_HOST || process.env.MAIL_HOST;
-  const smtpPort = Number(process.env.SMTP_PORT || process.env.MAIL_PORT || 587);
-  const smtpUser = process.env.SMTP_USER || process.env.MAIL_USER || process.env.GMAIL_USER;
-  const smtpPass = process.env.SMTP_PASS || process.env.MAIL_PASS || process.env.GMAIL_APP_PASSWORD;
+  const smtpPort = Number(process.env.SMTP_PORT || process.env.MAIL_PORT || 465);
+  const rawUser = process.env.SMTP_USER || process.env.MAIL_USER || process.env.GMAIL_USER;
+  const rawPass = process.env.SMTP_PASS || process.env.MAIL_PASS || process.env.GMAIL_APP_PASSWORD;
 
-  if (smtpHost && smtpUser && smtpPass) {
+  if (!rawUser || !rawPass) {
+    return null;
+  }
+
+  const smtpUser = rawUser.trim();
+  // Strip any spaces from Google App Password (e.g. "izrv aolv hmgg wxyz" -> "izrvaolvhmggwxyz")
+  const smtpPass = rawPass.trim().replace(/\s+/g, "");
+
+  if (smtpHost) {
     return nodemailer.createTransport({
       host: smtpHost,
       port: smtpPort,
@@ -61,21 +73,23 @@ function createEmailTransporter() {
         user: smtpUser,
         pass: smtpPass,
       },
-    });
-  }
-
-  if (smtpUser && smtpPass && !smtpHost) {
-    // Default to Gmail service if host not specified
-    return nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: smtpUser,
-        pass: smtpPass,
+      tls: {
+        rejectUnauthorized: false,
       },
     });
   }
 
-  return null;
+  // Default to Direct Gmail SSL/TLS transport (Port 465)
+  return nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: smtpUser,
+      pass: smtpPass,
+    },
+    tls: {
+      rejectUnauthorized: false,
+    },
+  });
 }
 
 const emailTransporter = createEmailTransporter();
@@ -140,7 +154,8 @@ export function buildCliffEditorialEmailHtml(payload: CliffPingPayload, messageI
   `;
 }
 
-export function getSmtpStatus(): { configured: boolean; user: string | null; host: string | null } {
+export function getSmtpStatus(): { configured: boolean; user: string | null; rawUser: string | null; host: string | null } {
+  dotenv.config();
   const user = process.env.SMTP_USER || process.env.MAIL_USER || process.env.GMAIL_USER || null;
   const pass = process.env.SMTP_PASS || process.env.MAIL_PASS || process.env.GMAIL_APP_PASSWORD || null;
   const host = process.env.SMTP_HOST || process.env.MAIL_HOST || (user ? "smtp.gmail.com" : null);
@@ -148,6 +163,7 @@ export function getSmtpStatus(): { configured: boolean; user: string | null; hos
   return {
     configured: Boolean(user && pass),
     user: user ? user.replace(/(.{3})(.*)(@.*)/, "$1***$3") : null,
+    rawUser: user ? user.trim() : null,
     host,
   };
 }

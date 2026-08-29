@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Home,
   FileText,
@@ -21,11 +21,67 @@ import {
   Calendar,
   Info,
   Radio,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { SynapticStreakData } from '../types';
-import { SynapticStreakTracker } from './SynapticStreakTracker';
 
 export type TabKey = 'home' | 'materials' | 'calendar' | 'review' | 'neuroplasticity' | 'progress' | 'journal' | 'insights' | 'about' | 'selene';
+
+const MOTIVATION_QUOTES = [
+  {
+    quote: "Nothing is perfect, nothing is permanent. Everything is practice.",
+    author: "Wabi-Sabi Tradition",
+    theme: "Ceramic Joinery",
+    illustration: (
+      <svg viewBox="0 0 100 65" className="w-full h-10">
+        <ellipse cx="50" cy="50" rx="16" ry="6" fill="#EAE6D6" stroke="#DDD7C8" />
+        <path d="M 38 40 Q 32 48 50 54 Q 68 48 62 40 Z" fill="#DDD7C8" />
+        <ellipse cx="50" cy="40" rx="12" ry="3" fill="#FAF8F2" stroke="#DDD7C8" />
+        <path d="M 50 40 Q 44 46 53 52" stroke="#BF9A2A" strokeWidth="2" fill="none" strokeLinecap="round" />
+        <circle cx="53" cy="52" r="1.5" fill="#BF9A2A" />
+      </svg>
+    ),
+  },
+  {
+    quote: "A synapse strengthens not by passive reading, but by retrieval at the edge of forgetting.",
+    author: "Cognitive Neuroscience",
+    theme: "Synaptic Plasticity",
+    illustration: (
+      <svg viewBox="0 0 100 65" className="w-full h-10">
+        <circle cx="32" cy="32" r="7" fill="#FAF8F2" stroke="#152659" strokeWidth="1.5" />
+        <circle cx="68" cy="32" r="7" fill="#FAF8F2" stroke="#152659" strokeWidth="1.5" />
+        <path d="M 39 32 Q 50 20 61 32" stroke="#BF9A2A" strokeWidth="2" fill="none" strokeDasharray="3 2" />
+        <circle cx="50" cy="26" r="3" fill="#BF9A2A" />
+      </svg>
+    ),
+  },
+  {
+    quote: "To learn a new language is to inhabit another soul. Every hesitation is gold in the making.",
+    author: "Polyglot Mastery",
+    theme: "Linguistic Fluency",
+    illustration: (
+      <svg viewBox="0 0 100 65" className="w-full h-10">
+        <path d="M 50 52 Q 48 34 32 24 M 50 52 Q 52 30 70 18 M 32 24 Q 25 18 20 12 M 70 18 Q 78 14 85 10" stroke="#5A5553" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+        <path d="M 50 52 Q 48 38 50 26" stroke="#BF9A2A" strokeWidth="2" fill="none" />
+        <circle cx="32" cy="24" r="2" fill="#BF9A2A" />
+        <circle cx="70" cy="18" r="2" fill="#BF9A2A" />
+      </svg>
+    ),
+  },
+  {
+    quote: "Water shapes the stone not by force, but by persistence. Memory flows like a river.",
+    author: "Zen Proverb",
+    theme: "Effortless Flow",
+    illustration: (
+      <svg viewBox="0 0 100 65" className="w-full h-10">
+        <ellipse cx="50" cy="38" rx="20" ry="10" fill="#EAE6D6" stroke="#DDD7C8" />
+        <path d="M 22 46 Q 50 40 78 46" stroke="#BF9A2A" strokeWidth="1.5" fill="none" />
+        <path d="M 28 52 Q 50 48 72 52" stroke="#8F6A00" strokeWidth="1" fill="none" opacity="0.7" />
+      </svg>
+    ),
+  },
+];
 
 interface SidebarNavigationProps {
   currentTab: TabKey;
@@ -58,6 +114,18 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
   onOpenSettingsModal,
   onUpdateStreak,
 }) => {
+  const [quoteIndex, setQuoteIndex] = useState(0);
+
+  const nextQuote = () => {
+    setQuoteIndex((prev) => (prev + 1) % MOTIVATION_QUOTES.length);
+  };
+
+  const prevQuote = () => {
+    setQuoteIndex((prev) => (prev - 1 + MOTIVATION_QUOTES.length) % MOTIVATION_QUOTES.length);
+  };
+
+  const currentQuote = MOTIVATION_QUOTES[quoteIndex];
+
   const navItems: { key: TabKey; label: string; icon: React.FC<{ className?: string }>; badge?: number }[] = [
     { key: 'home', label: 'Home', icon: Home },
     { key: 'calendar', label: 'Exam Calendar', icon: Calendar },
@@ -74,9 +142,9 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
     <>
       {/* Desktop Sidebar (visible on lg+) */}
       <aside className="hidden lg:flex w-60 h-screen sticky top-0 bg-[#FAF8F2] border-r border-[#DDD7C8] flex-col justify-between p-3.5 z-30 shrink-0 select-none">
-        <div className="space-y-4">
+        <div className="space-y-3">
           {/* Brand Header */}
-          <div className="flex items-center justify-between px-2 pt-1">
+          <div className="flex items-center px-2 pt-1">
             <div
               onClick={() => onChangeTab('home')}
               className="flex items-center gap-2.5 cursor-pointer group"
@@ -93,20 +161,10 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
                 </div>
               </div>
             </div>
-
-            {onReturnToLanding && (
-              <button
-                onClick={onReturnToLanding}
-                className="p-1 rounded-md hover:bg-[#EAE6D6] text-[#736D6B] hover:text-[#2B2827] transition-colors"
-                title="Return to Philosophy Landing"
-              >
-                <Home className="w-3.5 h-3.5" />
-              </button>
-            )}
           </div>
 
           {/* Navigation Links */}
-          <nav className="space-y-1">
+          <nav className="space-y-0.5">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = currentTab === item.key;
@@ -139,14 +197,61 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
               );
             })}
           </nav>
-        </div>
 
-        {/* Synaptic Streak Widget */}
-        <div className="my-2">
-          <SynapticStreakTracker
-            streak={streak}
-            onUpdateStreak={onUpdateStreak}
-          />
+          {/* Wabi-Sabi Quotes & Motivation Carousel Card (Below Architecture) */}
+          <div className="pt-1">
+            <div className="rounded-2xl border border-[#DDD7C8] bg-[#FFFFFF] p-2.5 shadow-xs space-y-1.5 relative group">
+              {/* Illustration */}
+              <div className="h-11 w-full rounded-xl bg-[#FAF8F2] border border-[#DDD7C8] flex items-center justify-center relative overflow-hidden">
+                {currentQuote.illustration}
+              </div>
+
+              {/* Quote Text */}
+              <div className="space-y-1">
+                <div className="text-[10px] font-serif italic text-[#2B2827] leading-tight text-center min-h-[32px] flex items-center justify-center px-1">
+                  “{currentQuote.quote}”
+                </div>
+                <div className="flex items-center justify-between text-[8.5px] font-mono text-[#736D6B] pt-0.5 border-t border-[#FAF8F2]">
+                  <span className="text-[#8F6A00] font-bold">{currentQuote.theme}</span>
+                  <span>— {currentQuote.author}</span>
+                </div>
+              </div>
+
+              {/* Swipe / Navigation Controls */}
+              <div className="flex items-center justify-between pt-0.5">
+                <button
+                  type="button"
+                  onClick={prevQuote}
+                  className="p-1 rounded-lg hover:bg-[#EAE6D6] text-[#736D6B] hover:text-[#2B2827] transition-colors cursor-pointer"
+                  title="Previous quote"
+                >
+                  <ChevronLeft className="w-3 h-3" />
+                </button>
+
+                {/* Dot indicators */}
+                <div className="flex items-center gap-1">
+                  {MOTIVATION_QUOTES.map((_, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setQuoteIndex(idx)}
+                      className={`h-1.5 rounded-full transition-all cursor-pointer ${
+                        idx === quoteIndex ? 'w-3 bg-[#BF9A2A]' : 'w-1.5 bg-[#DDD7C8]'
+                      }`}
+                    />
+                  ))}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={nextQuote}
+                  className="p-1 rounded-lg hover:bg-[#EAE6D6] text-[#736D6B] hover:text-[#2B2827] transition-colors cursor-pointer"
+                  title="Next quote"
+                >
+                  <ChevronRight className="w-3 h-3" />
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Bottom User Profile Section */}

@@ -628,3 +628,78 @@ TASK:
     return parsed;
   });
 }
+
+/**
+ * 7. Distill Flashcards, Vocabulary, and Grammatical Nuances from Journal Reflections
+ */
+export async function distillJournalFlashcards(
+  journalText: string,
+  title?: string,
+  targetLanguage?: string,
+  category?: string,
+  apiKey?: string
+) {
+  if (!journalText || journalText.trim() === "") {
+    throw new Error("Journal text payload is empty.");
+  }
+
+  const { ai, model } = getGeminiClient(apiKey);
+
+  return executeWithModelRetry(ai, model, async (targetModel) => {
+    const prompt = `You are a Master Cognitive & Polyglot AI Scribe. Analyze the following student journal entry (Topic: ${title || "Reflection"}, Target Language / Discipline: ${targetLanguage || "General / Polyglot"}, Category: ${category || "language"}).
+Extract interactive learning flashcards for key vocabulary terms, grammar invariants, conceptual mental models, or pronunciation subtleties. For each card, generate a challenging Socratic question that tests deep conceptual/contextual understanding instead of rote memory. Also provide 1-2 Golden Joinery Invariant Insights that clarify subtle misconceptions or linguistic nuances.
+
+Journal Text:
+${journalText}`;
+
+    const response = await ai.models.generateContent({
+      model: targetModel,
+      contents: prompt,
+      config: {
+        systemInstruction:
+          "You are an expert language pedagogue and cognitive scientist. Distill structured vocabulary flashcards with readings, contextual meanings, nuance distinctions, example sentences, and Socratic challenge questions.",
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            summary: { type: Type.STRING },
+            targetLanguage: { type: Type.STRING },
+            flashcards: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  term: { type: Type.STRING, description: "Target word, phrase, or concept invariant" },
+                  reading: { type: Type.STRING, description: "Pronunciation, Romaji, Pinyin, or phonetic reading" },
+                  meaning: { type: Type.STRING, description: "Clear definition or translation in context" },
+                  nuance: { type: Type.STRING, description: "Grammatical nuance, invariant rule, or cognitive boundary" },
+                  exampleSentence: { type: Type.STRING, description: "Natural example sentence in target language" },
+                  exampleTranslation: { type: Type.STRING, description: "Translation of the example sentence" },
+                  socraticChallenge: { type: Type.STRING, description: "A probing Socratic inquiry testing active discrimination" },
+                },
+                required: ["term", "reading", "meaning", "nuance", "exampleSentence", "exampleTranslation", "socraticChallenge"],
+              },
+            },
+            goldenJoineryInsights: {
+              type: Type.ARRAY,
+              items: { type: Type.STRING },
+              description: "Deep mental models or linguistic rules clarified in this reflection",
+            },
+            grammarNuances: {
+              type: Type.ARRAY,
+              items: { type: Type.STRING },
+            },
+          },
+          required: ["summary", "targetLanguage", "flashcards", "goldenJoineryInsights"],
+        },
+      },
+    });
+
+    if (!response.text) {
+      throw new Error("Gemini returned empty flashcard distillation response.");
+    }
+
+    return JSON.parse(response.text);
+  });
+}
+

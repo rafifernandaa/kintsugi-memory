@@ -306,6 +306,7 @@ export default function App() {
               <CognitiveJournal
                 concepts={concepts}
                 onStartReviewForConcept={handleSelectConceptForReview}
+                onAddConcepts={handleAddConcepts}
                 onAddTelemetry={addTelemetry}
                 onOpenDailySummary={() => setDailySummaryOpen(true)}
               />

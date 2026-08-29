@@ -20,6 +20,7 @@ import {
   generateForgettingCliffTelegram,
   generateExamStudyPlan,
   processMemory,
+  distillJournalFlashcards,
 } from "./server/geminiService";
 import { ScribeAgent } from "./server/googleAgentFramework";
 
@@ -305,6 +306,36 @@ app.post("/api/generate-exam-study-plan", async (req, res) => {
     console.error("[Exam Study Plan Route Error]:", error);
     return res.status(500).json({
       error: error?.message || "Failed to generate exam study plan.",
+    });
+  }
+});
+
+// -------------------------------------------------------------
+// 3C. JOURNAL FLASHCARDS & LINGUISTIC DISTILLER (GEMINI 3.5/3.7)
+// -------------------------------------------------------------
+app.post("/api/distill-journal-flashcards", async (req, res) => {
+  try {
+    const apiKey = resolveApiKey(req);
+    const { journalText, content, title, targetLanguage, category } = req.body;
+    const textToAnalyze = journalText || content;
+
+    if (!textToAnalyze || textToAnalyze.trim() === "") {
+      return res.status(400).json({ error: "Journal content text is required." });
+    }
+
+    const result = await distillJournalFlashcards(
+      textToAnalyze,
+      title,
+      targetLanguage,
+      category,
+      apiKey
+    );
+
+    return res.json(result);
+  } catch (error: any) {
+    console.error("[Journal Flashcard Distiller Error]:", error);
+    return res.status(500).json({
+      error: error?.message || "Failed to distill journal flashcards.",
     });
   }
 });

@@ -113,11 +113,14 @@ export const RetentionOracle: React.FC<RetentionOracleProps> = ({
 
   // Calculate exam day predictions across all concepts
   const examDayPredictions = concepts.map((c) => {
-    const lastRev = new Date(c.lastReviewedAt);
-    const elapsedDaysToExam =
-      Math.max(0, (Date.now() - lastRev.getTime()) / (1000 * 60 * 60 * 24)) + examDaysAhead;
-    const r = calculateRetention(c.stability, elapsedDaysToExam);
-    const [low, high] = calculateConfidenceInterval(r, c.reviewCount);
+    const rawDate = c.lastReviewedAt || (c as any).lastReviewDate || (c as any).fsrs?.lastReview || new Date().toISOString();
+    const lastRev = new Date(rawDate);
+    const lastTime = isNaN(lastRev.getTime()) ? Date.now() : lastRev.getTime();
+    const elapsedDaysToExam = Math.max(0, (Date.now() - lastTime) / (1000 * 60 * 60 * 24)) + (examDaysAhead || 7);
+    const stability = c.stability ?? (c as any).fsrs?.stability ?? 2.0;
+    const reviewCount = c.reviewCount ?? (c as any).fsrs?.reps ?? (c.history?.length || 1);
+    const r = calculateRetention(stability, elapsedDaysToExam);
+    const [low, high] = calculateConfidenceInterval(r, reviewCount);
     return {
       concept: c,
       predictedR: Math.round(r * 100),
@@ -127,7 +130,7 @@ export const RetentionOracle: React.FC<RetentionOracleProps> = ({
   });
 
   const overallExamAvg = Math.round(
-    examDayPredictions.reduce((acc, p) => acc + p.predictedR, 0) / (examDayPredictions.length || 1)
+    examDayPredictions.reduce((acc, p) => acc + (isNaN(p.predictedR) ? 70 : p.predictedR), 0) / (examDayPredictions.length || 1)
   );
 
   const weakestTopic = [...examDayPredictions].sort((a, b) => a.predictedR - b.predictedR)[0];
@@ -402,8 +405,8 @@ export const RetentionOracle: React.FC<RetentionOracleProps> = ({
             </div>
 
             {/* The Power-Law Decay Chart with Shaded Bayesian Band */}
-            <div className="h-72 w-full">
-              <ResponsiveContainer width="100%" height="100%">
+            <div className="h-72 min-h-[290px] w-full">
+              <ResponsiveContainer width="100%" height="100%" minHeight={290}>
                 <ComposedChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#DDD7C8" />
                   <XAxis dataKey="day" stroke="#736D6B" tick={{ fontSize: 10 }} />
@@ -464,17 +467,17 @@ export const RetentionOracle: React.FC<RetentionOracleProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 text-xs font-mono">
               <div className="bg-[#FAF8F2] p-3 rounded-xl border border-[#DDD7C8]">
                 <div className="text-[#736D6B] text-[10px] uppercase font-semibold">Stability S</div>
-                <div className="text-sm font-bold text-[#8F6A00]">{activeConcept.stability} Days</div>
+                <div className="text-sm font-bold text-[#8F6A00]">{activeConcept.stability ?? (activeConcept as any).fsrs?.stability ?? 2.0} Days</div>
                 <div className="text-[10px] text-[#736D6B] pt-0.5">Time to reach 70% recall</div>
               </div>
               <div className="bg-[#FAF8F2] p-3 rounded-xl border border-[#DDD7C8]">
                 <div className="text-[#736D6B] text-[10px] uppercase font-semibold">Difficulty D</div>
-                <div className="text-sm font-bold text-[#2B2827]">{activeConcept.difficulty} / 10</div>
+                <div className="text-sm font-bold text-[#2B2827]">{activeConcept.difficulty ?? (activeConcept as any).fsrs?.difficulty ?? 5} / 10</div>
                 <div className="text-[10px] text-[#736D6B] pt-0.5">Cognitive complexity load</div>
               </div>
               <div className="bg-[#FAF8F2] p-3 rounded-xl border border-[#DDD7C8]">
                 <div className="text-[#736D6B] text-[10px] uppercase font-semibold">Kintsugi Seams</div>
-                <div className="text-sm font-bold text-[#8F6A00]">{activeConcept.kintsugiRepairs}x Repaired</div>
+                <div className="text-sm font-bold text-[#8F6A00]">{activeConcept.kintsugiRepairs ?? 0}x Repaired</div>
                 <div className="text-[10px] text-[#736D6B] pt-0.5">Successful cliff retrievals</div>
               </div>
             </div>

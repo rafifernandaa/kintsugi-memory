@@ -48,6 +48,7 @@ import {
   MasteryLevelInfo,
 } from './SynapticLevelUpModal';
 import confetti from 'canvas-confetti';
+import { RichMarkdown } from './RichMarkdown';
 
 interface ActiveRetrievalRoomProps {
   concept?: Concept;
@@ -1041,8 +1042,8 @@ export const ActiveRetrievalRoom: React.FC<ActiveRetrievalRoomProps> = ({
               )}
 
               {/* Feedback Body */}
-              <div className="space-y-2 text-xs text-[#5A5553] leading-relaxed">
-                <p>{evaluationResult.feedback}</p>
+              <div className="text-xs text-[#5A5553] leading-relaxed bg-[#FAF8F2] p-3.5 rounded-xl border border-[#DDD7C8]">
+                <RichMarkdown content={evaluationResult.feedback} />
               </div>
 
               {/* Strengths / Accurate Points */}

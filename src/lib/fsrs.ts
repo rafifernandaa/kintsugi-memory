@@ -10,40 +10,47 @@ export const FSRS_FACTOR = 19 / 81; // FSRS default standard scaling
 export const DECAY_POWER = 0.5; // Power law decay parameter
 
 export function calculateRetention(stabilityDays: number, elapsedDays: number): number {
-  if (stabilityDays <= 0) return 0.1;
-  if (elapsedDays <= 0) return 1.0;
-  const r = Math.pow(1 + FSRS_FACTOR * (elapsedDays / stabilityDays), -DECAY_POWER);
-  return Math.max(0.02, Math.min(1.0, r));
+  const s = typeof stabilityDays === 'number' && !isNaN(stabilityDays) && stabilityDays > 0 ? stabilityDays : 1.5;
+  const e = typeof elapsedDays === 'number' && !isNaN(elapsedDays) && elapsedDays >= 0 ? elapsedDays : 0;
+  if (s <= 0) return 0.1;
+  if (e <= 0) return 1.0;
+  const r = Math.pow(1 + FSRS_FACTOR * (e / s), -DECAY_POWER);
+  return Math.max(0.02, Math.min(1.0, isNaN(r) ? 0.7 : r));
 }
 
-export function calculateConfidenceInterval(retention: number, reviewCount: number): [number, number] {
-  // Bayesian uncertainty narrows as review count increases
-  const uncertainty = Math.max(0.04, 0.22 / Math.sqrt(reviewCount + 1));
-  const low = Math.max(0.02, retention - uncertainty);
-  const high = Math.min(1.0, retention + uncertainty * 0.8);
+export function calculateConfidenceInterval(retention: number, reviewCount?: number): [number, number] {
+  const count = typeof reviewCount === 'number' && !isNaN(reviewCount) && reviewCount >= 0 ? reviewCount : 1;
+  const r = typeof retention === 'number' && !isNaN(retention) ? retention : 0.7;
+  const uncertainty = Math.max(0.04, 0.22 / Math.sqrt(count + 1));
+  const low = Math.max(0.02, r - uncertainty);
+  const high = Math.min(1.0, r + uncertainty * 0.8);
   return [Number(low.toFixed(3)), Number(high.toFixed(3))];
 }
 
-export function predictForgettingCliffDate(lastReviewedAt: string, stabilityDays: number, cliffThreshold: number = 0.70): Date {
-  const last = new Date(lastReviewedAt);
-  // Solve for t when R(t) = cliffThreshold
-  // cliffThreshold = (1 + FSRS_FACTOR * (t / S))^(-DECAY_POWER)
-  // cliffThreshold^(-1/DECAY_POWER) = 1 + FSRS_FACTOR * (t / S)
-  // t = S * (cliffThreshold^(-1/DECAY_POWER) - 1) / FSRS_FACTOR
-  const tDays = (stabilityDays * (Math.pow(cliffThreshold, -1 / DECAY_POWER) - 1)) / FSRS_FACTOR;
-  const cliffTime = last.getTime() + tDays * 24 * 60 * 60 * 1000;
+export function predictForgettingCliffDate(lastReviewedAt?: string, stabilityDays?: number, cliffThreshold: number = 0.70): Date {
+  const now = new Date();
+  const lastRevDate = lastReviewedAt ? new Date(lastReviewedAt) : now;
+  const validLastTime = isNaN(lastRevDate.getTime()) ? now.getTime() : lastRevDate.getTime();
+  const s = typeof stabilityDays === 'number' && !isNaN(stabilityDays) && stabilityDays > 0 ? stabilityDays : 1.5;
+  const tDays = (s * (Math.pow(cliffThreshold, -1 / DECAY_POWER) - 1)) / FSRS_FACTOR;
+  const cliffTime = validLastTime + tDays * 24 * 60 * 60 * 1000;
   return new Date(cliffTime);
 }
 
 export function getDecayCurvePoints(concept: Concept, totalDays: number = 14) {
+  if (!concept) return [];
   const points = [];
   const now = new Date();
-  const lastReview = new Date(concept.lastReviewedAt);
-  const elapsedToNowDays = Math.max(0, (now.getTime() - lastReview.getTime()) / (1000 * 60 * 60 * 24));
+  const rawDateStr = concept.lastReviewedAt || (concept as any).lastReviewDate || (concept as any).fsrs?.lastReview || now.toISOString();
+  const lastReview = new Date(rawDateStr);
+  const lastTime = isNaN(lastReview.getTime()) ? now.getTime() : lastReview.getTime();
+  const elapsedToNowDays = Math.max(0, (now.getTime() - lastTime) / (1000 * 60 * 60 * 24));
+  const stability = concept.stability ?? (concept as any).fsrs?.stability ?? 2.0;
+  const reviewCount = concept.reviewCount ?? (concept as any).fsrs?.reps ?? (concept.history?.length || 1);
 
   for (let d = 0; d <= totalDays; d += 0.5) {
-    const r = calculateRetention(concept.stability, d);
-    const [low, high] = calculateConfidenceInterval(r, concept.reviewCount);
+    const r = calculateRetention(stability, d);
+    const [low, high] = calculateConfidenceInterval(r, reviewCount);
     points.push({
       day: `Day ${d.toFixed(1)}`,
       dayNum: d,

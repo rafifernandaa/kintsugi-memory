@@ -22,8 +22,10 @@ import {
   ChevronDown,
   ChevronUp,
   Lightbulb,
+  Info,
 } from 'lucide-react';
 import { Concept } from '../types';
+import { RichMarkdown } from './RichMarkdown';
 
 export interface JournalFlashcard {
   id: string;
@@ -225,6 +227,7 @@ export const CognitiveJournal: React.FC<CognitiveJournalProps> = ({
   const [flippedCards, setFlippedCards] = useState<Record<string, boolean>>({});
   const [openChallengeCards, setOpenChallengeCards] = useState<Record<string, boolean>>({});
   const [promotedCardIds, setPromotedCardIds] = useState<Record<string, boolean>>({});
+  const [showMarkdownGuide, setShowMarkdownGuide] = useState<boolean>(false);
 
   // Save to localStorage
   useEffect(() => {
@@ -608,10 +611,81 @@ export const CognitiveJournal: React.FC<CognitiveJournalProps> = ({
             </div>
           )}
 
-          <div className="space-y-1">
-            <label className="block text-xs font-mono font-bold text-[#2B2827]">
-              Reflection Notes & Invariants (Markdown supported)
-            </label>
+          <div className="space-y-1 relative">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-mono font-bold text-[#2B2827] flex items-center gap-1.5">
+                <span>Reflection Notes & Invariants (Markdown supported)</span>
+                <button
+                  type="button"
+                  onClick={() => setShowMarkdownGuide(!showMarkdownGuide)}
+                  className="p-0.5 rounded-full hover:bg-[#FAF3E0] text-[#8F6A00] transition-colors cursor-pointer inline-flex items-center gap-1 text-[11px] font-mono font-semibold"
+                  title="Click to view Markdown formatting guide"
+                >
+                  <Info className="w-3.5 h-3.5 text-[#BF9A2A]" />
+                  <span className="underline text-[10px]">Formatting Tips</span>
+                </button>
+              </label>
+
+              {showMarkdownGuide && (
+                <button
+                  type="button"
+                  onClick={() => setShowMarkdownGuide(false)}
+                  className="text-[10px] font-mono text-[#736D6B] hover:text-[#2B2827] cursor-pointer"
+                >
+                  Close Guide
+                </button>
+              )}
+            </div>
+
+            {/* Markdown Quick Reference Popover */}
+            {showMarkdownGuide && (
+              <div className="bg-[#FFFFFF] border-2 border-[#BF9A2A] rounded-2xl p-4 shadow-xl z-30 space-y-3 animate-in fade-in zoom-in-95 duration-150 my-2">
+                <div className="flex items-center justify-between border-b border-[#DDD7C8] pb-1.5">
+                  <span className="text-xs font-mono font-bold text-[#8F6A00] flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-[#BF9A2A]" /> Markdown Formatting Cheat Sheet
+                  </span>
+                  <span className="text-[10px] font-mono text-[#736D6B]">Rich Render Ready</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 text-[11px] font-mono">
+                  <div className="bg-[#FAF8F2] p-2.5 rounded-xl border border-[#DDD7C8] space-y-1">
+                    <div className="font-bold text-[#2B2827]">Headings</div>
+                    <div className="text-[#8F6A00]">## Heading 2</div>
+                    <div className="text-[#8F6A00]">### Heading 3</div>
+                  </div>
+
+                  <div className="bg-[#FAF8F2] p-2.5 rounded-xl border border-[#DDD7C8] space-y-1">
+                    <div className="font-bold text-[#2B2827]">Emphasis</div>
+                    <div className="text-[#8F6A00]">**Bold Text**</div>
+                    <div className="text-[#8F6A00]">*Italic Text*</div>
+                  </div>
+
+                  <div className="bg-[#FAF8F2] p-2.5 rounded-xl border border-[#DDD7C8] space-y-1">
+                    <div className="font-bold text-[#2B2827]">Lists & Bullets</div>
+                    <div className="text-[#8F6A00]">- Main bullet</div>
+                    <div className="text-[#8F6A00]">  * Sub-bullet</div>
+                    <div className="text-[#8F6A00]">1. Ordered list</div>
+                  </div>
+
+                  <div className="bg-[#FAF8F2] p-2.5 rounded-xl border border-[#DDD7C8] space-y-1">
+                    <div className="font-bold text-[#2B2827]">Quotes / Invariants</div>
+                    <div className="text-[#8F6A00]">&gt; Invariant rule</div>
+                  </div>
+
+                  <div className="bg-[#FAF8F2] p-2.5 rounded-xl border border-[#DDD7C8] space-y-1">
+                    <div className="font-bold text-[#2B2827]">Code & Links</div>
+                    <div className="text-[#8F6A00]">`inline code`</div>
+                    <div className="text-[#8F6A00]">[Label](url)</div>
+                  </div>
+
+                  <div className="bg-[#FAF8F2] p-2.5 rounded-xl border border-[#DDD7C8] space-y-1">
+                    <div className="font-bold text-[#2B2827]">Dividers</div>
+                    <div className="text-[#8F6A00]">--- (horizontal line)</div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <textarea
               rows={8}
               value={newContent}
@@ -750,9 +824,9 @@ export const CognitiveJournal: React.FC<CognitiveJournalProps> = ({
                 </div>
               </div>
 
-              {/* Body Content */}
-              <div className="text-xs sm:text-sm text-[#2B2827] leading-relaxed font-sans whitespace-pre-line space-y-2 bg-[#FAF8F2] p-4 sm:p-5 rounded-2xl border border-[#DDD7C8]">
-                {entry.content}
+              {/* Body Content with RichMarkdown */}
+              <div className="bg-[#FAF8F2] p-4 sm:p-5 rounded-2xl border border-[#DDD7C8]">
+                <RichMarkdown content={entry.content} />
               </div>
 
               {/* Interactive Socratic Flashcards Section */}

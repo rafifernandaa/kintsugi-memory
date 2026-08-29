@@ -136,6 +136,31 @@ const PRESET_MEETING_SESSIONS = [
         addedAt: new Date().toISOString(),
       }
     ]
+  },
+  {
+    title: 'JPN 302: Japanese Nuance Lab — Obligation, Inevitability & Keigo Registers',
+    subject: 'Japanese Language & Linguistics',
+    speaker: 'Sensei Tanaka (田中先生)',
+    transcript: `[00:00] Instructor: みなさん、こんにちは。Today we are dissecting conversational boundaries between social obligation and physical inevitability.
+[00:35] Instructor: Look at the slide showing 〜わけにはいかない vs 〜ざるを得ない.
+[01:10] Instructor: If your company president asks you to attend an urgent meeting, why is '休むわけにはいかない' more natural than '休まざるを得ない'?
+[01:45] Student: Because 'わけにはいかない' acknowledges internal respect and social duty, whereas 'ざるを得ない' implies you are doing it reluctantly with zero personal will!
+[02:20] Instructor: 正解です (Exactly correct)! Nuances like this prevent awkward cross-cultural friction in professional business environments.
+[02:50] Instructor: Practice sentence: どんなに辛くても、最後までやり抜かざるを得ない。`,
+    liveStudentNotes: `• Topic: Japanese Modality Boundaries & Social Registers
+• 〜わけにはいかない: Moral/Social obligation (cannot afford to skip).
+• 〜ざるを得ない: Objective lack of alternatives ("forced by situation").
+• ⭐ Politeness Invariant: Never use 'ざるを得ない' toward a superior if it makes you sound begrudging.
+• Vocabulary: やり抜く (to carry through to the very end).`,
+    supportMaterials: [
+      {
+        id: 'mat_lang_1',
+        title: 'Grammar Slide: Modality Spectra & Social Registers in Japanese',
+        type: 'slide_image' as const,
+        textSnippet: 'Comparison table: Personal Willingness vs External Pressure vs Moral Invariant across Keigo levels.',
+        addedAt: new Date().toISOString(),
+      }
+    ]
   }
 ];
 

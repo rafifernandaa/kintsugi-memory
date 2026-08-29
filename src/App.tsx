@@ -15,6 +15,7 @@ import { DailySynapticSummaryModal } from './components/DailySynapticSummaryModa
 import { LandingPage } from './components/LandingPage';
 import { ExamCalendar } from './components/ExamCalendar';
 import { AboutTab } from './components/AboutTab';
+import { CognitiveJournal } from './components/CognitiveJournal';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { PubSubNotificationPopover } from './components/PubSubNotificationPopover';
 import { Home, Sparkles, FastForward, RotateCcw, Award, Terminal, Brain } from 'lucide-react';
@@ -244,8 +245,9 @@ export default function App() {
                   else if (t === 'dispatch') setCurrentTab('insights');
                   else if ((t as string) === 'calendar') setCurrentTab('calendar');
                   else if ((t as string) === 'about') setCurrentTab('about');
+                  else if ((t as string) === 'journal') setCurrentTab('journal');
                 }}
-                onOpenJournal={() => setDailySummaryOpen(true)}
+                onOpenJournal={() => setCurrentTab('journal')}
                 onOpenDailySummary={() => setDailySummaryOpen(true)}
                 onOpenPubSubAlerts={() => setPubSubAlertsOpen(true)}
                 onOpenJudgeModal={() => setJudgeModalOpen(true)}
@@ -297,6 +299,15 @@ export default function App() {
                 selectedConceptId={selectedOracleConceptId}
                 onSelectConcept={(c) => setSelectedOracleConceptId(c.id)}
                 onReviewConcept={handleSelectConceptForReview}
+              />
+            )}
+
+            {currentTab === 'journal' && (
+              <CognitiveJournal
+                concepts={concepts}
+                onStartReviewForConcept={handleSelectConceptForReview}
+                onAddTelemetry={addTelemetry}
+                onOpenDailySummary={() => setDailySummaryOpen(true)}
               />
             )}
 

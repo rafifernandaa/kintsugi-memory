@@ -114,14 +114,8 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
               return (
                 <button
                   key={item.key}
-                  onClick={() => {
-                    if (item.key === 'journal') {
-                      onOpenDailySummary();
-                    } else {
-                      onChangeTab(item.key);
-                    }
-                  }}
-                  className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-sans transition-all relative ${
+                  onClick={() => onChangeTab(item.key)}
+                  className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-sans transition-all relative cursor-pointer ${
                     isActive
                       ? 'bg-[#EAE6D6] text-[#2B2827] font-semibold shadow-xs'
                       : 'text-[#5A5553] hover:text-[#2B2827] hover:bg-[#F2F0E4]'

@@ -26,6 +26,35 @@ interface IngestionHubProps {
 
 const PRESET_STUDY_PACKS = [
   {
+    name: 'Japanese (JLPT N2/N1) Grammar & Kanji Nuances',
+    subject: 'Japanese Language & Linguistics',
+    text: `Japanese Syntactic Nuances & Sentence Construction:
+1. 〜わけにはいかない (Wake ni wa ikanai): Expresses a social, moral, or psychological boundary where one cannot do something despite personal desire. Invariant: Stem verb dictionary form.
+2. 〜ざるを得ない (Zaru wo enai): Expresses an unavoidable physical or logical necessity where no other alternative exists ("have no choice but to"). Invariant: Negative stem form without 'nai' + zaru wo enai (Suru -> Sezaru wo enai).
+3. 〜どころではない (Dokoro dewa nai): Emphasizes that current circumstances are so severe or overwhelming that doing something else is out of the question.
+4. Passive vs Causative-Passive: 食べさせられる (Tabesaserareru - being forced to eat) vs 食べられる (Taberareru - potential or passive).
+Core Practice: Formulate active conversational sentences distinguishing subjective social pressure from objective impossibility.`,
+  },
+  {
+    name: 'Spanish (C1 Fluency) Subjunctive & Conversational Invariants',
+    subject: 'Spanish Linguistics & Polyglot Fluency',
+    text: `Spanish Advanced Subjunctive & Discourse Connectors:
+1. The WEIRDO Trigger Framework: Wishes, Emotions, Impersonal statements, Requests, Doubt, Ojalá trigger the subjunctive mood in subordinate clauses when subject changes.
+2. Invariant Boundary: 'Creo que viene' (Indicative - certainty) vs 'No creo que venga' (Subjunctive - doubt/negation).
+3. Temporal Triggers: 'Cuando llegue a casa, te llamaré' (Future temporal reference requires present subjunctive 'llegue').
+4. Idiomatic Discourse Markers: 'A fin de cuentas' (at the end of the day), 'Por mucho que digas' (no matter how much you say), 'En cuanto a' (as for).
+Core Practice: Contrast certainty vs hypothetical framing in rapid verbal dialogue.`,
+  },
+  {
+    name: 'Mandarin (HSK 5) Ba-Construction & Directional Complements',
+    subject: 'Mandarin Chinese Syntax',
+    text: `Mandarin Advanced Sentence Structuring & Aspectual Particles:
+1. The Ba-Construction (把字句): Subject + 把 + Object + Verb + Result/Disposal. Invariant: The object must be specific or previously mentioned, and the verb must produce a tangible result or displacement (e.g., 请把这篇论文翻译成中文).
+2. Compound Directional Complements (复合趋向补语): Verb + 出来 / 过去 / 起来. '想出来' (figure out/conceive an idea) vs '想起来' (recall a past memory).
+3. Contrastive Connectors: '尽管...然而...' (Even though... nonetheless...) vs '与其...不如...' (Rather than A, it is better to B).
+4. Tone Sandhi Invariant: Third tone + Third tone -> Second tone + Third tone (e.g. 你好 nǐ hǎo -> ní hǎo).`,
+  },
+  {
     name: 'Distributed Systems & Consensus',
     subject: 'Computer Science',
     text: `Distributed Consensus & Partition Mechanics:

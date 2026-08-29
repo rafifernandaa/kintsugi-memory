@@ -24,7 +24,7 @@ RUN npm install --omit=dev
 # Copy built server and static assets from builder
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/server ./server
-COPY --from=builder /app/.env.example ./.env
+COPY --from=builder /app/.env* ./
 
 EXPOSE 8080
 

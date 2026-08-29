@@ -871,7 +871,7 @@ export const SynchronousClassScribe: React.FC<SynchronousClassScribeProps> = ({
 
       {/* Preset Pickers */}
       <div className="flex flex-wrap items-center gap-2 text-xs">
-        <span className="text-[#736D6B] font-mono text-[11px] font-semibold">Judge Quick-Load Sample Lecture Sessions:</span>
+        <span className="text-[#736D6B] font-mono text-[11px] font-semibold">Sample Learning Sessions & Dialogue Presets:</span>
         {PRESET_MEETING_SESSIONS.map((preset, idx) => (
           <button
             key={idx}

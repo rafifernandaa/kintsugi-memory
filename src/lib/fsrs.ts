@@ -64,7 +64,7 @@ export function getStatusFromRetention(retention: number, kintsugiRepairs: numbe
   return 'critical';
 }
 
-// Initial Seed Concepts for Instant Judge Exploration
+// Initial Seed Concepts for Instant Exploration & Practice
 export const SEED_CONCEPTS: Concept[] = [
   {
     id: 'c-pacelc',

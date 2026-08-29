@@ -5,10 +5,9 @@ import { ArrowRight, ChevronLeft, ChevronRight, Plus, Sparkles, Compass, Layers,
 interface LandingPageProps {
   onEnterApp: () => void;
   onOpenPhilosophyModal?: () => void;
-  onOpenJudgeModal?: () => void;
 }
 
-export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onOpenJudgeModal }) => {
+export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
   const [activeTab, setActiveTab] = useState<'home' | 'philosophy' | 'collection' | 'process' | 'journal'>('home');
   const [activeArtifactIndex, setActiveArtifactIndex] = useState<number>(0);
   const [activeHotspot, setActiveHotspot] = useState<string | null>(null);

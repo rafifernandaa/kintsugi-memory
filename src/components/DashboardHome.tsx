@@ -38,7 +38,6 @@ interface DashboardHomeProps {
   onOpenJournal: () => void;
   onOpenDailySummary?: () => void;
   onOpenPubSubAlerts: () => void;
-  onOpenJudgeModal: () => void;
 }
 
 export const DashboardHome: React.FC<DashboardHomeProps> = ({
@@ -50,7 +49,6 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({
   onOpenJournal,
   onOpenDailySummary,
   onOpenPubSubAlerts,
-  onOpenJudgeModal,
 }) => {
   const [timeframe, setTimeframe] = useState<'This week' | 'This month'>('This week');
   const [searchQuery, setSearchQuery] = useState<string>('');

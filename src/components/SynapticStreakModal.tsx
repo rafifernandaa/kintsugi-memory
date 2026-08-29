@@ -251,10 +251,10 @@ export const SynapticStreakModal: React.FC<SynapticStreakModalProps> = ({
           </div>
         </div>
 
-        {/* Judge Demo Testing Toolbar */}
+        {/* Simulation & Streak Testing Toolbar */}
         <div className="p-2.5 rounded-2xl bg-[#FAF8F2] border border-[#DDD7C8] space-y-2 relative z-20">
           <div className="text-[10px] font-mono text-[#8F6A00] font-bold uppercase flex items-center justify-between">
-            <span>Judge Demo Controls</span>
+            <span>Simulation & Streak Controls</span>
             <span className="text-[#736D6B] font-normal">Test Streak Dynamics</span>
           </div>
 

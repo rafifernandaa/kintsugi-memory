@@ -131,7 +131,7 @@ export const recordSessionInStreak = (
 };
 
 /**
- * Judge helper to simulate streak increments or demo resets
+ * Simulation helper to test streak increments or resets
  */
 export const simulateStreakDayIncrement = (prevStreak: SynapticStreakData): SynapticStreakData => {
   const newStreak = prevStreak.currentStreak + 1;

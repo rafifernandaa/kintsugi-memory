@@ -397,23 +397,23 @@ export const AutonomousDispatcher: React.FC<AutonomousDispatcherProps> = ({
           <Radio className="w-4 h-4 text-[#2F6A38] animate-pulse" /> Autonomous Initiation Engine & Notification Pipeline
         </div>
         <h2 className="text-2xl font-serif text-[#2B2827] font-bold tracking-tight">
-          The Agent Initiates — It Doesn't Wait for You
+          Autonomous Forgetting-Cliff Dispatcher
         </h2>
-        <p className="text-xs text-[#5A5553] max-w-2xl leading-relaxed">
-          Standard chatbots sit idle until prompted. Kintsugi Memory acts as a true Collaborative Partner, monitoring forgetting curves and proactively dispatching editorial micro-questions to your registered email and browser right at the 70% threshold.
+        <p className="text-xs text-[#5A5553] max-w-3xl leading-relaxed">
+          An autonomous governor continuously calculating Bayesian FSRS memory decay curves. When a concept, vocabulary word, or grammar invariant approaches the critical 70% retention boundary, the agent independently formats and dispatches Socratic micro-questions directly via Google Cloud Pub/Sub and Gmail.
         </p>
       </div>
 
-      {/* Registered Email & Notification Channel Configuration Card */}
-      <div className="bg-[#FFFFFF] border border-[#DDD7C8] rounded-2xl p-5 shadow-sm space-y-4">
+      {/* Notification Channel & Delivery Status Card */}
+      <div className="bg-[#FFFFFF] border border-[#DDD7C8] rounded-2xl p-5 shadow-sm space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#DDD7C8] pb-3">
           <div className="flex items-center gap-2 text-xs font-mono text-[#8F6A00] font-bold uppercase">
-            <Mail className="w-4 h-4 text-[#BF9A2A]" /> Registered User Email & Notification Preferences
+            <Mail className="w-4 h-4 text-[#BF9A2A]" /> Notification Pipeline & Real-Time Delivery
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={handleEnableBrowserNotifs}
-              className={`px-3 py-1.5 rounded-xl text-xs font-mono font-semibold flex items-center gap-1.5 transition-all border ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-mono font-semibold flex items-center gap-1.5 transition-all border cursor-pointer ${
                 browserNotifsEnabled
                   ? 'bg-[#F0F7F1] text-[#2F6A38] border-[#BFE0C4]'
                   : 'bg-[#FAF8F2] text-[#5A5553] border-[#DDD7C8] hover:border-[#8F6A00]'
@@ -425,51 +425,19 @@ export const AutonomousDispatcher: React.FC<AutonomousDispatcherProps> = ({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
-          <div className="sm:col-span-2 space-y-1">
-            <label className="block text-[11px] font-mono text-[#736D6B] font-semibold">
-              Registered Student Email for Forgetting-Cliff Telegrams
-            </label>
-            <div className="relative">
-              <input
-                type="email"
-                value={userEmail}
-                onChange={(e) => setUserEmail(e.target.value)}
-                placeholder="e.g. student@university.edu"
-                className="w-full bg-[#FAF8F2] border border-[#DDD7C8] rounded-xl px-3.5 py-2 text-xs text-[#2B2827] focus:outline-none focus:border-[#BF9A2A] shadow-xs"
-              />
-            </div>
-          </div>
-
-          <div>
-            <button
-              onClick={handleSaveEmail}
-              className="w-full py-2 px-4 rounded-xl bg-[#152659] hover:bg-[#1E357A] text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors shadow-xs"
-            >
-              {emailSavedToast ? (
-                <>
-                  <Check className="w-3.5 h-3.5 text-[#2F6A38]" /> Saved!
-                </>
-              ) : (
-                <>
-                  <CheckCircle2 className="w-3.5 h-3.5 text-[#BF9A2A]" /> Update Registered Email
-                </>
-              )}
-            </button>
-          </div>
-        </div>
-
-        {/* Live SMTP Status Indicator */}
-        <div className="pt-2 border-t border-[#DDD7C8] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-[11px] font-mono">
+        {/* Live SMTP & Destination Status */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-mono">
           <div className="flex items-center gap-2 flex-wrap">
             {smtpInfo?.configured ? (
-              <div className="flex items-center gap-1.5 text-[#2F6A38]">
-                <CheckCircle2 className="w-3.5 h-3.5 text-[#2F6A38]" />
-                <span>Live Gmail Delivery <b>Active</b> ({smtpInfo.user})</span>
+              <div className="flex items-center gap-2 text-[#2F6A38]">
+                <CheckCircle2 className="w-4 h-4 text-[#2F6A38] shrink-0" />
+                <span>
+                  Delivering to: <b className="font-semibold">{userEmail}</b> via Gmail SMTP (<span className="text-[#5A5553]">{smtpInfo.user}</span>)
+                </span>
               </div>
             ) : (
-              <div className="flex items-center gap-1.5 text-[#8F6A00]">
-                <AlertTriangle className="w-3.5 h-3.5 text-[#8F6A00]" />
+              <div className="flex items-center gap-2 text-[#8F6A00]">
+                <AlertTriangle className="w-4 h-4 text-[#8F6A00] shrink-0" />
                 <span>In-App Preview & GCP Pub/Sub active. Real email delivery needs Gmail App Password.</span>
               </div>
             )}
@@ -478,18 +446,18 @@ export const AutonomousDispatcher: React.FC<AutonomousDispatcherProps> = ({
           <div className="flex items-center gap-2 flex-wrap">
             <button
               onClick={() => setSmtpConfigModalOpen(true)}
-              className="px-2.5 py-1 rounded-lg bg-[#FAF8F2] hover:bg-[#EAE6D6] text-[#2B2827] border border-[#DDD7C8] text-[10px] font-mono font-semibold flex items-center gap-1 transition-colors shadow-xs cursor-pointer"
+              className="px-3 py-1.5 rounded-xl bg-[#FAF8F2] hover:bg-[#EAE6D6] text-[#2B2827] border border-[#DDD7C8] text-xs font-mono font-semibold flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
             >
-              <Settings className="w-3 h-3 text-[#8F6A00]" />
+              <Settings className="w-3.5 h-3.5 text-[#8F6A00]" />
               <span>Configure App Password</span>
             </button>
             {smtpInfo?.configured && (
               <button
                 onClick={handleSendInstantTestEmail}
                 disabled={isGenerating}
-                className="px-2.5 py-1 rounded-lg bg-[#152659] hover:bg-[#1E357A] text-[#FFFFFF] text-[10px] font-mono font-bold flex items-center gap-1 transition-colors shadow-xs cursor-pointer"
+                className="px-3 py-1.5 rounded-xl bg-[#152659] hover:bg-[#1E357A] text-[#FFFFFF] text-xs font-mono font-bold flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
               >
-                <Mail className="w-3 h-3 text-[#BF9A2A]" />
+                <Mail className="w-3.5 h-3.5 text-[#BF9A2A]" />
                 <span>Send Test Email</span>
               </button>
             )}

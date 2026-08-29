@@ -9,22 +9,6 @@ interface NavigationProps {
   onReturnToLanding?: () => void;
   timeWarpDays: number;
   onFastForwardDecay: (days: number) => void;
-  onOpenJudgeModal: () => void;
-  onOpenDailySummary?: () => void;
-  onToggleTelemetry: () => void;
-  telemetryCount: number;
-  urgentCount: number;
-  streak: SynapticStreakData;
-  onStartRetrieval: () => void;
-}
-
-export const Navigation: React.FC<NavigationProps> = ({
-  currentTab,
-  onChangeTab,
-  onReturnToLanding,
-  timeWarpDays,
-  onFastForwardDecay,
-  onOpenJudgeModal,
   onOpenDailySummary?: () => void;
   onOpenPubSubAlerts?: () => void;
   onToggleTelemetry?: () => void;
@@ -40,7 +24,6 @@ export const Navigation: React.FC<NavigationProps> = ({
   onReturnToLanding,
   timeWarpDays,
   onFastForwardDecay,
-  onOpenJudgeModal,
   onOpenDailySummary,
   onOpenPubSubAlerts,
   onToggleTelemetry,
@@ -51,24 +34,24 @@ export const Navigation: React.FC<NavigationProps> = ({
 }) => {
   return (
     <header className="sticky top-0 z-40 bg-[#F2F0E4]/95 backdrop-blur-md border-b border-[#DDD7C8]">
-      {/* Top Hackathon Ribbon */}
+      {/* Top Status Ribbon */}
       <div className="bg-[#EAE6D6] border-b border-[#DDD7C8] px-4 py-1.5 text-xs text-[#403C3B] flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           {onReturnToLanding && (
             <button
               onClick={onReturnToLanding}
-              className="px-2.5 py-0.5 rounded-lg bg-[#FFFFFF] hover:bg-[#F2F0E4] text-[#2B2827] border border-[#DDD7C8] text-[10px] font-mono font-bold flex items-center gap-1 transition-colors shadow-sm"
+              className="px-2.5 py-0.5 rounded-lg bg-[#FFFFFF] hover:bg-[#F2F0E4] text-[#2B2827] border border-[#DDD7C8] text-[10px] font-mono font-bold flex items-center gap-1 transition-colors shadow-sm cursor-pointer"
               title="Return to Philosophy Landing Page"
             >
               <Home className="w-3 h-3 text-[#BF9A2A]" />
-              <span>Philosophy Landing</span>
+              <span>Philosophy Sanctuary</span>
             </button>
           )}
           <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#BF9A2A]/15 text-[#8F6A00] border border-[#BF9A2A]/40">
-            Devpost Hackathon Edition
+            Proactive Cognitive Partner
           </span>
           <span className="text-[#736D6B] font-mono text-[11px] hidden sm:inline">
-            Track: Collaborative Partner • Gemini 3.7 Flash + Google Cloud
+            Autonomous FSRS Decay • Gemini 3.5 & Google Cloud
           </span>
         </div>
 
@@ -90,7 +73,7 @@ export const Navigation: React.FC<NavigationProps> = ({
             </button>
           )}
 
-          {/* Judge Time-Warp Slider & 30-Day Quick Cliff Buttons */}
+          {/* Retention Time-Warp Simulation Controls */}
           <div className="flex items-center gap-1.5 bg-[#FFFFFF] px-2.5 py-0.5 rounded-lg border border-[#DDD7C8] text-[11px] font-mono shadow-sm">
             <FastForward className="w-3.5 h-3.5 text-[#BF9A2A]" />
             <span className="text-[#736D6B] hidden md:inline">Time-Warp:</span>
@@ -103,18 +86,18 @@ export const Navigation: React.FC<NavigationProps> = ({
               value={timeWarpDays}
               onChange={(e) => onFastForwardDecay(Number(e.target.value) - timeWarpDays)}
               className="w-16 sm:w-20 accent-[#BF9A2A] cursor-pointer h-1 bg-[#EAE6D6] rounded"
-              title="Fast-forward days of memory decay (up to 30 days)"
+              title="Fast-forward days of memory decay simulator (up to 30 days)"
             />
             <button
               onClick={() => onFastForwardDecay(3)}
-              className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-[#FDF2F0] hover:bg-[#FBE8E4] text-[#993B2B] border border-[#F2C0B8] transition-colors"
+              className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-[#FDF2F0] hover:bg-[#FBE8E4] text-[#993B2B] border border-[#F2C0B8] transition-colors cursor-pointer"
               title="Fast-forward +3 Days (Trigger Forgetting Cliff)"
             >
               +3d
             </button>
             <button
               onClick={() => onFastForwardDecay(30)}
-              className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-[#FAF3E0] hover:bg-[#F5ECD2] text-[#8F6A00] border border-[#E8D4A2] transition-colors"
+              className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-[#FAF3E0] hover:bg-[#F5ECD2] text-[#8F6A00] border border-[#E8D4A2] transition-colors cursor-pointer"
               title="Fast-forward +30 Days (Deep Biological Forgetting)"
             >
               +30d
@@ -122,7 +105,7 @@ export const Navigation: React.FC<NavigationProps> = ({
             {timeWarpDays > 0 && (
               <button
                 onClick={() => onFastForwardDecay(-timeWarpDays)}
-                className="text-[#736D6B] hover:text-[#2B2827] pl-1"
+                className="text-[#736D6B] hover:text-[#2B2827] pl-1 cursor-pointer"
                 title="Reset time-warp"
               >
                 <RotateCcw className="w-3 h-3" />
@@ -130,20 +113,10 @@ export const Navigation: React.FC<NavigationProps> = ({
             )}
           </div>
 
-          {/* Hackathon Judge Dossier Button */}
-          <button
-            onClick={onOpenJudgeModal}
-            className="px-2.5 py-0.5 rounded-lg bg-[#BF9A2A]/15 hover:bg-[#BF9A2A]/25 text-[#8F6A00] border border-[#BF9A2A]/40 text-[11px] font-mono font-semibold flex items-center gap-1 transition-colors shadow-sm"
-          >
-            <Award className="w-3.5 h-3.5 text-[#8F6A00]" />
-            <span className="hidden sm:inline">Judge Dossier & Arch</span>
-            <span className="sm:hidden">Judge</span>
-          </button>
-
           {/* Telemetry Button */}
           <button
             onClick={onToggleTelemetry}
-            className="px-2.5 py-0.5 rounded-lg bg-[#FFFFFF] hover:bg-[#F2F0E4] text-[#2B2827] border border-[#DDD7C8] text-[11px] font-mono flex items-center gap-1 transition-colors relative shadow-sm"
+            className="px-2.5 py-0.5 rounded-lg bg-[#FFFFFF] hover:bg-[#F2F0E4] text-[#2B2827] border border-[#DDD7C8] text-[11px] font-mono flex items-center gap-1 transition-colors relative shadow-sm cursor-pointer"
             title="Open Live Multi-Agent Telemetry Stream"
           >
             <Terminal className="w-3.5 h-3.5 text-[#2F6A38]" />

@@ -34,7 +34,6 @@ interface SidebarNavigationProps {
   streak: SynapticStreakData;
   timeWarpDays: number;
   onFastForwardDecay: (days: number) => void;
-  onOpenJudgeModal: () => void;
   onOpenDailySummary: () => void;
   onOpenPubSubAlerts?: () => void;
   onToggleTelemetry: () => void;
@@ -50,7 +49,6 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
   streak,
   timeWarpDays,
   onFastForwardDecay,
-  onOpenJudgeModal,
   onOpenDailySummary,
   onOpenPubSubAlerts,
   onToggleTelemetry,
@@ -180,41 +178,44 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
 
         {/* Bottom User Profile Section */}
         <div className="pt-2 border-t border-[#DDD7C8] space-y-2">
-          {/* Telemetry & Hackathon Quick Links */}
+          {/* Telemetry & Settings Quick Links */}
           <div className="flex items-center justify-between text-[10px] font-mono text-[#736D6B]">
             <button
               onClick={onToggleTelemetry}
-              className="hover:text-[#8F6A00] flex items-center gap-1 font-semibold"
+              className="hover:text-[#8F6A00] flex items-center gap-1 font-semibold cursor-pointer"
             >
               <Terminal className="w-3 h-3 text-[#BF9A2A]" />
               Telemetry ({telemetryCount})
             </button>
 
             <button
-              onClick={onOpenJudgeModal}
-              className="text-[#8F6A00] hover:underline font-bold flex items-center gap-1"
+              onClick={() => onChangeTab('about')}
+              className="text-[#8F6A00] hover:underline font-bold flex items-center gap-1 cursor-pointer"
             >
-              <Award className="w-3 h-3" /> Dossier
+              <Settings className="w-3 h-3 text-[#8F6A00]" /> Settings
             </button>
           </div>
 
           <div className="flex items-center justify-between pt-1">
-            <div className="flex items-center gap-2">
+            <div
+              onClick={() => onChangeTab('about')}
+              className="flex items-center gap-2 cursor-pointer group"
+            >
               <div className="w-7 h-7 rounded-full bg-[#152659] text-[#FFFFFF] font-serif font-bold text-xs flex items-center justify-center shadow-xs">
                 S
               </div>
               <div className="space-y-0">
-                <div className="text-xs font-semibold text-[#2B2827] leading-tight">Selene</div>
+                <div className="text-xs font-semibold text-[#2B2827] group-hover:text-[#8F6A00] transition-colors leading-tight">Selene</div>
                 <div className="text-[9px] text-[#736D6B] italic font-serif leading-tight">
-                  Keep learning, softly.
+                  Lifelong Learner
                 </div>
               </div>
             </div>
 
             <button
-              onClick={onOpenJudgeModal}
-              className="p-1 rounded-md hover:bg-[#EAE6D6] text-[#736D6B] hover:text-[#2B2827] transition-colors"
-              title="Hackathon Dossier & Architecture"
+              onClick={() => onChangeTab('about')}
+              className="p-1 rounded-md hover:bg-[#EAE6D6] text-[#736D6B] hover:text-[#2B2827] transition-colors cursor-pointer"
+              title="Account, Settings & Architecture"
             >
               <Settings className="w-3.5 h-3.5" />
             </button>

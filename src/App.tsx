@@ -9,7 +9,6 @@ import { IngestionHub } from './components/IngestionHub';
 import { ActiveRetrievalRoom } from './components/ActiveRetrievalRoom';
 import { RetentionOracle } from './components/RetentionOracle';
 import { AutonomousDispatcher } from './components/AutonomousDispatcher';
-import { JudgeModal } from './components/JudgeModal';
 import { TelemetryDrawer } from './components/TelemetryDrawer';
 import { DailySynapticSummaryModal } from './components/DailySynapticSummaryModal';
 import { LandingPage } from './components/LandingPage';
@@ -41,7 +40,6 @@ export default function App() {
   const [timeWarpDays, setTimeWarpDays] = useState<number>(0);
   const [activeReviewConcept, setActiveReviewConcept] = useState<Concept | null>(null);
   const [selectedOracleConceptId, setSelectedOracleConceptId] = useState<string | undefined>();
-  const [judgeModalOpen, setJudgeModalOpen] = useState(false);
   const [telemetryDrawerOpen, setTelemetryDrawerOpen] = useState(false);
   const [dailySummaryOpen, setDailySummaryOpen] = useState<boolean>(false);
 
@@ -202,7 +200,6 @@ export default function App() {
             setDailySummaryOpen(true);
           }
         }}
-        onOpenJudgeModal={() => setJudgeModalOpen(true)}
       />
     );
   }
@@ -218,7 +215,6 @@ export default function App() {
         streak={streak}
         timeWarpDays={timeWarpDays}
         onFastForwardDecay={applyTimeWarp}
-        onOpenJudgeModal={() => setJudgeModalOpen(true)}
         onOpenDailySummary={() => setDailySummaryOpen(true)}
         onOpenPubSubAlerts={() => setPubSubAlertsOpen(true)}
         onToggleTelemetry={() => setTelemetryDrawerOpen((prev) => !prev)}
@@ -250,7 +246,6 @@ export default function App() {
                 onOpenJournal={() => setCurrentTab('journal')}
                 onOpenDailySummary={() => setDailySummaryOpen(true)}
                 onOpenPubSubAlerts={() => setPubSubAlertsOpen(true)}
-                onOpenJudgeModal={() => setJudgeModalOpen(true)}
               />
             )}
 
@@ -332,7 +327,6 @@ export default function App() {
                   else if (t === 'journal') setCurrentTab('journal');
                   else if (t === 'insights') setCurrentTab('insights');
                 }}
-                onOpenJudgeModal={() => setJudgeModalOpen(true)}
               />
             )}
           </ErrorBoundary>
@@ -357,12 +351,6 @@ export default function App() {
         onStartRetrievalForConcept={handleSelectConceptForReview}
         onStartPriorityRetrieval={handleStartPriorityRetrieval}
         onNavigateToHome={() => setCurrentTab('home')}
-      />
-
-      {/* Hackathon Judge Dossier Modal */}
-      <JudgeModal
-        isOpen={judgeModalOpen}
-        onClose={() => setJudgeModalOpen(false)}
       />
 
       {/* Live Agent Telemetry Stream Drawer */}

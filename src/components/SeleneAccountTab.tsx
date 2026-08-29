@@ -62,7 +62,11 @@ export const SeleneAccountTab: React.FC<SeleneAccountTabProps> = ({
       .then((data) => {
         if (data && data.configured) {
           setSmtpConfigured(true);
-          if (data.user) setSmtpUser(data.user);
+          if (data.rawUser) {
+            setSmtpUser(data.rawUser);
+          } else if (data.user) {
+            setSmtpUser(data.user);
+          }
         }
       })
       .catch(() => {});
@@ -78,7 +82,7 @@ export const SeleneAccountTab: React.FC<SeleneAccountTabProps> = ({
   };
 
   const handleSaveSmtp = async () => {
-    if (!smtpUser || !smtpPass) {
+    if (!smtpUser.trim() || !smtpPass.trim()) {
       setSmtpStatusMsg({ text: 'Please provide both Gmail address and 16-character Google App Password.', success: false });
       return;
     }
@@ -90,17 +94,24 @@ export const SeleneAccountTab: React.FC<SeleneAccountTabProps> = ({
       const res = await fetch('/api/configure-smtp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user: smtpUser.trim(), pass: smtpPass.trim() }),
+        body: JSON.stringify({
+          smtpUser: smtpUser.trim(),
+          smtpPass: smtpPass.trim(),
+          user: smtpUser.trim(),
+          pass: smtpPass.trim(),
+        }),
       });
       const data = await res.json();
 
       if (data.success) {
         setSmtpConfigured(true);
-        localStorage.setItem('kintsugi_smtp_user', smtpUser.trim());
-        localStorage.setItem('kintsugi_user_email', smtpUser.trim());
-        setSmtpStatusMsg({ text: `SMTP Verified! Real emails will be delivered to ${smtpUser.trim()}.`, success: true });
+        const activeEmail = data.status?.rawUser || smtpUser.trim();
+        setSmtpUser(activeEmail);
+        localStorage.setItem('kintsugi_smtp_user', activeEmail);
+        localStorage.setItem('kintsugi_user_email', activeEmail);
+        setSmtpStatusMsg({ text: `SMTP Verified! Real emails will be delivered to ${activeEmail}.`, success: true });
         setSmtpPass('');
-        onAddTelemetry('SMTP Configured', `Configured Gmail delivery to ${smtpUser.trim()}`, 'Email Gateway', 'success');
+        onAddTelemetry('SMTP Configured', `Configured Gmail delivery to ${activeEmail}`, 'Email Gateway', 'success');
       } else {
         setSmtpStatusMsg({ text: data.error || 'Failed to authenticate Gmail credentials.', success: false });
       }

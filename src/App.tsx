@@ -318,6 +318,7 @@ export default function App() {
                 onReviewConcept={handleSelectConceptForReview}
                 onAddTelemetry={addTelemetry}
                 onFastForwardDecay={applyTimeWarp}
+                onNavigateToTab={setCurrentTab}
               />
             )}
 

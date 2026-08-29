@@ -439,12 +439,24 @@ app.get("/api/smtp-status", (req, res) => {
 
 app.post("/api/configure-smtp", async (req, res) => {
   try {
-    const { smtpUser, smtpPass } = req.body;
-    if (!smtpUser || !smtpPass) {
+    let user = (req.body.smtpUser || req.body.user || req.body.email || "").trim();
+    let pass = (req.body.smtpPass || req.body.pass || req.body.password || "").trim();
+
+    // If user submitted a masked email (e.g. cub***@gmail.com), resolve to existing rawUser or process.env.SMTP_USER
+    if (user && user.includes("***")) {
+      const existingStatus = getSmtpStatus();
+      if (existingStatus.rawUser) {
+        user = existingStatus.rawUser;
+      } else if (process.env.SMTP_USER) {
+        user = process.env.SMTP_USER.trim();
+      }
+    }
+
+    if (!user || !pass) {
       return res.status(400).json({ error: "Both email (SMTP_USER) and App Password (SMTP_PASS) are required." });
     }
 
-    updateRuntimeSmtp(smtpUser, smtpPass);
+    updateRuntimeSmtp(user, pass);
     const verification = await verifySmtpConnection();
 
     if (!verification.success) {
@@ -456,7 +468,7 @@ app.post("/api/configure-smtp", async (req, res) => {
 
     return res.json({
       success: true,
-      message: `SMTP successfully authenticated for ${smtpUser}!`,
+      message: `SMTP successfully authenticated for ${user}!`,
       status: getSmtpStatus(),
     });
   } catch (error: any) {

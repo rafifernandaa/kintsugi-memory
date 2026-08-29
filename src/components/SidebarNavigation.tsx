@@ -146,10 +146,11 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
           {/* Brand Header */}
           <div className="flex items-center px-2 pt-1">
             <div
-              onClick={() => onChangeTab('home')}
+              onClick={() => (onReturnToLanding ? onReturnToLanding() : onChangeTab('home'))}
               className="flex items-center gap-2.5 cursor-pointer group"
+              title="Return to Landing Page"
             >
-              <div className="w-7 h-7 rounded-lg bg-[#152659] text-white flex items-center justify-center font-serif text-sm font-bold shadow-xs">
+              <div className="w-7 h-7 rounded-lg bg-[#152659] text-white flex items-center justify-center font-serif text-sm font-bold shadow-xs group-hover:scale-105 group-hover:bg-[#8F6A00] transition-all">
                 金
               </div>
               <div className="space-y-0">
@@ -157,7 +158,7 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
                   Kintsugi Memory
                 </div>
                 <div className="text-[10px] font-mono text-[#736D6B] leading-tight">
-                  Cognitive Synthesis
+                  Neural Sanctuary ↗
                 </div>
               </div>
             </div>

@@ -251,6 +251,7 @@ export default function App() {
                 onOpenJournal={() => setCurrentTab('journal')}
                 onOpenDailySummary={() => setDailySummaryOpen(true)}
                 onOpenPubSubAlerts={() => setPubSubAlertsOpen(true)}
+                onReturnToLanding={() => setShowLanding(true)}
               />
             )}
 

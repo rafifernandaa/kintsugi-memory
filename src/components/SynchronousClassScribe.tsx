@@ -29,6 +29,7 @@ import {
   Layers,
   Radio,
   FileAudio,
+  Square,
 } from 'lucide-react';
 import Markdown from 'react-markdown';
 import { Concept, SupportMaterial, SynchronousNotesExtraction } from '../types';
@@ -153,6 +154,7 @@ export const SynchronousClassScribe: React.FC<SynchronousClassScribeProps> = ({
 
   // Live Audio Recording State (MediaRecorder)
   const [isRecording, setIsRecording] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
   const [recordedAudioBase64, setRecordedAudioBase64] = useState<string | null>(null);
   const [recordedAudioMime, setRecordedAudioMime] = useState<string>('audio/webm');
@@ -182,51 +184,32 @@ export const SynchronousClassScribe: React.FC<SynchronousClassScribeProps> = ({
   const [copiedMarkdown, setCopiedMarkdown] = useState(false);
   const [committedCount, setCommittedCount] = useState<number | null>(null);
 
-  // Recording Timer
+  // Recording Timer - increments only when recording is active and NOT paused
   useEffect(() => {
     let interval: any = null;
-    if (isRecording) {
+    if (isRecording && !isPaused) {
       interval = setInterval(() => {
         setRecordingSeconds((prev) => prev + 1);
       }, 1000);
     }
     return () => clearInterval(interval);
-  }, [isRecording]);
+  }, [isRecording, isPaused]);
 
-  // Start / Pause Live Audio Recording & Speech-to-Text
-  const handleToggleRecording = async () => {
-    if (isRecording) {
-      // STOP recording
-      setIsRecording(false);
+  // Start Live Audio Recording
+  const handleStartRecording = async () => {
+    try {
+      setRecordingSeconds(0);
+      setIsPaused(false);
       setInterimSpeech('');
 
-      if (recognizerRef.current) {
-        recognizerRef.current.stop();
-      }
-
-      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-        mediaRecorderRef.current.stop();
-      }
-
-      if (mediaStreamRef.current) {
-        mediaStreamRef.current.getTracks().forEach((t) => t.stop());
-      }
-
-      onAddTelemetry(
-        'Paused Live Lecture Audio Recording',
-        `Recorded ${Math.floor(recordingSeconds / 60)}m ${recordingSeconds % 60}s of lecture audio. Ready for Gemini AI distillation.`,
-        'Ingestion Agent'
-      );
-    } else {
-      // START recording
-      try {
-        // 1. Start continuous browser speech recognition
-        const recognizer = createSpeechRecognizer(
-          (deltaFinal, interimText) => {
-            setInterimSpeech(interimText);
-            if (deltaFinal && deltaFinal.trim()) {
-              const minutes = Math.floor(recordingSeconds / 60).toString().padStart(2, '0');
-              const secs = (recordingSeconds % 60).toString().padStart(2, '0');
+      // 1. Start continuous browser speech recognition
+      const recognizer = createSpeechRecognizer(
+        (deltaFinal, interimText) => {
+          setInterimSpeech(interimText);
+          if (deltaFinal && deltaFinal.trim()) {
+            setRecordingSeconds((currentSecs) => {
+              const minutes = Math.floor(currentSecs / 60).toString().padStart(2, '0');
+              const secs = (currentSecs % 60).toString().padStart(2, '0');
               const timecode = `[${minutes}:${secs}]`;
               setTranscript((prev) => {
                 const prevClean = prev.trim();
@@ -234,58 +217,116 @@ export const SynchronousClassScribe: React.FC<SynchronousClassScribeProps> = ({
                   ? `${prevClean}\n${timecode} Speaker: ${deltaFinal.trim()}`
                   : `${timecode} Speaker: ${deltaFinal.trim()}`;
               });
-            }
-          },
-          (err) => console.warn('Speech recognition warning:', err)
-        );
-
-        if (recognizer) {
-          recognizerRef.current = recognizer;
-          recognizer.start();
-        }
-
-        // 2. Start MediaRecorder for high-fidelity audio capture
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        mediaStreamRef.current = stream;
-        audioChunksRef.current = [];
-
-        const mimeType = MediaRecorder.isTypeSupported('audio/webm')
-          ? 'audio/webm'
-          : MediaRecorder.isTypeSupported('audio/mp4')
-          ? 'audio/mp4'
-          : 'audio/wav';
-
-        const recorder = new MediaRecorder(stream, { mimeType });
-        recorder.ondataavailable = (e) => {
-          if (e.data.size > 0) {
-            audioChunksRef.current.push(e.data);
+              return currentSecs;
+            });
           }
-        };
+        },
+        (err) => console.warn('Speech recognition warning:', err)
+      );
 
-        recorder.onstop = () => {
-          const blob = new Blob(audioChunksRef.current, { type: mimeType });
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            setRecordedAudioBase64(reader.result as string);
-            setRecordedAudioMime(mimeType);
-          };
-          reader.readAsDataURL(blob);
-        };
-
-        recorder.start(1000);
-        mediaRecorderRef.current = recorder;
-        setIsRecording(true);
-
-        onAddTelemetry(
-          'Started Live Audio Recording',
-          `Listening to lecture for "${meetingTitle || 'Live Session'}" with simultaneous real-time speech transcription.`,
-          'Ingestion Agent'
-        );
-      } catch (err: any) {
-        console.warn('Microphone permission or access error:', err);
-        setIsRecording(true);
+      if (recognizer) {
+        recognizerRef.current = recognizer;
+        recognizer.start();
       }
+
+      // 2. Start MediaRecorder for high-fidelity audio capture
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaStreamRef.current = stream;
+      audioChunksRef.current = [];
+
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm')
+        ? 'audio/webm'
+        : MediaRecorder.isTypeSupported('audio/mp4')
+        ? 'audio/mp4'
+        : 'audio/wav';
+
+      const recorder = new MediaRecorder(stream, { mimeType });
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          audioChunksRef.current.push(e.data);
+        }
+      };
+
+      recorder.onstop = () => {
+        const blob = new Blob(audioChunksRef.current, { type: mimeType });
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setRecordedAudioBase64(reader.result as string);
+          setRecordedAudioMime(mimeType);
+        };
+        reader.readAsDataURL(blob);
+      };
+
+      recorder.start(1000);
+      mediaRecorderRef.current = recorder;
+      setIsRecording(true);
+
+      onAddTelemetry(
+        'Started Live Audio Recording',
+        `Listening to lecture for "${meetingTitle || 'Live Session'}" with simultaneous real-time speech transcription.`,
+        'Ingestion Agent'
+      );
+    } catch (err: any) {
+      console.warn('Microphone permission or access error:', err);
+      setIsRecording(true);
     }
+  };
+
+  // Pause or Resume Live Audio Recording
+  const handleTogglePause = () => {
+    if (!isRecording) return;
+
+    if (isPaused) {
+      // Resume
+      setIsPaused(false);
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'paused') {
+        mediaRecorderRef.current.resume();
+      }
+      if (recognizerRef.current) {
+        recognizerRef.current.resume();
+      }
+      onAddTelemetry('Resumed Live Class Recording', 'Resumed audio recording and live transcription stream.', 'Ingestion Agent');
+    } else {
+      // Pause
+      setIsPaused(true);
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+        mediaRecorderRef.current.pause();
+      }
+      if (recognizerRef.current) {
+        recognizerRef.current.pause();
+      }
+      onAddTelemetry('Paused Live Class Recording', `Paused audio recording at ${Math.floor(recordingSeconds / 60)}m ${recordingSeconds % 60}s.`, 'Ingestion Agent');
+    }
+  };
+
+  // Stop & Finalize Recording (Prepares for next recording with new timer)
+  const handleStopRecording = () => {
+    const elapsedMinutes = Math.floor(recordingSeconds / 60);
+    const elapsedSecs = recordingSeconds % 60;
+
+    setIsRecording(false);
+    setIsPaused(false);
+    setInterimSpeech('');
+
+    if (recognizerRef.current) {
+      recognizerRef.current.stop();
+    }
+
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop();
+    }
+
+    if (mediaStreamRef.current) {
+      mediaStreamRef.current.getTracks().forEach((t) => t.stop());
+    }
+
+    onAddTelemetry(
+      'Completed Live Lecture Audio Recording',
+      `Finalized ${elapsedMinutes}m ${elapsedSecs}s lecture recording. Ready for Gemini AI distillation. Timer reset for new session.`,
+      'Ingestion Agent',
+      'success'
+    );
+    setRecordingSeconds(0);
   };
 
   // Upload Pre-Recorded Audio File (.mp3, .wav, .m4a, .webm, .ogg)
@@ -330,6 +371,8 @@ export const SynchronousClassScribe: React.FC<SynchronousClassScribeProps> = ({
         };
         mediaRecorderRef.current.stop();
         setIsRecording(false);
+        setIsPaused(false);
+        setRecordingSeconds(0);
       });
     }
 
@@ -642,36 +685,70 @@ export const SynchronousClassScribe: React.FC<SynchronousClassScribeProps> = ({
             <Mic className="w-4 h-4 text-[#BF9A2A]" /> Synchronous Class & Audio Scribe Studio
           </div>
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="px-2.5 py-1 rounded-lg bg-[#FAF8F2] border border-[#DDD7C8] text-[11px] font-mono text-[#5A5553] flex items-center gap-1.5 font-semibold">
+            <span className={`px-2.5 py-1 rounded-lg border text-[11px] font-mono flex items-center gap-1.5 font-semibold transition-colors ${
+              isRecording
+                ? isPaused
+                  ? 'bg-[#FAF3E0] border-[#E8D4A2] text-[#8F6A00]'
+                  : 'bg-[#FDF2F0] border-[#F2C0B8] text-[#993B2B]'
+                : 'bg-[#FAF8F2] border-[#DDD7C8] text-[#5A5553]'
+            }`}>
               <Clock className="w-3.5 h-3.5 text-[#BF9A2A]" />
               Audio Timer: <span className="text-[#2B2827] font-bold">{formatTimer(recordingSeconds)}</span>
+              {isRecording && (
+                <span className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded ${
+                  isPaused ? 'bg-[#E8D4A2] text-[#8F6A00]' : 'bg-[#993B2B] text-white animate-pulse'
+                }`}>
+                  {isPaused ? 'PAUSED' : 'LIVE'}
+                </span>
+              )}
             </span>
 
-            {/* Live Recording Toggle */}
-            <button
-              onClick={handleToggleRecording}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all shadow-xs ${
-                isRecording
-                  ? 'bg-[#993B2B] text-white hover:bg-[#802F21] animate-pulse'
-                  : 'bg-[#152659] text-white hover:bg-[#1E357A]'
-              }`}
-            >
-              {isRecording ? (
-                <>
-                  <Pause className="w-3.5 h-3.5" /> Stop / Pause Mic
-                </>
-              ) : (
-                <>
-                  <Mic className="w-3.5 h-3.5 text-[#BF9A2A]" /> Record Live Class Audio
-                </>
-              )}
-            </button>
+            {/* Inactive State: Record Button */}
+            {!isRecording && (
+              <button
+                onClick={handleStartRecording}
+                className="px-3.5 py-1.5 rounded-xl bg-[#152659] text-white hover:bg-[#1E357A] text-xs font-semibold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer"
+              >
+                <Mic className="w-3.5 h-3.5 text-[#BF9A2A]" /> Record Live Class Audio
+              </button>
+            )}
+
+            {/* Active Recording State: Pause/Resume + Stop Buttons */}
+            {isRecording && (
+              <>
+                <button
+                  onClick={handleTogglePause}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer ${
+                    isPaused
+                      ? 'bg-[#2F6A38] text-white hover:bg-[#25542C]'
+                      : 'bg-[#BF9A2A] text-white hover:bg-[#A68420]'
+                  }`}
+                >
+                  {isPaused ? (
+                    <>
+                      <Play className="w-3.5 h-3.5" /> Resume
+                    </>
+                  ) : (
+                    <>
+                      <Pause className="w-3.5 h-3.5" /> Pause
+                    </>
+                  )}
+                </button>
+
+                <button
+                  onClick={handleStopRecording}
+                  className="px-3 py-1.5 rounded-xl bg-[#993B2B] text-white hover:bg-[#802F21] text-xs font-semibold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer"
+                >
+                  <Square className="w-3.5 h-3.5 fill-current" /> Stop & Finalize
+                </button>
+              </>
+            )}
 
             {/* Transcribe Audio with Gemini AI Button */}
             <button
               onClick={handleTranscribeWithGemini}
               disabled={isTranscribingAudio}
-              className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-[#BF9A2A] to-[#8F6A00] text-white hover:opacity-90 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-xs disabled:opacity-50"
+              className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-[#BF9A2A] to-[#8F6A00] text-white hover:opacity-90 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-xs disabled:opacity-50 cursor-pointer"
             >
               {isTranscribingAudio ? (
                 <>
@@ -699,23 +776,42 @@ export const SynchronousClassScribe: React.FC<SynchronousClassScribeProps> = ({
 
         {/* Live Audio Visualizer Bar when Recording */}
         {isRecording && (
-          <div className="bg-[#FAF8F2] border border-[#BF9A2A]/40 rounded-xl p-3 flex items-center justify-between gap-4">
-            <div className="flex items-center gap-2 text-xs font-mono text-[#8F6A00] font-semibold">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#2F6A38] animate-ping" />
-              Recording live microphone audio stream... Click "Stop / Pause Mic" when finished to transcribe with Gemini AI.
+          <div className={`border rounded-xl p-3 flex items-center justify-between gap-4 transition-colors ${
+            isPaused
+              ? 'bg-[#FAF3E0] border-[#E8D4A2]'
+              : 'bg-[#FAF8F2] border-[#BF9A2A]/40'
+          }`}>
+            <div className="flex items-center gap-2 text-xs font-mono font-semibold">
+              {isPaused ? (
+                <>
+                  <Pause className="w-4 h-4 text-[#8F6A00]" />
+                  <span className="text-[#8F6A00]">
+                    Recording paused at <b>{formatTimer(recordingSeconds)}</b>. Click <b>"Resume"</b> to continue or <b>"Stop & Finalize"</b> to save.
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#993B2B] animate-ping" />
+                  <span className="text-[#8F6A00]">
+                    Recording live microphone audio stream... Click <b>"Pause"</b> to hold or <b>"Stop & Finalize"</b> when lecture concludes.
+                  </span>
+                </>
+              )}
             </div>
-            <div className="flex items-center gap-1 h-5">
-              {[60, 90, 40, 100, 75, 45, 85, 30, 95, 65, 80, 50].map((h, i) => (
-                <div
-                  key={i}
-                  className="w-1 bg-[#BF9A2A] rounded-full transition-all duration-150 animate-pulse"
-                  style={{
-                    height: `${h}%`,
-                    animationDelay: `${i * 0.1}s`,
-                  }}
-                />
-              ))}
-            </div>
+            {!isPaused && (
+              <div className="flex items-center gap-1 h-5">
+                {[60, 90, 40, 100, 75, 45, 85, 30, 95, 65, 80, 50].map((h, i) => (
+                  <div
+                    key={i}
+                    className="w-1 bg-[#BF9A2A] rounded-full transition-all duration-150 animate-pulse"
+                    style={{
+                      height: `${h}%`,
+                      animationDelay: `${i * 0.1}s`,
+                    }}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         )}
 

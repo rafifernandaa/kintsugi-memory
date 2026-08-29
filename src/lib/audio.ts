@@ -8,6 +8,8 @@
 export interface SpeechRecognitionHandler {
   start: () => void;
   stop: () => void;
+  pause: () => void;
+  resume: () => void;
   isListening: () => boolean;
 }
 
@@ -77,6 +79,22 @@ export function createSpeechRecognizer(
         recognition.stop();
       } catch (e) {
         // ignore
+      }
+    },
+    pause: () => {
+      try {
+        listening = false;
+        recognition.stop();
+      } catch (e) {
+        // ignore
+      }
+    },
+    resume: () => {
+      try {
+        listening = true;
+        recognition.start();
+      } catch (e) {
+        console.warn('Recognition resume notice:', e);
       }
     },
     isListening: () => listening,

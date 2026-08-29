@@ -4,7 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-gold.svg)](https://opensource.org/licenses/MIT)
 [![Google Cloud Run](https://img.shields.io/badge/Google%20Cloud-Run%20%7C%20Pub%2FSub%20%7C%20Vertex%20AI-4285F4?logo=googlecloud&logoColor=white)](https://cloud.google.com)
 [![Gemini Models](https://img.shields.io/badge/Powered%20By-Gemini%203.5%20%26%203.7%20Flash-8E75B2?logo=google&logoColor=white)](https://ai.google.dev)
-[![Live Production Demo](https://img.shields.io/badge/Live%20Demo-Google%20Cloud%20Run-success?logo=googlecloud&logoColor=white)](https://kintsugi-memory-service-47yk7p6ytq-uw.a.run.app/)
+[![Live Production Demo](https://img.shields.io/badge/Live%20Demo-Google%20Cloud%20Run-success?logo=googlecloud&logoColor=white)](https://kintsugi-memory-service-676289354133.us-west1.run.app/)
 
 ---
 

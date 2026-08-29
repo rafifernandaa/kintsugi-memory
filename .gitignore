@@ -9,3 +9,5 @@ coverage/
 gcp-sa-key.json
 *key*.json
 credentials*.json
+Ref*/
+Ref (dont push to Github)/

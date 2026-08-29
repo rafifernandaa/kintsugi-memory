@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowRight, ChevronLeft, ChevronRight, Plus, Sparkles, Compass, Layers, ShieldCheck, Zap, BookOpen, ExternalLink } from 'lucide-react';
+import { SynapticVesselHero } from './landing/SynapticVesselHero';
 
 interface LandingPageProps {
   onEnterApp: () => void;
@@ -42,117 +43,95 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
     },
   ];
 
-  const currentArtifact = artifacts[activeArtifactIndex];
+  if (activeTab === 'home') {
+    return (
+      <div className="min-h-screen bg-[#F4F0E8] text-[#2B2827] flex flex-col font-sans selection:bg-[#BF9A2A]/30 selection:text-[#2B2827] relative overflow-x-hidden">
+        {/* Animated Anime.js Synaptic Vessel Scroll Hero */}
+        <SynapticVesselHero
+          onEnterApp={onEnterApp}
+          onScrollToFeatures={() => setActiveTab('process')}
+        />
+
+        {/* The Philosophy & Memory Mending Breakdown below the Hero */}
+        <section className="relative z-10 w-full max-w-7xl mx-auto px-6 sm:px-10 py-16 grid grid-cols-1 lg:grid-cols-12 gap-8 border-t border-[#BF9A2A]/25 items-center">
+          {/* Left Column: Philosophy Highlights */}
+          <div className="lg:col-span-7 space-y-6">
+            <div className="flex items-center gap-2 text-xs font-mono tracking-[0.25em] text-[#8F6A00] uppercase font-bold">
+              <Sparkles className="w-4 h-4 text-[#BF9A2A]" /> THE PHILOSOPHY OF GOLDEN REPAIR
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-serif text-[#152659] font-bold tracking-tight">
+              Embracing Memory Decay as the Seam of Lifelong Mastery
+            </h2>
+            <p className="text-sm sm:text-base text-[#5A5553] font-serif leading-relaxed">
+              In traditional study habits, forgotten concepts are treated as failures. Kintsugi inverts this mental model: every cognitive fracture exposes the exact boundary condition where active Socratic retrieval can seal knowledge permanently with gold.
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+              <div className="p-4 rounded-2xl bg-[#FFFFFF] border border-[#DDD7C8] shadow-xs space-y-1">
+                <span className="text-xl font-serif font-bold text-[#8F6A00]">01</span>
+                <h4 className="text-xs font-mono font-bold text-[#2B2827]">Bayesian FSRS</h4>
+                <p className="text-[11px] text-[#736D6B]">Real-time power law tracking of cognitive decay.</p>
+              </div>
+              <div className="p-4 rounded-2xl bg-[#FFFFFF] border border-[#DDD7C8] shadow-xs space-y-1">
+                <span className="text-xl font-serif font-bold text-[#8F6A00]">02</span>
+                <h4 className="text-xs font-mono font-bold text-[#2B2827]">Socratic Dialogue</h4>
+                <p className="text-[11px] text-[#736D6B]">Applied challenges probing causal invariants.</p>
+              </div>
+              <div className="p-4 rounded-2xl bg-[#FFFFFF] border border-[#DDD7C8] shadow-xs space-y-1">
+                <span className="text-xl font-serif font-bold text-[#8F6A00]">03</span>
+                <h4 className="text-xs font-mono font-bold text-[#2B2827]">Urushi Sealing</h4>
+                <p className="text-[11px] text-[#736D6B]">Retrieved memory gains 3x stability growth.</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column: Zen Philosophy Quote & Exploration */}
+          <div className="lg:col-span-5 flex flex-col justify-between p-6 sm:p-8 bg-[#FAF8F2] border border-[#BF9A2A]/40 rounded-3xl shadow-sm space-y-4">
+            <span className="text-4xl font-serif text-[#BF9A2A] leading-none select-none">“</span>
+            <blockquote className="text-sm sm:text-base font-serif italic text-[#2B2827] leading-relaxed -mt-2">
+              The beauty of Kintsugi is not in pretending the vessel never broke, but in celebrating how the golden joinery made it stronger and more resilient than before.
+            </blockquote>
+            <div className="pt-3 border-t border-[#DDD7C8] flex items-center justify-between text-xs font-mono">
+              <span className="text-[#8F6A00] font-bold">Wabi-Sabi Cognitive Principle</span>
+              <button
+                onClick={onEnterApp}
+                className="px-4 py-2 rounded-full bg-[#152659] text-white font-mono text-xs font-bold hover:bg-[#1E357A] transition-colors"
+              >
+                Enter App →
+              </button>
+            </div>
+          </div>
+        </section>
+
+        {/* Footer Navigation */}
+        <footer className="relative z-20 w-full border-t border-[#DDD7C8] bg-[#FAF8F2] py-5 px-6 sm:px-10 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] font-mono text-[#736D6B] uppercase tracking-wider">
+          <div className="flex items-center gap-4">
+            <span>ACTIVE RETRIEVAL</span>
+            <span>•</span>
+            <span>BAYESIAN FSRS</span>
+            <span>•</span>
+            <span>AI SOCRATIC</span>
+          </div>
+
+          <button
+            onClick={onEnterApp}
+            className="px-5 py-2 rounded-full bg-[#152659] text-white font-mono font-bold hover:bg-[#1E357A] transition-all flex items-center gap-2"
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-[#BF9A2A] animate-ping" />
+            <span>ENTER KINTSUGI MEMORY</span>
+          </button>
+
+          <div>KYOTO • © 2026 KINTSUGI MEMORY</div>
+        </footer>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#F2F0E4] text-[#403C3B] flex flex-col font-sans selection:bg-[#BF9A2A]/30 selection:text-[#403C3B] relative overflow-x-hidden">
-      {/* Organic Background Golden Seam Lines SVG overlay */}
-      <svg
-        className="absolute inset-0 w-full h-full pointer-events-none z-0 opacity-80"
-        viewBox="0 0 1920 1080"
-        preserveAspectRatio="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <defs>
-          <linearGradient id="landing-gold-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#BF8D30" />
-            <stop offset="35%" stopColor="#BF9A2A" />
-            <stop offset="65%" stopColor="#F2E3B6" />
-            <stop offset="100%" stopColor="#BF9A2A" />
-          </linearGradient>
-          <filter id="gold-subtle-glow" x="-10%" y="-10%" width="120%" height="120%">
-            <feGaussianBlur stdDeviation="2.5" result="blur" />
-            <feMerge>
-              <feMergeNode in="blur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-        </defs>
-
-        {/* Top-Left to Center Gold Branching Vein */}
-        <motion.path
-          d="M 0,160 Q 220,190 340,110 T 640,180 Q 820,240 960,340"
-          fill="none"
-          stroke="url(#landing-gold-grad)"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          filter="url(#gold-subtle-glow)"
-          initial={{ pathLength: 0 }}
-          animate={{ pathLength: 1 }}
-          transition={{ duration: 2.4, ease: 'easeInOut' }}
-        />
-        <motion.path
-          d="M 340,110 Q 420,40 510,20"
-          fill="none"
-          stroke="url(#landing-gold-grad)"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          initial={{ pathLength: 0 }}
-          animate={{ pathLength: 1 }}
-          transition={{ duration: 1.8, delay: 0.3, ease: 'easeInOut' }}
-        />
-        <motion.path
-          d="M 640,180 Q 720,120 780,90"
-          fill="none"
-          stroke="url(#landing-gold-grad)"
-          strokeWidth="1.2"
-          strokeLinecap="round"
-          initial={{ pathLength: 0 }}
-          animate={{ pathLength: 1 }}
-          transition={{ duration: 1.5, delay: 0.5, ease: 'easeInOut' }}
-        />
-
-        {/* Right Corner to Center Gold Branching Vein */}
-        <motion.path
-          d="M 1920,90 Q 1700,210 1520,280 T 1280,360 Q 1120,420 960,490"
-          fill="none"
-          stroke="url(#landing-gold-grad)"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          filter="url(#gold-subtle-glow)"
-          initial={{ pathLength: 0 }}
-          animate={{ pathLength: 1 }}
-          transition={{ duration: 2.6, delay: 0.2, ease: 'easeInOut' }}
-        />
-        <motion.path
-          d="M 1700,210 Q 1640,140 1610,60"
-          fill="none"
-          stroke="url(#landing-gold-grad)"
-          strokeWidth="1.4"
-          strokeLinecap="round"
-          initial={{ pathLength: 0 }}
-          animate={{ pathLength: 1 }}
-          transition={{ duration: 1.6, delay: 0.6, ease: 'easeInOut' }}
-        />
-
-        {/* Bottom Right Sweeping Gold Vein */}
-        <motion.path
-          d="M 1920,960 Q 1740,880 1580,720 T 1420,620 Q 1260,660 1140,780"
-          fill="none"
-          stroke="url(#landing-gold-grad)"
-          strokeWidth="2.2"
-          strokeLinecap="round"
-          filter="url(#gold-subtle-glow)"
-          initial={{ pathLength: 0 }}
-          animate={{ pathLength: 1 }}
-          transition={{ duration: 2.5, delay: 0.4, ease: 'easeInOut' }}
-        />
-        <motion.path
-          d="M 1580,720 Q 1620,810 1660,890"
-          fill="none"
-          stroke="url(#landing-gold-grad)"
-          strokeWidth="1.3"
-          strokeLinecap="round"
-          initial={{ pathLength: 0 }}
-          animate={{ pathLength: 1 }}
-          transition={{ duration: 1.8, delay: 0.7, ease: 'easeInOut' }}
-        />
-      </svg>
-
-      {/* 1. Top Navigation Bar (matching layout 1 ref.png) */}
+      {/* 1. Top Navigation Bar for sub-tabs */}
       <header className="relative z-20 w-full max-w-7xl mx-auto px-6 sm:px-10 py-6 flex items-center justify-between">
-        {/* Brand Logo & Kanji */}
-        <div className="flex flex-col">
+        <div className="flex flex-col cursor-pointer" onClick={() => setActiveTab('home')}>
           <span className="font-serif tracking-[0.25em] text-lg sm:text-xl font-medium text-[#403C3B]">
             K I N T S U G I
           </span>
@@ -161,19 +140,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
           </span>
         </div>
 
-        {/* Center/Right Navigation Links */}
         <nav className="flex items-center gap-6 sm:gap-10 text-xs tracking-[0.2em] font-mono text-[#403C3B]/80 uppercase">
           <button
             onClick={() => setActiveTab('home')}
-            className={`transition-colors hover:text-[#BF9A2A] hidden sm:inline-block ${
-              activeTab === 'home' ? 'text-[#BF9A2A] font-bold border-b border-[#BF9A2A] pb-0.5' : ''
-            }`}
+            className="transition-colors hover:text-[#BF9A2A] hidden sm:inline-block cursor-pointer"
           >
             Philosophy
           </button>
           <button
             onClick={() => setActiveTab('collection')}
-            className={`transition-colors hover:text-[#BF9A2A] hidden md:inline-block ${
+            className={`transition-colors hover:text-[#BF9A2A] hidden md:inline-block cursor-pointer ${
               activeTab === 'collection' ? 'text-[#BF9A2A] font-bold border-b border-[#BF9A2A] pb-0.5' : ''
             }`}
           >
@@ -181,7 +157,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
           </button>
           <button
             onClick={() => setActiveTab('process')}
-            className={`transition-colors hover:text-[#BF9A2A] hidden md:inline-block ${
+            className={`transition-colors hover:text-[#BF9A2A] hidden md:inline-block cursor-pointer ${
               activeTab === 'process' ? 'text-[#BF9A2A] font-bold border-b border-[#BF9A2A] pb-0.5' : ''
             }`}
           >
@@ -189,17 +165,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
           </button>
           <button
             onClick={() => setActiveTab('journal')}
-            className={`transition-colors hover:text-[#BF9A2A] hidden lg:inline-block ${
+            className={`transition-colors hover:text-[#BF9A2A] hidden lg:inline-block cursor-pointer ${
               activeTab === 'journal' ? 'text-[#BF9A2A] font-bold border-b border-[#BF9A2A] pb-0.5' : ''
             }`}
           >
             Journal
           </button>
 
-          {/* Primary Action Button (Bordered Pill in layout 1 ref.png) */}
           <button
             onClick={onEnterApp}
-            className="px-5 py-2 rounded-full border border-[#403C3B] hover:bg-[#403C3B] hover:text-[#F2F0E4] transition-all text-xs font-mono font-medium tracking-[0.15em] flex items-center gap-2 group shadow-sm bg-transparent"
+            className="px-5 py-2 rounded-full border border-[#403C3B] hover:bg-[#403C3B] hover:text-[#F2F0E4] transition-all text-xs font-mono font-medium tracking-[0.15em] flex items-center gap-2 group shadow-sm bg-transparent cursor-pointer"
           >
             <span>ENTER SANCTUARY</span>
             <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
@@ -207,53 +182,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
         </nav>
       </header>
 
-      {/* Main Content Area based on selected section */}
-      {activeTab === 'home' && (
-        <main className="relative z-10 flex-1 max-w-7xl w-full mx-auto px-6 sm:px-10 py-4 sm:py-6 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-6 items-center">
-          
-          {/* LEFT HERO COLUMN (4 Cols) */}
-          <div className="lg:col-span-4 flex flex-col justify-center space-y-6 lg:pr-4">
-            <div>
-              <div className="text-[11px] font-mono tracking-[0.25em] text-[#BF9A2A] uppercase font-semibold mb-2 flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-[#BF9A2A] animate-pulse" />
-                WHEN BROKEN BECOMES BEAUTIFUL
-              </div>
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-serif text-[#403C3B] font-normal tracking-wide leading-tight">
-                KINTSUGI
-              </h1>
-              <div className="text-lg font-serif text-[#BF9A2A] tracking-[0.2em] mt-1 mb-4 flex items-center gap-2">
-                <span>金継ぎ</span>
-                <span className="w-8 h-[1px] bg-[#BF9A2A]" />
-              </div>
-            </div>
-
-            <p className="text-sm sm:text-base text-[#403C3B]/80 font-serif leading-relaxed">
-              Kintsugi is the Japanese art of repairing broken pottery with gold. It embraces flaws and tells a new story — where breaks become part of the beauty.
-            </p>
-
-            <div className="p-4 rounded-xl bg-[#F2E3B6]/30 border border-[#BF9A2A]/30 text-xs text-[#403C3B]/85 font-mono leading-relaxed space-y-1.5">
-              <div className="flex items-center gap-1.5 text-[#BF8D30] font-bold">
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>The Synaptic Parallel</span>
-              </div>
-              <p>
-                In cognitive memory, decay is not a failure. It is a natural fracture waiting to be illuminated through active Socratic retrieval.
-              </p>
-            </div>
-
-            <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-              <button
-                onClick={onEnterApp}
-                className="px-6 py-3.5 rounded-none bg-[#403C3B] hover:bg-[#152659] text-[#F2F0E4] transition-all font-mono text-xs tracking-[0.18em] uppercase flex items-center justify-center gap-2.5 group shadow-md"
-              >
-                <span>EXPLORE THE PHILOSOPHY</span>
-                <ArrowRight className="w-3.5 h-3.5 text-[#BF9A2A] group-hover:translate-x-1 transition-transform" />
-              </button>
-            </div>
-          </div>
-
+      {/* 2. PHILOSOPHY TAB */}
+      {activeTab === 'philosophy' && (
+        <main className="relative z-10 flex-1 max-w-7xl w-full mx-auto px-6 sm:px-10 py-6 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           {/* CENTER HERO SHOWCASE (4 Cols) - Handcrafted Centerpiece Vase with Interactive Annotations */}
-          <div className="lg:col-span-4 relative flex flex-col items-center justify-center py-6 sm:py-10">
+          <div className="lg:col-span-6 relative flex flex-col items-center justify-center py-6 sm:py-10">
             
             {/* Top-Left Floating Annotation: ORIGIN */}
             <motion.div

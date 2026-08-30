@@ -18,6 +18,23 @@ Deployed natively on **Google Cloud Run**, Kintsugi Memory operates an asynchron
 
 ---
 
+## ✨ Core Features & Architectural Advantages
+
+| Feature | Architectural Implementation | Key Advantage Over Traditional Systems |
+|---|---|---|
+| **Autonomous Forgetting-Cliff Governor** | Asynchronous background daemon tracking Bayesian decay curves and publishing events to **Google Cloud Pub/Sub** (`kintsugi-cliff-pings`). | **Proactive vs. Passive:** Reaches out directly to the user via responsive HTML email and browser alerts *before* biological forgetting occurs, eliminating app inertia. |
+| **Multimodal Live Scribe Studio** | Real-time audio recording with pause/resume, speaker diarization via **Gemini 3.5 Flash**, and document parsing (PDF, PPTX, DOCX). | **Effortless Ingestion:** Turns hours of spoken lectures, podcasts, slide decks, and research papers into structured atomic memory vessels in seconds without manual card typing. |
+| **Socratic Active Retrieval Room** | Generative Socratic inquiry engine generating counterfactual scenarios, causal mechanisms, and boundary-condition probes. | **True Recall vs. Recognition:** Eliminates superficial multiple-choice recognition; forces high-friction generative retrieval to stimulate physical synaptic reorganization. |
+| **24K Gold Seam Synthesis** | Multimodal evaluator detecting subtle misconceptions, extracting a permanent "Golden Insight" anchor, and rendering gold ceramic repair canvas animations. | **Transforming Errors into Assets:** Treats misconceptions as opportunities for mastery; anchors fragile knowledge with memorable multimodal visual and harmonic audio feedback. |
+| **Bayesian FSRS v4.5 Spaced Repetition** | Full implementation of Free Spaced Repetition Scheduling ($R(t) = (1 + \text{factor} \cdot t/S)^{-d}$) with parameterized difficulty and stability updating. | **Mathematical Precision:** Far superior to legacy SM-2 linear algorithms (e.g. Anki); adapts review intervals dynamically to individual memory half-lives. |
+| **Interactive D3.js Synaptic Graph** | Force-directed network graph with energy annealing, link physics, persistent zoom/pan (`zoomBehaviorRef`), and instant viewport reset. | **Holistic Mental Models:** Visualizes knowledge topology, identifies isolated silos, and provides a bird's-eye view of memory health across domains. |
+| **Cognitive Journal & Grammar Studio** | GitHub-flavored markdown editor with table syntax, audio reflections, one-click flashcard extraction, and Web Speech TTS pronunciation drills. | **Polyglot & Deep-Thought Mastery:** Bridges reflective writing with structured spaced repetition, ideal for complex language syntax and conceptual note-taking. |
+| **Exam Milestone & Backward Scheduler** | Exam calendar that calculates backward spaced repetition intervals from the deadline to the present. | **Zero-Cramming Guarantee:** Ensures all prerequisite concepts reach maximum retention stability prior to test day, eliminating last-minute cramming. |
+| **Synaptic Streak & Habit Continuum** | Power-law daily streak counter with flame animation, streak freeze safeguards, level-up milestones, and synaptic XP progression. | **Sustained Intrinsic Motivation:** Leverages positive psychology and loss-aversion mechanics to build daily learning habits without punitive resets. |
+| **Dual-Mode Direct SSL SMTP Engine** | Auto-negotiating Nodemailer transport (Direct SSL Port 465 / STARTTLS Port 587) with exponential backoff and message deduplication. | **Enterprise Reliability:** Bypasses cloud container egress blocks, ensures high deliverability, and prevents duplicate notification spam. |
+
+---
+
 ## 📐 System Architecture & Component Topology
 
 ```mermaid

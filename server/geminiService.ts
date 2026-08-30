@@ -30,6 +30,7 @@ export function getGeminiClient(apiKeyOverride?: string): { ai: GoogleGenAI; mod
   }
 
   // 2. Vertex AI Mode using GCP ADC / Service Account
+  console.log(`[Vertex AI Initializer] Initializing GoogleGenAI client with Vertex AI ADC (Project: ${projectId}, Location: ${location}, Default Model: ${model})`);
   const ai = new GoogleGenAI({
     vertexai: true,
     project: projectId,
@@ -51,11 +52,16 @@ async function executeWithModelRetry<T>(
   let lastError: any = null;
   for (const model of modelsToTry) {
     try {
-      return await fn(model);
+      const startTime = Date.now();
+      console.log(`[Vertex AI / Gemini Execution] Invoking model "${model}" with structured schema...`);
+      const result = await fn(model);
+      const latencyMs = Date.now() - startTime;
+      console.log(`[Vertex AI / Gemini Execution] Success on model "${model}" (${latencyMs}ms latency)`);
+      return result;
     } catch (err: any) {
       lastError = err;
       const errMsg = err?.message || String(err);
-      console.warn(`[Gemini Service] Model "${model}" failed (${errMsg.slice(0, 100)}), retrying next candidate...`);
+      console.warn(`[Vertex AI / Gemini Execution] Model "${model}" failed (${errMsg.slice(0, 120)}), retrying next candidate...`);
     }
   }
   throw lastError || new Error("Failed to execute Gemini request across all candidate models.");
@@ -743,6 +749,90 @@ ${journalText}`;
     }
 
     return JSON.parse(response.text);
+  });
+}
+
+/**
+ * 8. Generate Cognitive Forgetting Pattern Insights (Retention Oracle)
+ */
+export async function generateCognitiveInsights(
+  concepts: any[],
+  examDaysAhead: number = 7,
+  apiKeyOverride?: string
+): Promise<any> {
+  const { ai, model, mode } = getGeminiClient(apiKeyOverride);
+  console.log(`[Vertex AI / CognitiveInsights] Running cognitive telemetry correlation via ${mode} on model ${model}...`);
+
+  const conceptsSummary = concepts.map((c: any) => ({
+    title: c.title,
+    domain: c.category || c.subject || "General",
+    stabilityDays: c.stability || 2,
+    difficulty: c.difficulty || 5,
+    kintsugiRepairs: c.kintsugiRepairs || 0,
+    reviewCount: c.reviewCount || (c.history?.length || 1),
+    lastReviewedAt: c.lastReviewedAt,
+  }));
+
+  const prompt = `You are an elite Cognitive Neuroscientist and Bayesian Memory Analyst.
+Analyze the student's synaptic memory graph and learning telemetry for an upcoming exam horizon of ${examDaysAhead} days:
+
+Current Concepts & Stability Telemetry:
+${JSON.stringify(conceptsSummary, null, 2)}
+
+Provide a structured, deeply analytical cognitive telemetry diagnostic:
+1. headline: High-level executive finding (e.g. Asymmetric decay pattern, specific volatility).
+2. decayDynamicsAnalysis: Deep explanation of why specific concepts decay faster (e.g., lack of procedural anchoring, abstract interference).
+3. fastestDecayingFactor: The single most impactful cognitive vulnerability causing forgetting.
+4. retrievalPrescription: Concrete, actionable high-friction Socratic study plan before day ${examDaysAhead}.
+5. conceptDiagnostics: Array evaluating each concept with:
+   - conceptTitle: Exact title
+   - diagnosis: Diagnostic observation
+   - vulnerabilityRisk: "high", "medium", or "low"
+   - recommendedIntervention: Specific cognitive intervention`;
+
+  return executeWithModelRetry(ai, model, async (candidateModel) => {
+    const response = await ai.models.generateContent({
+      model: candidateModel,
+      contents: prompt,
+      config: {
+        systemInstruction:
+          "You are an expert cognitive telemetry and Bayesian memory scientist. Analyze memory graphs to detect root causes of forgetting and prescribe exact Socratic interventions.",
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            headline: { type: Type.STRING },
+            decayDynamicsAnalysis: { type: Type.STRING },
+            fastestDecayingFactor: { type: Type.STRING },
+            retrievalPrescription: { type: Type.STRING },
+            conceptDiagnostics: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  conceptTitle: { type: Type.STRING },
+                  diagnosis: { type: Type.STRING },
+                  vulnerabilityRisk: { type: Type.STRING },
+                  recommendedIntervention: { type: Type.STRING },
+                },
+                required: ["conceptTitle", "diagnosis", "vulnerabilityRisk", "recommendedIntervention"],
+              },
+            },
+          },
+          required: ["headline", "decayDynamicsAnalysis", "fastestDecayingFactor", "retrievalPrescription", "conceptDiagnostics"],
+        },
+      },
+    });
+
+    if (!response.text) {
+      throw new Error("Gemini returned empty cognitive insights response.");
+    }
+
+    const parsed = JSON.parse(response.text);
+    return {
+      ...parsed,
+      generatedAt: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+    };
   });
 }
 

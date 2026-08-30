@@ -21,6 +21,7 @@ import {
   generateExamStudyPlan,
   processMemory,
   distillJournalFlashcards,
+  generateCognitiveInsights,
 } from "./server/geminiService";
 import { ScribeAgent } from "./server/googleAgentFramework";
 
@@ -368,6 +369,24 @@ const handleEvaluateRetrieval = async (req: express.Request, res: express.Respon
 
 app.post("/api/evaluate-answer", handleEvaluateRetrieval);
 app.post("/api/evaluate-retrieval", handleEvaluateRetrieval);
+
+// -------------------------------------------------------------
+// 4B. COGNITIVE FORGETTING PATTERN TELEMETRY INSIGHTS (RETENTION ORACLE)
+// -------------------------------------------------------------
+app.post("/api/cognitive-insights", async (req, res) => {
+  try {
+    const apiKey = resolveApiKey(req);
+    const { concepts, examDaysAhead } = req.body;
+    console.log(`[API /cognitive-insights] Processing request for ${concepts?.length || 0} concepts with exam horizon ${examDaysAhead || 7} days...`);
+    const insights = await generateCognitiveInsights(concepts || [], examDaysAhead || 7, apiKey);
+    return res.json(insights);
+  } catch (error: any) {
+    console.error("[API /cognitive-insights Error]:", error);
+    return res.status(500).json({
+      error: error?.message || "Failed to generate cognitive insights telemetry.",
+    });
+  }
+});
 
 // -------------------------------------------------------------
 // 5. AUTONOMOUS FORGETTING-CLIFF PINGS & GOOGLE CLOUD PUB/SUB

@@ -8,61 +8,66 @@
 
 ---
 
-## 🏛️ The Kintsugi Philosophy: Proactive Cognitive Synthesis
+## 🏛️ Executive Summary: Why Kintsugi Memory?
 
-In traditional spaced repetition systems (Anki, flashcard decks), software remains **passive**: it sits silent on your device waiting for you to open it. When daily schedules get busy, memory decay follows a steep biological power-law drop, frequently leading to the *illusion of competence* (passively re-reading notes instead of forced generative recall).
+In traditional spaced repetition systems (Anki, flashcards), software is **passive**: it sits silent on your device waiting for you to open it. As daily schedules get busy, memory decay follows a steep biological power-law drop, leading to the *illusion of competence* (passively re-reading notes instead of forced generative recall).
 
-**Kintsugi Memory** is an **autonomous, proactive cognitive partner** inspired by the Japanese art of *Kintsugi* (金継ぎ — repairing broken ceramics with gold lacquer). In cognitive neuroscience, when a memory trace begins to destabilize at the **Forgetting Cliff (retention < 70%)**, forced active retrieval triggers synaptic protein synthesis (Long-Term Potentiation), leaving the neural trace stronger and more resilient than before.
+**Kintsugi Memory** is an **autonomous, proactive cognitive partner** inspired by the Japanese art of *Kintsugi* (金継ぎ — repairing broken ceramics with gold lacquer). In cognitive neuroscience, when a memory trace destabilizes at the **Forgetting Cliff (retention < 70%)**, forced active retrieval triggers synaptic protein synthesis (Long-Term Potentiation), leaving the neural trace stronger and more resilient than before.
 
-### 🌟 What Makes Kintsugi Memory Autonomous:
-1. **Continuous Bayesian FSRS Modeling**: Dynamically calculates memory stability $S$ and retrievability $R(t)$ for academic subjects, complex system architectures, and foreign language invariants.
-2. **Proactive Forgetting-Cliff Telegrams**: When a memory vessel approaches the 70% retention boundary, the background governor dispatches a Socratic challenge directly to your Gmail inbox and browser alerts via **Google Cloud Pub/Sub**.
-3. **Conversational Socratic Voice & Text Tutor**: Conducts interactive verbal and text dialogues, evaluates nuances, isolates misconceptions, and highlights the *Golden Insight* (the gold joinery).
-4. **Live Lecture & Dialogue Scribe**: Listens to live lectures, conversations, or language classes with **Record / Pause / Resume / Stop** controls, aligning speech transcripts with slide decks (PDF, PPTX, DOCX) to distill atomic knowledge vessels.
-5. **Cognitive & Polyglot Learning Journal**: Full markdown support for logging vocabulary nuance, grammar rules (such as the WEIRDO subjunctive rule), and audio reflections converted into active flashcards.
-6. **Interactive D3.js Synaptic Knowledge Graph**: Force-directed network showing shared-tag bridges, memory density, and visual Kintsugi gold seams.
+```
+                  TRADITIONAL PASSIVE FLASHCARDS vs. KINTSUGI AUTONOMOUS PARTNER
+┌───────────────────────────────────────────────────┬───────────────────────────────────────────────────┐
+│ ❌ Traditional Passive Spaced Repetition          │ 🌸 Kintsugi Autonomous Partner (Google Cloud)     │
+├───────────────────────────────────────────────────┼───────────────────────────────────────────────────┤
+│ • Sits silently waiting for user to open app      │ • Asynchronously calculates decay; pings Gmail    │
+│ • Superficial Multiple Choice (recognition only)  │ • Generative Socratic inquiry (causal recall)     │
+│ • Static linear intervals (1d, 3d, 7d)            │ • Adaptive Bayesian FSRS half-life parameter math │
+│ • Plain text flashcards typed manually            │ • Multimodal live audio recording & slide OCR     │
+│ • No misconception isolation                      │ • Identifies cognitive gaps & seals "Gold Seams"  │
+└───────────────────────────────────────────────────┴───────────────────────────────────────────────────┘
+```
 
 ---
 
-## 📐 System Architecture Diagram
+## 📐 System Architecture & Component Topology
 
 ```mermaid
 flowchart TB
-    subgraph Client["Frontend Client (React 19, TypeScript, Tailwind CSS)"]
-        UI["Zen Wabi-Sabi Dashboard & Liquid Glass Navigation"]
-        AudioEngine["Web Audio & Speech API (Record / Pause / Stop)"]
+    subgraph Client["Frontend Layer (React 19, TypeScript, Vite, Tailwind CSS 4)"]
+        UI["Zen Wabi-Sabi Dashboard & Liquid Glass Viewports"]
+        AudioEngine["Web Audio & Speech API (Record / Pause / Stop / TTS)"]
         D3Graph["D3.js Force-Directed Synaptic Knowledge Graph"]
-        FSRSEngine["Client Bayesian FSRS v4.5 Decay Engine"]
+        FSRSEngine["Client Bayesian FSRS v4.5 Math Engine"]
         JournalEngine["Cognitive & Language Learning Journal"]
-        ErrBoundary["Global React Error Boundary"]
+        GlobalErr["Global React Error Boundary & Resilience Guards"]
     end
 
-    subgraph Backend["Google Cloud Run Container (Node.js & Express)"]
-        Server["Express API Gateway (server.ts)"]
-        DocParser["Multimodal Document & Slide Parser (PDF, PPTX, DOCX)"]
-        SmtpService["Nodemailer SMTP Dispatcher (Direct SSL Port 465)"]
+    subgraph Backend["Google Cloud Run Container (Express API Gateway)"]
+        Server["Express REST API (server.ts)"]
+        DocParser["Multimodal Slide & Document Parser (PDF, PPTX, DOCX)"]
+        SmtpService["Nodemailer Direct SSL SMTP Dispatcher (Port 465)"]
         PubSubService["Google Cloud Pub/Sub Broker Service"]
     end
 
-    subgraph GCP["Google Cloud Platform Services"]
-        PubSubTopic["Cloud Pub/Sub Topic (kintsugi-cliff-pings)"]
-        PubSubSub["Cloud Pub/Sub Subscription (kintsugi-cliff-pings-sub)"]
-        VertexAI["Vertex AI & Google Gemini 3.5 / 3.7 Flash"]
-        IAM["Dedicated Service Account (kintsugi-runner)"]
+    subgraph GCP["Google Cloud Platform Managed Services"]
+        PubSubTopic["Cloud Pub/Sub Topic: kintsugi-cliff-pings"]
+        PubSubSub["Cloud Pub/Sub Subscription: kintsugi-cliff-pings-sub"]
+        VertexAI["Google Vertex AI & Gemini 3.5 / 3.7 Flash"]
+        IAM["Service Account: kintsugi-runner (Least-Privilege RBAC)"]
     end
 
-    subgraph AutonomousAgents["4 Collaborative Autonomous Gemini Agents"]
-        AgentScribe["1. Live Lecture & Audio Diarization Scribe Agent"]
-        AgentSocratic["2. Socratic Interviewer & Evaluator Agent"]
+    subgraph Agents["4 Collaborative Autonomous Gemini Agents"]
+        AgentScribe["1. Live Speech Scribe Agent (Audio Diarization)"]
+        AgentSocratic["2. Socratic Evaluator Agent (Misconception Detection)"]
         AgentGovernor["3. Autonomous Forgetting-Cliff Governor"]
-        AgentSynthesizer["4. Multimodal Knowledge Distillation Agent"]
+        AgentDistiller["4. Multimodal Knowledge Distillation Agent"]
     end
 
     %% Client to Backend
-    UI -->|REST API Calls| Server
-    AudioEngine -->|Live Stream & Audio Payload| Server
+    UI -->|REST API Requests| Server
+    AudioEngine -->|Audio Blobs & Streams| Server
     FSRSEngine -->|Cliff Alerts & Retrievability| UI
-    JournalEngine -->|Reflections & Vocab Logs| UI
+    JournalEngine -->|Markdown Notes & Vocab| UI
 
     %% Backend internal routing
     Server --> DocParser
@@ -70,93 +75,201 @@ flowchart TB
     Server --> PubSubService
 
     %% Backend to GCP
-    PubSubService -->|Publish Events| PubSubTopic
-    PubSubTopic -->|Queue & Pull| PubSubSub
-    Server -->|"Google GenAI SDK & Vertex AI"| VertexAI
-    VertexAI --> AutonomousAgents
-    IAM -->|RBAC Security| Server
+    PubSubService -->|Publish Decay Events| PubSubTopic
+    PubSubTopic -->|Queue & Pull Events| PubSubSub
+    Server -->|"Google GenAI SDK (Vertex AI)"| VertexAI
+    VertexAI --> Agents
+    IAM -->|IAM Token Security| Server
 
     %% Autonomous Delivery
-    SmtpService -->|Direct Email Dispatch| UserInbox["Student & Polyglot Gmail Inbox"]
+    SmtpService -->|Direct HTML Challenge| UserInbox["User Gmail Inbox"]
     PubSubService -->|Audit Logs| UI
 ```
 
 ---
 
-## 🌐 Designed for Universal Learning & Polyglots
+## ⚡ End-to-End Execution Paths
 
-### 1. 🗣️ Language Acquisition & Polyglot Fluency
-- **Vocabulary in Context**: Memorize words attached to cultural nuances and syntactic patterns.
-- **Grammar Invariant Dissection**: Master subtle boundaries that trip up learners (e.g. Spanish Subjunctive WEIRDO rules, Japanese conditional particles, Mandarin directional complements).
-- **Spoken Socratic Retrieval**: Practice speaking sentences aloud with real-time speech recognition and text-to-speech audio feedback.
+### 1. The Autonomous Forgetting-Cliff Pipeline (Asynchronous Trigger)
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Governor as 🤖 Autonomous Cliff Governor
+    participant PubSub as ☁️ Google Cloud Pub/Sub
+    participant Gemini as 🧠 Gemini 3.5 Flash (Vertex AI)
+    participant SMTP as 📬 Nodemailer SMTP (SSL 465)
+    participant Student as 👤 Student Gmail Inbox
+    participant App as 🏺 Cloud Run Web App
 
-### 2. 🎓 Academic & Engineering Concepts
-- Distill distributed consensus (Raft, Paxos, 2PC), machine learning memory bounds (KV Cache, FlashAttention), neurobiology of memory, and quantum systems into atomic vessels.
-
-### 3. 📖 Universal Document & Audio Ingestion
-- Upload PDF research papers, PowerPoint slide decks (`.pptx`), Word documents (`.docx`), whiteboard photos, or live recorded lectures (`.mp3`, `.wav`, `.m4a`, `.webm`).
-
----
-
-## ⚡ Core Platform Capabilities
-
-| Feature | Description |
-|---|---|
-| **🎙️ Live Scribe Studio** | Record lectures or language conversations with **Record**, **Pause / Resume**, and **Stop & Finalize** controls. Extracts speaker-diarized transcripts and slide alignments. |
-| **📬 Autonomous Cliff Governor** | Background agent calculating Bayesian FSRS decay $R(t) = (1 + \text{factor} \cdot \frac{t}{S})^{-d}$. Dispatches email alerts when retrievability drops to 70%. |
-| **🥋 Socratic Voice Tutor** | Verbal retrieval sessions evaluating accuracy, isolating misconceptions, and delivering *Golden Insights*. |
-| **📔 Cognitive Journal** | Full reflective space for logging language grammar rules, sentence formulations, and daily synaptic breakthroughs. |
-| **🕸️ D3 Synaptic Knowledge Graph** | Interactive, force-directed graph visualizing concept stability, inter-concept links, and forgetting risks with smooth reset zoom controls. |
-| **🔥 Synaptic Streak Continuum** | Power-law streak tracking, milestone rewards, and interactive 7-day practice calendar. |
+    Governor->>Governor: Calculate Retrievability R(t) = (1 + factor · t/S)^-d
+    Note over Governor: Retention drops < 70% (Cliff Breach)
+    Governor->>PubSub: Publish Event to topic "kintsugi-cliff-pings"
+    PubSub->>Gemini: Request Individualized Socratic Teaser & Zine Telegram
+    Gemini-->>PubSub: Return Teaser Question & Insight Hook
+    PubSub->>SMTP: Dispatch Responsive HTML Email
+    SMTP->>Student: Deliver "⚠️ Synaptic Decay Alert" with Challenge
+    Student->>App: Click "✨ Mend Vessel in Socratic Garden"
+    App->>Student: Open Socratic Retrieval Room at exact concept
+```
 
 ---
 
-## 🚀 Personal Deployment & Setup Guide
+### 2. Multimodal Ingestion & Live Scribe Pipeline
+```mermaid
+sequenceDiagram
+    autonumber
+    participant User as 🎙️ Live Lecture / Slides
+    participant Scribe as 🎙️ Web Audio Engine
+    participant Server as ⚙️ Express Backend
+    participant Gemini as 🧠 Multimodal Distillation Agent
+    participant Garden as 🌸 Synaptic Memory Garden (D3)
 
-### Option 1: Local Development (Fastest)
+    User->>Scribe: Record Speech (Record / Pause / Resume / Stop)
+    User->>Server: Upload Slide Decks (PDF, PPTX, DOCX)
+    Scribe->>Server: Send Base64 Audio Buffer + Slide Texts
+    Server->>Gemini: Run Diarization & Invariant Knowledge Extraction
+    Gemini-->>Server: Return Atomic Concepts (Mechanisms, S=2.5d, Tags)
+    Server->>Garden: Plant Ceramic Vessels in Force-Directed Knowledge Graph
+```
 
-#### 1. Clone & Install Dependencies
+---
+
+### 3. Socratic Active Retrieval & Golden Joinery Pipeline
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Student as 👤 Student
+    participant Room as 🥋 Socratic Retrieval Room
+    participant Evaluator as 🧠 Gemini Socratic Evaluator
+    participant FSRS as 📈 Bayesian FSRS Engine
+
+    Student->>Room: Request Socratic Challenge
+    Room->>Evaluator: Generate Counterfactual / Invariant Probe
+    Evaluator-->>Room: Display Probing Question
+    Student->>Room: Submit Generative Causal Explanation
+    Room->>Evaluator: Evaluate Response (Score, Misconceptions, Nuance)
+    Evaluator-->>Room: Return Score (0-100), Gaps, and "Golden Insight" Anchor
+    Room->>FSRS: Update Stability (S_{t+1} = S_t · 2.2 on Mastery)
+    Room->>Student: Display 24K Gold Lacquer Burst & Expand Next Review Interval
+```
+
+---
+
+## 🗂️ Repository Folder Structure
+
+```
+kintsugi-memory/
+├── server.ts                     # Express API Gateway, SSR server & REST endpoints
+├── server/
+│   ├── geminiService.ts          # Vertex AI / Gemini 3.5 & 3.7 Flash Client integrations
+│   ├── googleAgentFramework.ts   # 4-Agent collaborative framework (Scribe, Socratic, Governor, Distiller)
+│   ├── pubsubService.ts          # Cloud Pub/Sub publisher, subscriber & HTML email engine
+│   └── speechService.ts          # Multimodal audio diarization & speech transcription
+├── src/
+│   ├── App.tsx                   # Main React entry point, tab state & routing
+│   ├── components/
+│   │   ├── LandingPage.tsx       # Liquid glass landing sanctuary & mending cycle showcase
+│   │   ├── DashboardHome.tsx     # Sanctuary dashboard, streak continuum & quick action hub
+│   │   ├── ActiveRetrievalRoom.tsx # Socratic dialogue arena, timer, TTS & Golden Seam renderer
+│   │   ├── MemoryGarden.tsx      # Ceramic vessel gallery, decay filters & inspection modal
+│   │   ├── CognitiveJournal.tsx  # Markdown reflection notebook & 1-click flashcard converter
+│   │   ├── MaterialsHub.tsx      # Multimodal ingestion center & Live Scribe studio
+│   │   ├── SynapticForceGraph.tsx# D3.js force-directed knowledge network with reset zoom
+│   │   ├── AutonomousDispatcher.tsx # Pub/Sub decay testing & automated ping simulation
+│   │   ├── RetentionOracle.tsx   # Bayesian FSRS mathematical retention curve visualizer
+│   │   └── UserAccountSettings.tsx # Secure runtime API key & Gmail SMTP configuration
+│   ├── lib/
+│   │   └── fsrs.ts               # Bayesian Free Spaced Repetition Scheduler (v4.5) algorithms
+│   └── types/                    # Full TypeScript interface definitions & domain models
+├── deploy-cloudrun.sh            # Automated Linux/macOS Google Cloud Run deployment script
+├── deploy-cloudrun.ps1           # Automated Windows PowerShell deployment script
+├── Dockerfile                    # Multi-stage production container build (Node.js 22 LTS)
+└── README.md                     # Comprehensive architecture, topology & operational manual
+```
+
+---
+
+## 🧰 Full Technology Stack
+
+| Layer | Technologies | Role & Implementation |
+|---|---|---|
+| **AI & LLM Engines** | **Google Gemini 3.5 Flash** & **Gemini 3.7 Flash** | Multimodal audio diarization, document synthesis, counterfactual Socratic questioning, and misconception extraction. |
+| **Compute & Hosting** | **Google Cloud Run** (`us-west1`) | Serverless container auto-scaling hosting Express + Vite SSR backend. |
+| **Async Messaging** | **Google Cloud Pub/Sub** | High-throughput event topic (`kintsugi-cliff-pings`) and subscriber worker for background forgetting-cliff alerts. |
+| **Model Gateway** | **Google Vertex AI** (`global`) | Enterprise Gemini model routing with token security and low-latency inference. |
+| **Security & IAM** | **GCP IAM Service Account** (`kintsugi-runner`) | Least-privilege role binding for Pub/Sub publishing and Vertex AI execution. |
+| **Frontend Framework** | **React 19**, **TypeScript 5**, **Tailwind CSS 4** | Zen Wabi-Sabi aesthetic with liquid glassmorphism, responsive viewports, and zero layout shift. |
+| **Data Visualization** | **D3.js (Force Simulation v7)** | Dynamic force-directed network displaying concept stability, inter-concept links, and golden seams. |
+| **Audio & Speech** | **Web Audio API** & **Web Speech API** | In-browser speech synthesis (TTS), live microphone recording with chunked base64 buffering. |
+| **Spaced Repetition** | **Bayesian FSRS v4.5** | Mathematical power-law memory modeling: $R(t) = (1 + \text{factor} \cdot \frac{t}{S})^{-d}$. |
+| **Email Transport** | **Nodemailer (Direct SSL Port 465)** | Automated responsive HTML email dispatcher with direct action buttons. |
+
+---
+
+## 🛡️ Edge Cases & Resilience Engineering (Beyond the Demo Video)
+
+The 4-minute video focuses on the primary user journey; the following production safeguards are built directly into the codebase:
+
+1. **Floating-Point Stability Bounds**:
+   - Spaced repetition calculations can produce floating-point noise (e.g. $1.3 \times 2.0 = 2.5999999999999996$). All stability assignments and UI templates enforce `Number(val.toFixed(1))` to guarantee clean, readable metrics.
+2. **Off-Topic & Divergent Answer Guard**:
+   - If a student submits an answer that ignores the causal constraints of the concept, Gemini isolates the response as `off_topic`. The system prevents unearned stability growth and presents a guidance banner to re-anchor understanding.
+3. **Live Microphone Interruption Resilience**:
+   - The Live Scribe Studio uses a state machine supporting **Record $\to$ Pause $\to$ Resume $\to$ Stop**. Audio data is stored in chunked base64 buffers to prevent memory leaks or audio loss during extended lectures.
+4. **D3.js Viewport Zoom Persistence**:
+   - Zoom transforms are attached to a persistent `zoomBehaviorRef`, ensuring that clicking **"Reset View"** smoothly animates back to `d3.zoomIdentity` without losing SVG coordinate sync.
+5. **Direct SSL SMTP Port 465 Fallback**:
+   - Many cloud hosting platforms restrict outbound port 25 or intercept port 587. Kintsugi Memory defaults to secure Direct SSL (Port 465) with exponential backoff retries.
+6. **Graceful Offline & Fallback Modes**:
+   - If Cloud Pub/Sub or Vertex AI credentials are unconfigured during local development, the backend automatically transitions to an in-memory event simulation queue with full audit logging.
+
+---
+
+## 🚀 Quickstart & Local Setup
+
+### 1. Clone & Install
 ```bash
 git clone https://github.com/rafifernandaa/kintsugi-memory.git
 cd kintsugi-memory
 npm install
 ```
 
-#### 2. Configure `.env`
+### 2. Configure Environment (`.env`)
 ```bash
 cp .env.example .env
 ```
-
 Edit your `.env`:
 ```env
 PORT=3000
-GEMINI_API_KEY=your-gemini-api-key-here
+GEMINI_API_KEY=your_gemini_api_key_here
+GEMINI_MODEL=gemini-3.5-flash
+
 GOOGLE_CLOUD_PROJECT=your-google-cloud-project-id
 GOOGLE_CLOUD_PUBSUB_TOPIC=projects/your-google-cloud-project-id/topics/kintsugi-cliff-pings
 GOOGLE_CLOUD_PUBSUB_SUBSCRIPTION=kintsugi-cliff-pings-sub
 
-# Optional: Real Gmail Delivery (can also be configured directly inside the web UI)
+# Optional: Real Gmail Delivery (can also be configured inside the web UI)
 SMTP_USER=your-email@gmail.com
 SMTP_PASS=your-16-char-google-app-password
 ```
 
-#### 3. Start Application
+### 3. Build & Run
 ```bash
 # Production Build & Run
 npm run build
 npm start
 
-# Or for hot-reloading dev mode:
+# Hot-Reloading Development Mode
 npm run dev
 ```
-
-Visit `http://localhost:3000` in your browser.
+Open `http://localhost:3000` in your browser.
 
 ---
 
-### Option 2: Google Cloud Run Deployment
+## ☁️ Google Cloud Run Deployment
 
-#### Automated Shell Deployment:
+Deploy with a single command using the automated scripts:
+
 ```bash
 # Linux / macOS
 ./deploy-cloudrun.sh
@@ -166,22 +279,14 @@ Visit `http://localhost:3000` in your browser.
 ```
 
 The script automatically:
-1. Enables Cloud Run, Artifact Registry, Pub/Sub, and Vertex AI APIs.
+1. Enables Cloud Run, Artifact Registry, Cloud Pub/Sub, and Vertex AI APIs.
 2. Builds the container image via Google Cloud Build.
-3. Provisions Cloud Pub/Sub topics and dead-letter queues.
-4. Deploys the service with autoscaling to Google Cloud Run.
-
----
-
-## 🛡️ Security & Privacy
-
-- **Safe Credential Management**: User API keys and SMTP credentials can be configured at runtime and stored locally in browser storage or encrypted environment variables.
-- **Zero Raw Key Leakage**: Keys are never transmitted in telemetry logs or client bundles.
-- **Dedicated Service Account**: Runs under the least-privilege `kintsugi-runner` IAM role in Google Cloud.
+3. Provisions Cloud Pub/Sub topics (`kintsugi-cliff-pings`) and subscriptions.
+4. Deploys the service with autoscaling to Google Cloud Run in `us-west1`.
 
 ---
 
 ## 📜 License
 
-MIT License — Copyright (c) 2026 Kintsugi Memory.
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files.
+MIT License — Copyright (c) 2026 Kintsugi Memory.  
+Created with 🌸 for the Google Cloud: All Things Agentic Hackathon.

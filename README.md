@@ -161,13 +161,10 @@ kintsugi-memory/
 │   ├── deploy-cloudrun.sh                # Automated Linux/macOS deployment script for Google Cloud Run
 │   ├── deploy-cloudrun.ps1               # Automated Windows PowerShell deployment script for Cloud Run
 │   ├── index.html                        # Single-Page Application HTML entry point and viewport config
-│   ├── metadata.json                     # Google AI Studio capability descriptor
 │   ├── package.json                      # Project manifest, scripts, and runtime dependencies
 │   ├── package-lock.json                 # Deterministic dependency lockfile
 │   ├── README.md                         # Architecture, topology, execution paths, and operational guide
 │   ├── server.ts                         # Express API Gateway, static asset hosting, and REST controller
-│   ├── setup-gcp-github-auth.ps1         # Automated GCP IAM service account and authentication setup script
-│   ├── test-all-features.ps1             # Local automated end-to-end endpoint validation suite
 │   ├── tsconfig.json                     # TypeScript compiler configuration (ESNext, strict typing)
 │   └── vite.config.ts                    # Vite build configuration, React plugin, and bundling options
 │
@@ -212,9 +209,7 @@ kintsugi-memory/
 │   │   ├── SynapticStreakModal.tsx       # Streak freeze status, milestone rewards, and practice calendar
 │   │   ├── SynapticStreakTracker.tsx     # Power-law streak counter and flame animation widget
 │   │   ├── SynchronousClassScribe.tsx    # Live lecture audio recording studio with pause/resume and slide sync
-│   │   ├── TelemetryDrawer.tsx           # Real-time agentic execution trace drawer and latency monitor
-│   │   └── landing/
-│   │       └── SynapticVesselHero.tsx    # Interactive 3D/canvas ceramic vase with gold repair illumination
+│   │   └── TelemetryDrawer.tsx           # Real-time agentic execution trace drawer and latency monitor
 │   │
 │   └── lib/                              # Client Algorithms, Utilities & Math Engines
 │       ├── audio.ts                      # Web Audio API sound effects synthesizer (chimes, gold chime, level-up)

@@ -163,8 +163,8 @@ export function parseUploadedDocument(
 
   if (ext === "pdf" || mimeType.includes("pdf")) {
     mimeType = "application/pdf";
-    isGeminiNativeSupported = true; // Gemini 2.5 / Flash natively consumes PDF files!
-    // Try basic textual extraction from uncompressed streams if available
+    isGeminiNativeSupported = true; // Gemini natively processes PDF documents
+    // Extract textual content from document streams if available
     const rawStr = fileBuffer.toString("latin1");
     const streamMatches = rawStr.match(/stream[\r\n]+([\s\S]*?)[\r\n]+endstream/g) || [];
     const textPieces: string[] = [];

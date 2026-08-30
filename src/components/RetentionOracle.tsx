@@ -80,8 +80,8 @@ export const RetentionOracle: React.FC<RetentionOracleProps> = ({
         conceptDiagnostics: concepts.map((c) => ({
           conceptTitle: c.title,
           diagnosis: (c.stability || 1) < 2
-            ? `Decaying rapidly (Stability: ${c.stability}d). High vulnerability to recognition illusion.`
-            : `Stabilized via ${c.kintsugiRepairs || 0}x kintsugi repairs (Stability: ${c.stability}d).`,
+            ? `Decaying rapidly (Stability: ${Number((c.stability || 1).toFixed(1))}d). High vulnerability to recognition illusion.`
+            : `Stabilized via ${c.kintsugiRepairs || 0}x kintsugi repairs (Stability: ${Number((c.stability || 1).toFixed(1))}d).`,
           vulnerabilityRisk: (c.stability || 1) < 2 ? 'high' : (c.stability || 1) < 4 ? 'medium' : 'low',
           recommendedIntervention: (c.stability || 1) < 2
             ? 'Execute active recall with boundary stress testing.'
@@ -372,7 +372,7 @@ export const RetentionOracle: React.FC<RetentionOracleProps> = ({
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-[10px] font-mono text-[#736D6B]">
-                    <span>Stability S: {c.stability}d</span>
+                    <span>Stability S: {Number((c.stability || 1).toFixed(1))}d</span>
                     <span>Diff D: {c.difficulty}/10</span>
                   </div>
                 </button>
@@ -467,7 +467,7 @@ export const RetentionOracle: React.FC<RetentionOracleProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 text-xs font-mono">
               <div className="bg-[#FAF8F2] p-3 rounded-xl border border-[#DDD7C8]">
                 <div className="text-[#736D6B] text-[10px] uppercase font-semibold">Stability S</div>
-                <div className="text-sm font-bold text-[#8F6A00]">{activeConcept.stability ?? (activeConcept as any).fsrs?.stability ?? 2.0} Days</div>
+                <div className="text-sm font-bold text-[#8F6A00]">{Number((activeConcept.stability ?? (activeConcept as any).fsrs?.stability ?? 2.0).toFixed(1))} Days</div>
                 <div className="text-[10px] text-[#736D6B] pt-0.5">Time to reach 70% recall</div>
               </div>
               <div className="bg-[#FAF8F2] p-3 rounded-xl border border-[#DDD7C8]">

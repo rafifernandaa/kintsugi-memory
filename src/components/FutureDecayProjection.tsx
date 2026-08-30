@@ -545,7 +545,7 @@ export const FutureDecayProjection: React.FC<FutureDecayProjectionProps> = ({
                 {/* Socratic Practice Trigger Button */}
                 <div className="flex items-center justify-between pt-1 gap-2 border-t border-[#DDD7C8]">
                   <span className="text-[10px] font-mono text-[#736D6B]">
-                    S: {concept.stability}d • D: {concept.difficulty}/10
+                    S: {Number((concept.stability || 1).toFixed(1))}d • D: {concept.difficulty}/10
                   </span>
                   <button
                     onClick={() => {

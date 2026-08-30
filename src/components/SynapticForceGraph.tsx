@@ -341,7 +341,7 @@ export const SynapticForceGraph: React.FC<SynapticForceGraphProps> = ({
     // Node Subtitle: Stability (Days)
     node
       .append('text')
-      .text((d) => `S: ${d.stability}d`)
+      .text((d) => `S: ${Number((d.stability || 1).toFixed(1))}d`)
       .attr('text-anchor', 'middle')
       .attr('dy', '1.1em')
       .attr('font-size', '9px')
@@ -587,7 +587,7 @@ export const SynapticForceGraph: React.FC<SynapticForceGraphProps> = ({
                       <div className="text-[9px] text-[#736D6B] uppercase font-medium">Retention</div>
                     </div>
                     <div>
-                      <div className="text-sm font-bold text-[#2B2827]">{active.stability}d</div>
+                      <div className="text-sm font-bold text-[#2B2827]">{Number((active.stability || 1).toFixed(1))}d</div>
                       <div className="text-[9px] text-[#736D6B] uppercase font-medium">Stability</div>
                     </div>
                     <div>
@@ -680,7 +680,7 @@ export const SynapticForceGraph: React.FC<SynapticForceGraphProps> = ({
                       </span>
                     </div>
                     <div className="text-[10px] font-mono text-[#736D6B] truncate">
-                      {hub.connectionCount} connections • S: {hub.stability}d
+                      {hub.connectionCount} connections • S: {Number((hub.stability || 1).toFixed(1))}d
                     </div>
                   </div>
                   <div className="text-right shrink-0">

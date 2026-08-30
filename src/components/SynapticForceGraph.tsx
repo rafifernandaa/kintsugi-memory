@@ -289,7 +289,8 @@ export const SynapticForceGraph: React.FC<SynapticForceGraphProps> = ({
       .attr('stroke-width', (d) => (d.retention < 0.7 ? 2 : 2.5))
       .attr('stroke-opacity', 0.6)
       .attr('stroke-dasharray', (d) => (d.retention < 0.7 ? '4 2' : 'none'))
-      .attr('filter', (d) => (d.retention < 0.7 ? 'url(#d3-rose-glow)' : 'url(#d3-gold-glow)'));
+      .attr('filter', (d) => (d.retention < 0.7 ? 'url(#d3-rose-glow)' : 'url(#d3-gold-glow)'))
+      .attr('class', 'pointer-events-none');
 
     // Main Ceramic Vessel Body Circle
     node
@@ -306,7 +307,8 @@ export const SynapticForceGraph: React.FC<SynapticForceGraphProps> = ({
         if (d.kintsugiRepairs > 0) return '#BF9A2A';
         return '#DDD7C8';
       })
-      .attr('stroke-width', (d) => (d.kintsugiRepairs > 0 ? 2.5 : 1.8));
+      .attr('stroke-width', (d) => (d.kintsugiRepairs > 0 ? 2.5 : 1.8))
+      .attr('class', 'pointer-events-none');
 
     // Kintsugi Gold Seam paths inside the node circle for repaired concepts
     node
@@ -320,7 +322,8 @@ export const SynapticForceGraph: React.FC<SynapticForceGraphProps> = ({
       .attr('stroke', (d) => d.kintsugiRepairs >= 3 ? '#F2E3B6' : '#BF9A2A')
       .attr('stroke-width', 2)
       .attr('stroke-linecap', 'round')
-      .attr('filter', 'url(#d3-gold-glow)');
+      .attr('filter', 'url(#d3-gold-glow)')
+      .attr('class', 'pointer-events-none');
 
     // Node Retention Percentage
     node
@@ -336,7 +339,8 @@ export const SynapticForceGraph: React.FC<SynapticForceGraphProps> = ({
         if (d.kintsugiRepairs >= 3) return '#FFFFFF';
         if (d.kintsugiRepairs > 0) return '#8F6A00';
         return '#2B2827';
-      });
+      })
+      .attr('class', 'pointer-events-none select-none');
 
     // Node Subtitle: Stability (Days)
     node
@@ -346,7 +350,8 @@ export const SynapticForceGraph: React.FC<SynapticForceGraphProps> = ({
       .attr('dy', '1.1em')
       .attr('font-size', '9px')
       .attr('font-family', 'monospace')
-      .attr('fill', (d) => d.kintsugiRepairs >= 3 ? '#CBD5F2' : '#736D6B');
+      .attr('fill', (d) => d.kintsugiRepairs >= 3 ? '#CBD5F2' : '#736D6B')
+      .attr('class', 'pointer-events-none select-none');
 
     // Title Label Under Node Bubble
     node
@@ -358,9 +363,11 @@ export const SynapticForceGraph: React.FC<SynapticForceGraphProps> = ({
       .attr('font-family', 'serif')
       .attr('font-weight', '600')
       .attr('fill', '#2B2827')
-      .attr('class', 'node-title-label pointer-events-none drop-shadow-sm');
+      .attr('class', 'node-title-label pointer-events-none select-none drop-shadow-sm');
 
-    // Node Interactivity: Click & Hover
+    // Node Interactivity: Click & Hover with Feedback-Loop Protection
+    let activeHoverId: string | null = null;
+
     node
       .on('click', (event, d) => {
         event.stopPropagation();
@@ -370,6 +377,8 @@ export const SynapticForceGraph: React.FC<SynapticForceGraphProps> = ({
         }
       })
       .on('mouseenter', (event, d) => {
+        if (activeHoverId === d.id) return;
+        activeHoverId = d.id;
         setHoveredNode(d);
 
         const neighborIds = new Set<string>();
@@ -382,10 +391,11 @@ export const SynapticForceGraph: React.FC<SynapticForceGraphProps> = ({
           if (tgtId === d.id) neighborIds.add(srcId);
         });
 
-        node.transition().duration(200).style('opacity', (n) => (neighborIds.has(n.id) ? 1 : 0.2));
+        node.interrupt().transition().duration(150).style('opacity', (n) => (neighborIds.has(n.id) ? 1 : 0.2));
         link
+          .interrupt()
           .transition()
-          .duration(200)
+          .duration(150)
           .style('opacity', (l) => {
             const srcId = typeof l.source === 'string' ? l.source : (l.source as GraphNode).id;
             const tgtId = typeof l.target === 'string' ? l.target : (l.target as GraphNode).id;
@@ -397,12 +407,17 @@ export const SynapticForceGraph: React.FC<SynapticForceGraphProps> = ({
             return srcId === d.id || tgtId === d.id ? 4 : 1;
           });
       })
-      .on('mouseleave', () => {
+      .on('mouseleave', (event) => {
+        if (event.relatedTarget && (event.currentTarget as Element).contains(event.relatedTarget as Node)) {
+          return;
+        }
+        activeHoverId = null;
         setHoveredNode(null);
-        node.transition().duration(200).style('opacity', 1);
+        node.interrupt().transition().duration(150).style('opacity', 1);
         link
+          .interrupt()
           .transition()
-          .duration(200)
+          .duration(150)
           .style('opacity', (l) => (l.type === 'kintsugi_bridge' ? 0.9 : 0.5))
           .attr('stroke-width', (d) =>
             d.type === 'kintsugi_bridge' ? Math.max(2, d.weight * 4) : Math.max(1, d.weight * 2.5)

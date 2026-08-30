@@ -310,7 +310,8 @@ export const HomeKnowledgeGraph: React.FC<HomeKnowledgeGraphProps> = ({
       .attr('stroke-width', (d) => (d.retention < 0.7 ? 1.8 : 2.2))
       .attr('stroke-dasharray', (d) => (d.retention < 0.7 ? '3 2' : 'none'))
       .attr('stroke-opacity', 0.8)
-      .attr('filter', (d) => (d.kintsugiRepairs > 0 ? 'url(#d3-home-gold-glow)' : 'none'));
+      .attr('filter', (d) => (d.kintsugiRepairs > 0 ? 'url(#d3-home-gold-glow)' : 'none'))
+      .attr('class', 'pointer-events-none');
 
     // Main Ceramic Bubble Circle
     node
@@ -328,7 +329,7 @@ export const HomeKnowledgeGraph: React.FC<HomeKnowledgeGraphProps> = ({
         return '#DDD7C8';
       })
       .attr('stroke-width', (d) => (d.kintsugiRepairs > 0 ? 2.2 : 1.5))
-      .attr('class', 'transition-colors');
+      .attr('class', 'transition-colors pointer-events-none');
 
     // Gold Kintsugi Seam Inside Repaired Nodes
     node
@@ -342,7 +343,8 @@ export const HomeKnowledgeGraph: React.FC<HomeKnowledgeGraphProps> = ({
       .attr('stroke', '#BF9A2A')
       .attr('stroke-width', 1.8)
       .attr('stroke-linecap', 'round')
-      .attr('filter', 'url(#d3-home-gold-glow)');
+      .attr('filter', 'url(#d3-home-gold-glow)')
+      .attr('class', 'pointer-events-none');
 
     // Retention % Inside Node
     node
@@ -357,7 +359,8 @@ export const HomeKnowledgeGraph: React.FC<HomeKnowledgeGraphProps> = ({
         if (d.retention < 0.7) return '#993B2B';
         if (d.kintsugiRepairs > 0) return '#8F6A00';
         return '#2B2827';
-      });
+      })
+      .attr('class', 'pointer-events-none select-none');
 
     // Concept Title Below Node
     node
@@ -369,9 +372,11 @@ export const HomeKnowledgeGraph: React.FC<HomeKnowledgeGraphProps> = ({
       .attr('font-family', 'serif')
       .attr('font-weight', '600')
       .attr('fill', '#2B2827')
-      .attr('class', 'pointer-events-none');
+      .attr('class', 'pointer-events-none select-none');
 
-    // Interactivity: Click & Hover
+    // Interactivity: Click & Hover with Feedback-Loop Protection
+    let activeHoverId: string | null = null;
+
     node
       .on('click', (event, d) => {
         event.stopPropagation();
@@ -381,6 +386,8 @@ export const HomeKnowledgeGraph: React.FC<HomeKnowledgeGraphProps> = ({
         }
       })
       .on('mouseenter', (event, d) => {
+        if (activeHoverId === d.id) return;
+        activeHoverId = d.id;
         setHoveredNode(d);
 
         // Find all connected node IDs via shared tags
@@ -394,9 +401,10 @@ export const HomeKnowledgeGraph: React.FC<HomeKnowledgeGraphProps> = ({
           if (tgtId === d.id) neighborIds.add(srcId);
         });
 
-        // Dim unconnected nodes & links
-        node.transition().duration(150).style('opacity', (n) => (neighborIds.has(n.id) ? 1 : 0.25));
+        // Dim unconnected nodes & links smoothly
+        node.interrupt().transition().duration(150).style('opacity', (n) => (neighborIds.has(n.id) ? 1 : 0.25));
         link
+          .interrupt()
           .transition()
           .duration(150)
           .style('opacity', (l) => {
@@ -410,10 +418,15 @@ export const HomeKnowledgeGraph: React.FC<HomeKnowledgeGraphProps> = ({
             return srcId === d.id || tgtId === d.id ? 3.5 : 1;
           });
       })
-      .on('mouseleave', () => {
+      .on('mouseleave', (event) => {
+        if (event.relatedTarget && (event.currentTarget as Element).contains(event.relatedTarget as Node)) {
+          return;
+        }
+        activeHoverId = null;
         setHoveredNode(null);
-        node.transition().duration(150).style('opacity', 1);
+        node.interrupt().transition().duration(150).style('opacity', 1);
         link
+          .interrupt()
           .transition()
           .duration(150)
           .style('opacity', (l) => (l.sharedTags[0]?.startsWith('category:') ? 0.35 : 0.75))

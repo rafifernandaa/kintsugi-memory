@@ -329,7 +329,7 @@ export const HomeKnowledgeGraph: React.FC<HomeKnowledgeGraphProps> = ({
         return '#DDD7C8';
       })
       .attr('stroke-width', (d) => (d.kintsugiRepairs > 0 ? 2.2 : 1.5))
-      .attr('class', 'transition-colors pointer-events-none');
+      .attr('class', 'transition-colors cursor-pointer');
 
     // Gold Kintsugi Seam Inside Repaired Nodes
     node

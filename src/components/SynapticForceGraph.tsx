@@ -308,7 +308,7 @@ export const SynapticForceGraph: React.FC<SynapticForceGraphProps> = ({
         return '#DDD7C8';
       })
       .attr('stroke-width', (d) => (d.kintsugiRepairs > 0 ? 2.5 : 1.8))
-      .attr('class', 'pointer-events-none');
+      .attr('class', 'cursor-pointer');
 
     // Kintsugi Gold Seam paths inside the node circle for repaired concepts
     node

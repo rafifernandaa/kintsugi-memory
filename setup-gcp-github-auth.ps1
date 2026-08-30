@@ -1,5 +1,6 @@
 # Setup Google Cloud Service Account for GitHub Actions Continuous Deployment
-$PROJECT_ID = "my-project-31-491314"
+$PROJECT_ID = if ($args[0]) { $args[0] } elseif ($env:GOOGLE_CLOUD_PROJECT) { $env:GOOGLE_CLOUD_PROJECT } else { (gcloud config get-value project 2>$null) }
+if (-not $PROJECT_ID) { $PROJECT_ID = "kintsugi-memory-service" }
 $SA_NAME = "github-actions-deployer"
 $SA_EMAIL = "$SA_NAME@$PROJECT_ID.iam.gserviceaccount.com"
 

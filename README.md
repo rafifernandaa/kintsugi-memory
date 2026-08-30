@@ -8,24 +8,13 @@
 
 ---
 
-## 🏛️ Executive Summary: Why Kintsugi Memory?
+## 🏛️ Project Overview
 
-In traditional spaced repetition systems (Anki, flashcards), software is **passive**: it sits silent on your device waiting for you to open it. As daily schedules get busy, memory decay follows a steep biological power-law drop, leading to the *illusion of competence* (passively re-reading notes instead of forced generative recall).
+In traditional spaced repetition systems, software remains passive: it sits silent on the user's device waiting for manual initiation. As daily schedules get busy, memory decay follows a biological power-law drop, frequently leading to the *illusion of competence* (passively re-reading material instead of forced generative recall).
 
 **Kintsugi Memory** is an **autonomous, proactive cognitive partner** inspired by the Japanese art of *Kintsugi* (金継ぎ — repairing broken ceramics with gold lacquer). In cognitive neuroscience, when a memory trace destabilizes at the **Forgetting Cliff (retention < 70%)**, forced active retrieval triggers synaptic protein synthesis (Long-Term Potentiation), leaving the neural trace stronger and more resilient than before.
 
-```
-                  TRADITIONAL PASSIVE FLASHCARDS vs. KINTSUGI AUTONOMOUS PARTNER
-┌───────────────────────────────────────────────────┬───────────────────────────────────────────────────┐
-│ ❌ Traditional Passive Spaced Repetition          │ 🌸 Kintsugi Autonomous Partner (Google Cloud)     │
-├───────────────────────────────────────────────────┼───────────────────────────────────────────────────┤
-│ • Sits silently waiting for user to open app      │ • Asynchronously calculates decay; pings Gmail    │
-│ • Superficial Multiple Choice (recognition only)  │ • Generative Socratic inquiry (causal recall)     │
-│ • Static linear intervals (1d, 3d, 7d)            │ • Adaptive Bayesian FSRS half-life parameter math │
-│ • Plain text flashcards typed manually            │ • Multimodal live audio recording & slide OCR     │
-│ • No misconception isolation                      │ • Identifies cognitive gaps & seals "Gold Seams"  │
-└───────────────────────────────────────────────────┴───────────────────────────────────────────────────┘
-```
+Deployed natively on **Google Cloud Run**, Kintsugi Memory operates an asynchronous background governor over **Google Cloud Pub/Sub**. When biological memory decay approaches the critical 70% retention boundary, the system proactively initiates contact by dispatching individualized Socratic challenges directly to the user's Gmail inbox and browser alerts—forcing active recall before the memory trace wilts.
 
 ---
 
@@ -33,7 +22,7 @@ In traditional spaced repetition systems (Anki, flashcards), software is **passi
 
 ```mermaid
 flowchart TB
-    subgraph Client["Frontend Layer (React 19, TypeScript, Vite, Tailwind CSS 4)"]
+    subgraph Client["Frontend Layer (React 19, TypeScript 5, Vite, Tailwind CSS 4)"]
         UI["Zen Wabi-Sabi Dashboard & Liquid Glass Viewports"]
         AudioEngine["Web Audio & Speech API (Record / Pause / Stop / TTS)"]
         D3Graph["D3.js Force-Directed Synaptic Knowledge Graph"]
@@ -90,7 +79,7 @@ flowchart TB
 
 ## ⚡ End-to-End Execution Paths
 
-### 1. The Autonomous Forgetting-Cliff Pipeline (Asynchronous Trigger)
+### 1. The Autonomous Forgetting-Cliff Pipeline (Asynchronous Initiation)
 ```mermaid
 sequenceDiagram
     autonumber
@@ -155,41 +144,86 @@ sequenceDiagram
 
 ---
 
-## 🗂️ Repository Folder Structure
+## 🗂️ Complete Repository Structure Breakdown
+
+Every file in the codebase is purpose-built and mapped below:
 
 ```
 kintsugi-memory/
-├── server.ts                     # Express API Gateway, SSR server & REST endpoints
-├── server/
-│   ├── geminiService.ts          # Vertex AI / Gemini 3.5 & 3.7 Flash Client integrations
-│   ├── googleAgentFramework.ts   # 4-Agent collaborative framework (Scribe, Socratic, Governor, Distiller)
-│   ├── pubsubService.ts          # Cloud Pub/Sub publisher, subscriber & HTML email engine
-│   └── speechService.ts          # Multimodal audio diarization & speech transcription
-├── src/
-│   ├── App.tsx                   # Main React entry point, tab state & routing
-│   ├── components/
-│   │   ├── LandingPage.tsx       # Liquid glass landing sanctuary & mending cycle showcase
-│   │   ├── DashboardHome.tsx     # Sanctuary dashboard, streak continuum & quick action hub
-│   │   ├── ActiveRetrievalRoom.tsx # Socratic dialogue arena, timer, TTS & Golden Seam renderer
-│   │   ├── MemoryGarden.tsx      # Ceramic vessel gallery, decay filters & inspection modal
-│   │   ├── CognitiveJournal.tsx  # Markdown reflection notebook & 1-click flashcard converter
-│   │   ├── MaterialsHub.tsx      # Multimodal ingestion center & Live Scribe studio
-│   │   ├── SynapticForceGraph.tsx# D3.js force-directed knowledge network with reset zoom
-│   │   ├── AutonomousDispatcher.tsx # Pub/Sub decay testing & automated ping simulation
-│   │   ├── RetentionOracle.tsx   # Bayesian FSRS mathematical retention curve visualizer
-│   │   └── UserAccountSettings.tsx # Secure runtime API key & Gmail SMTP configuration
-│   ├── lib/
-│   │   └── fsrs.ts               # Bayesian Free Spaced Repetition Scheduler (v4.5) algorithms
-│   └── types/                    # Full TypeScript interface definitions & domain models
-├── deploy-cloudrun.sh            # Automated Linux/macOS Google Cloud Run deployment script
-├── deploy-cloudrun.ps1           # Automated Windows PowerShell deployment script
-├── Dockerfile                    # Multi-stage production container build (Node.js 22 LTS)
-└── README.md                     # Comprehensive architecture, topology & operational manual
+│
+├── Root Configuration & Deployment
+│   ├── .dockerignore                     # Build exclusion patterns for lean container layers
+│   ├── .env.example                      # Environment variables template (API keys, Pub/Sub, SMTP)
+│   ├── .gitignore                        # Git exclusion rules for node_modules, dist, and local caches
+│   ├── Dockerfile                        # Multi-stage production container build (Node.js 22 LTS)
+│   ├── cloudbuild.yaml                   # Google Cloud Build automated CI/CD container build pipeline
+│   ├── deploy-cloudrun.sh                # Automated Linux/macOS deployment script for Google Cloud Run
+│   ├── deploy-cloudrun.ps1               # Automated Windows PowerShell deployment script for Cloud Run
+│   ├── index.html                        # Single-Page Application HTML entry point and viewport config
+│   ├── metadata.json                     # Google AI Studio capability descriptor
+│   ├── package.json                      # Project manifest, scripts, and runtime dependencies
+│   ├── package-lock.json                 # Deterministic dependency lockfile
+│   ├── README.md                         # Architecture, topology, execution paths, and operational guide
+│   ├── server.ts                         # Express API Gateway, static asset hosting, and REST controller
+│   ├── setup-gcp-github-auth.ps1         # Automated GCP IAM service account and authentication setup script
+│   ├── test-all-features.ps1             # Local automated end-to-end endpoint validation suite
+│   ├── tsconfig.json                     # TypeScript compiler configuration (ESNext, strict typing)
+│   └── vite.config.ts                    # Vite build configuration, React plugin, and bundling options
+│
+├── server/                               # Server-Side Multi-Agent & GCP Services Backend
+│   ├── documentParser.ts                 # Multimodal slide & document parser (PDF, PPTX, DOCX)
+│   ├── geminiService.ts                  # Google GenAI / Vertex AI client factory and Gemini 3.5+ routing
+│   ├── googleAgentFramework.ts           # 4-Agent collaborative system (Scribe, Socratic, Governor, Distiller)
+│   ├── pubsubService.ts                  # Cloud Pub/Sub broker, event queue, and Nodemailer Direct SSL SMTP engine
+│   └── speechService.ts                  # Multimodal speech diarization, audio transcription, and timestamping
+│
+├── src/                                  # Client-Side Application Core
+│   ├── App.tsx                           # Root React component, active tab router, and state coordinator
+│   ├── index.css                         # Tailwind CSS 4 directives, Wabi-Sabi design tokens, and keyframes
+│   ├── main.tsx                          # React DOM mounting entry point wrapped in Global Error Boundary
+│   ├── types.ts                          # TypeScript domain models, interfaces, and Bayesian FSRS schemas
+│   │
+│   ├── components/                       # User Interface Viewports & Interactive Modules
+│   │   ├── AboutTab.tsx                  # Architecture documentation, GCP infrastructure status, and tech stack
+│   │   ├── ActiveRetrievalRoom.tsx       # Socratic dialogue arena, probe evaluation, and Golden Seam renderer
+│   │   ├── AppSettingsModal.tsx          # Runtime API key switcher, dark/light focus theme, and audio toggles
+│   │   ├── AutonomousDispatcher.tsx      # Pub/Sub decay testing console, 30-day fast-forward, and audit log
+│   │   ├── CognitiveJournal.tsx          # Markdown reflection journal, grammar dissection, and flashcard maker
+│   │   ├── DailySynapticSummaryModal.tsx # Daily cognitive mastery recap and Long-Term Potentiation scorekeeper
+│   │   ├── DashboardHome.tsx             # Main sanctuary dashboard, streak continuum, and action launchpad
+│   │   ├── ErrorBoundary.tsx             # Global React lifecycle error boundary preventing application crashes
+│   │   ├── ExamCalendar.tsx              # Milestone retention planner and backward spaced repetition scheduler
+│   │   ├── FutureDecayProjection.tsx     # 30-day biological decay curve forecasting widget
+│   │   ├── GoldenSeamGlowEffect.tsx      # Canvas particle burst and 24K gold lacquer repair animation
+│   │   ├── HomeKnowledgeGraph.tsx        # Knowledge graph viewport wrapper and connection density matrix
+│   │   ├── IngestionHub.tsx              # Document dropzone (PDF, PPTX, DOCX) with parsing progress indicators
+│   │   ├── KintsugiOverlay.tsx           # Ceramic fracture and gold mending SVG canvas overlay
+│   │   ├── LandingPage.tsx               # Liquid glass landing sanctuary with smooth-scroll navigation
+│   │   ├── MemoryGarden.tsx              # Ceramic vessel gallery, forgetting cliff filters, and concept inspector
+│   │   ├── Navigation.tsx                # Responsive mobile navigation drawer and bottom navigation bar
+│   │   ├── PubSubNotificationPopover.tsx # Real-time forgetting-cliff notification inbox and audit tray
+│   │   ├── RetentionOracle.tsx           # Bayesian FSRS retention curve and confidence interval visualizer
+│   │   ├── RichMarkdown.tsx              # GitHub-flavored markdown parser with syntax highlighting and callouts
+│   │   ├── SeleneAccountTab.tsx          # User profile, streak statistics, and Gmail SMTP credential manager
+│   │   ├── SidebarNavigation.tsx         # Desktop sidebar with brand logo navigation and live streak badge
+│   │   ├── SynapticForceGraph.tsx        # D3.js v7 force-directed network graph with persistent zoom and pan
+│   │   ├── SynapticLevelUpModal.tsx      # Synaptic XP milestone celebration and level-up modal
+│   │   ├── SynapticStreakModal.tsx       # Streak freeze status, milestone rewards, and practice calendar
+│   │   ├── SynapticStreakTracker.tsx     # Power-law streak counter and flame animation widget
+│   │   ├── SynchronousClassScribe.tsx    # Live lecture audio recording studio with pause/resume and slide sync
+│   │   ├── TelemetryDrawer.tsx           # Real-time agentic execution trace drawer and latency monitor
+│   │   └── landing/
+│   │       └── SynapticVesselHero.tsx    # Interactive 3D/canvas ceramic vase with gold repair illumination
+│   │
+│   └── lib/                              # Client Algorithms, Utilities & Math Engines
+│       ├── audio.ts                      # Web Audio API sound effects synthesizer (chimes, gold chime, level-up)
+│       ├── fsrs.ts                       # Bayesian Free Spaced Repetition Scheduler (v4.5) implementation
+│       └── streak.ts                     # Power-law streak persistence, daily check-in validation, and freeze logic
 ```
 
 ---
 
-## 🧰 Full Technology Stack
+## 🧰 Full Technology Stack & Deployment Matrix
 
 | Layer | Technologies | Role & Implementation |
 |---|---|---|
@@ -206,22 +240,37 @@ kintsugi-memory/
 
 ---
 
-## 🛡️ Edge Cases & Resilience Engineering (Beyond the Demo Video)
+## 🛡️ Deep Architectural Edge Cases & System Resilience
 
-The 4-minute video focuses on the primary user journey; the following production safeguards are built directly into the codebase:
+Kintsugi Memory incorporates production-grade engineering safeguards across concurrency, mathematical modeling, and asynchronous networking:
 
-1. **Floating-Point Stability Bounds**:
-   - Spaced repetition calculations can produce floating-point noise (e.g. $1.3 \times 2.0 = 2.5999999999999996$). All stability assignments and UI templates enforce `Number(val.toFixed(1))` to guarantee clean, readable metrics.
-2. **Off-Topic & Divergent Answer Guard**:
-   - If a student submits an answer that ignores the causal constraints of the concept, Gemini isolates the response as `off_topic`. The system prevents unearned stability growth and presents a guidance banner to re-anchor understanding.
-3. **Live Microphone Interruption Resilience**:
-   - The Live Scribe Studio uses a state machine supporting **Record $\to$ Pause $\to$ Resume $\to$ Stop**. Audio data is stored in chunked base64 buffers to prevent memory leaks or audio loss during extended lectures.
-4. **D3.js Viewport Zoom Persistence**:
-   - Zoom transforms are attached to a persistent `zoomBehaviorRef`, ensuring that clicking **"Reset View"** smoothly animates back to `d3.zoomIdentity` without losing SVG coordinate sync.
-5. **Direct SSL SMTP Port 465 Fallback**:
-   - Many cloud hosting platforms restrict outbound port 25 or intercept port 587. Kintsugi Memory defaults to secure Direct SSL (Port 465) with exponential backoff retries.
-6. **Graceful Offline & Fallback Modes**:
-   - If Cloud Pub/Sub or Vertex AI credentials are unconfigured during local development, the backend automatically transitions to an in-memory event simulation queue with full audit logging.
+### 1. Distributed Multi-Agent State Synchronization & Race Prevention
+When multiple background workers process simultaneous memory decay alerts while the user is actively completing a retrieval room probe, concurrent state mutations on the concept’s history array could create race conditions. The system resolves this by isolating state transitions through an immutable append-only evaluation model: `ConceptHistoryItem[]` records are timestamped uniquely (`h_${Date.now()}`), and the Bayesian FSRS engine computes the next stability state deterministically from the prior state without in-place mutation.
+
+### 2. Asynchronous Pub/Sub Idempotency & Duplicate Ping Suppression
+In distributed messaging systems, Google Cloud Pub/Sub guarantees *at-least-once delivery*, which can result in duplicate subscriber invocations during network partitions. To prevent bombarding students with redundant email alerts for the same concept, the `pubsubService` maintains an in-memory and local-audit deduplication index keyed by `(conceptId, dayTimestamp)`. If an alert has been dispatched for a concept within the last 24-hour cycle, redundant incoming messages are acknowledged (`ack()`) and silently suppressed.
+
+### 3. Token-Efficient Multimodal Document Chunking & Audio Windowing
+Processing raw hour-long lecture audio or 100-page slide decks in a single LLM prompt risks token context exhaustion and loss of fine-grained detail. The `documentParser` and `speechService` employ a sliding-window chunking strategy:
+- Spoken audio is recorded via chunked base64 buffers, segmented by speaker turns and silence thresholds.
+- Slide decks are parsed into discrete slide units containing extracted text, OCR summaries, and layout anchors.
+- The `MultimodalDistillationAgent` performs map-reduce synthesis: extracting local invariants per slide before unifying them into global atomic concepts with shared semantic tag bridges.
+
+### 4. Socratic Misconception Classification & Anti-Hallucination Grounding
+To prevent the Socratic evaluator from hallucinating validity when a student provides an articulate but factually divergent answer, the evaluation pipeline enforces a strict two-stage verification rubric:
+- **Constraint Matching**: The evaluator verifies whether the student's answer correctly identifies the causal invariant (e.g. subject agreement in subjunctive clauses).
+- **Divergence Isolation**: If the student's response is semantically unrelated to the core mechanism, the evaluator classifies the answer as `off_topic`, bypassing unearned stability growth and rendering a guidance banner directing the student back to first principles.
+
+### 5. Direct SSL / STARTTLS Dual-Mode SMTP Auto-Negotiation
+Cloud container runtimes often block outbound unencrypted SMTP (Port 25) or intercept plain STARTTLS handshakes (Port 587) due to anti-abuse policies. Kintsugi Memory implements dual-mode auto-negotiation:
+- Automatically defaults to **Direct SSL over Port 465** for secure connections.
+- Dynamically falls back to Port 587 with explicit TLS encryption if custom institutional SMTP servers require STARTTLS.
+- Employs exponential backoff with jitter on transient network timeouts.
+
+### 6. D3.js Force Simulation Energy Annealing & Viewport Topology Stabilization
+Dynamic additions of new ceramic vessels or real-time stability changes can destabilize D3 force simulations, causing node overlapping or chaotic layout explosions. Kintsugi Memory mitigates this through:
+- Velocity decay clamping (`velocityDecay(0.4)`) and alpha target annealing (`alphaTarget(0)`).
+- Persistent `zoomBehaviorRef` binding: ensures that panning and zoom states remain synchronized with the SVG transform matrix, allowing the **"Reset View"** control to interpolate smoothly back to `d3.zoomIdentity`.
 
 ---
 

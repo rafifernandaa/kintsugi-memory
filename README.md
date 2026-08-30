@@ -243,12 +243,30 @@ kintsugi-memory/
 | **Multimodal Live Scribe Studio** | Real-time audio recording with pause/resume, speaker diarization via **Gemini 3.5 Flash**, and document parsing (PDF, PPTX, DOCX). | **Effortless Ingestion:** Turns hours of spoken lectures, podcasts, slide decks, and research papers into structured atomic memory vessels in seconds without manual card typing. |
 | **Socratic Active Retrieval Room** | Generative Socratic inquiry engine generating counterfactual scenarios, causal mechanisms, and boundary-condition probes. | **True Recall vs. Recognition:** Eliminates superficial multiple-choice recognition; forces high-friction generative retrieval to stimulate physical synaptic reorganization. |
 | **24K Gold Seam Synthesis** | Multimodal evaluator detecting subtle misconceptions, extracting a permanent "Golden Insight" anchor, and rendering gold ceramic repair canvas animations. | **Transforming Errors into Assets:** Treats misconceptions as opportunities for mastery; anchors fragile knowledge with memorable multimodal visual and harmonic audio feedback. |
-| **Bayesian FSRS v4.5 Spaced Repetition** | Full implementation of Free Spaced Repetition Scheduling ($R(t) = (1 + \text{factor} \cdot t/S)^{-d}$) with parameterized difficulty and stability updating. | **Mathematical Precision:** Far superior to legacy SM-2 linear algorithms (e.g. Anki); adapts review intervals dynamically to individual memory half-lives. |
+| **30-Day Trajectory Graph (Memory Garden)** | Interactive SVG future projection engine (`FutureDecayProjection.tsx`) calculating retention velocity and the exact countdown to cliff breach. | **Predictive Mastery:** Allows learners to visualize memory decay 30 days ahead, identifying volatile concepts before they drop below the retrievability threshold. |
+| **Bayesian Retention Oracle** | Statistical confidence interval visualizer ($\pm \sigma$) reflecting true probabilistic memory variance and stability distributions. | **Honest Mathematical Decay:** Replaces false binary certainty with empirical statistical modeling, proving how review frequency narrows variance. |
+| **Gemini Cognitive Telemetry Diagnostic** | AI telemetry engine correlating empirical difficulty ($D$), stability ($S$), and review logs into diagnostic reports and risk classifications. | **Root-Cause Analysis:** Identifies why specific concepts decay faster (e.g. abstract failure states lacking procedural anchors) and prescribes targeted interventions. |
+| **Exam Milestone & Backward Scheduler** | Interactive 1–30 day target exam forecaster calculating cohort-wide test-day recall and identifying weakest outlier topics. | **Zero-Cramming Guarantee:** Algorithmically paces review intervals backward from the deadline to guarantee peak retrievability on exam day. |
 | **Interactive D3.js Synaptic Graph** | Force-directed network graph with energy annealing, link physics, persistent zoom/pan (`zoomBehaviorRef`), and instant viewport reset. | **Holistic Mental Models:** Visualizes knowledge topology, identifies isolated silos, and provides a bird's-eye view of memory health across domains. |
 | **Cognitive Journal & Grammar Studio** | GitHub-flavored markdown editor with table syntax, audio reflections, one-click flashcard extraction, and Web Speech TTS pronunciation drills. | **Polyglot & Deep-Thought Mastery:** Bridges reflective writing with structured spaced repetition, ideal for complex language syntax and conceptual note-taking. |
-| **Exam Milestone & Backward Scheduler** | Exam calendar that calculates backward spaced repetition intervals from the deadline to the present. | **Zero-Cramming Guarantee:** Ensures all prerequisite concepts reach maximum retention stability prior to test day, eliminating last-minute cramming. |
 | **Synaptic Streak & Habit Continuum** | Power-law daily streak counter with flame animation, streak freeze safeguards, level-up milestones, and synaptic XP progression. | **Sustained Intrinsic Motivation:** Leverages positive psychology and loss-aversion mechanics to build daily learning habits without punitive resets. |
 | **Dual-Mode Direct SSL SMTP Engine** | Auto-negotiating Nodemailer transport (Direct SSL Port 465 / STARTTLS Port 587) with exponential backoff and message deduplication. | **Enterprise Reliability:** Bypasses cloud container egress blocks, ensures high deliverability, and prevents duplicate notification spam. |
+
+---
+
+### 🔬 Deep-Dive: Advanced Capabilities
+
+#### 1. 📈 30-Day Biological Decay Trajectory (Memory Garden)
+The **Memory Garden** is not a static list of flashcards—it is an interactive ecosystem where each concept is represented as an atomic porcelain vessel undergoing active decay:
+- **Predictive Trajectory Curve**: Each vessel modal features a 30-day SVG trajectory curve that plots projected retention day-by-day.
+- **Cliff Countdown Clock**: Calculates the precise date and hour when the vessel will plunge below the critical forgetting cliff ($R < 70\%$).
+- **Decay Velocity Meter**: Distinguishes between slow-decaying procedural concepts and volatile abstract formulas, enabling students to prioritize high-risk knowledge before memory loss occurs.
+
+#### 2. 🔮 Bayesian Retention Oracle & Statistical Confidence Bands
+Traditional spaced repetition apps give a deceptive single percentage of recall. The **Retention Oracle** models true biological variance:
+- **Probabilistic Confidence Intervals ($\pm \sigma$)**: Visualizes statistical upper and lower bounds based on review count and historical stability variance. Concepts with few repetitions display wider uncertainty bands, while well-mended concepts display tight, stable certainty bands.
+- **1–30 Day Target Exam Forecaster**: An interactive horizon slider simulates the exact date of an upcoming exam, calculating the projected cohort-wide retention average on test day and isolating the single most vulnerable concept.
+- **Gemini Cognitive Telemetry Diagnostic**: An autonomous diagnostic agent evaluates the entire knowledge graph, detecting asymmetric decay patterns (such as interference between similar grammar rules) and generating customized retrieval prescriptions.
 
 ---
 

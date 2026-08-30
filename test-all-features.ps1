@@ -2,7 +2,7 @@
 $baseUrl = "http://localhost:3000"
 
 Write-Host "======================================================================" -ForegroundColor Cyan
-Write-Host "🌸 KINTSUGI MEMORY: ALL THINGS AGENTIC HACKATHON TEST SUITE" -ForegroundColor Yellow
+Write-Host "🌸 KINTSUGI MEMORY: END-TO-END VALIDATION TEST SUITE" -ForegroundColor Yellow
 Write-Host "======================================================================" -ForegroundColor Cyan
 Write-Host "Target Server: $baseUrl`n"
 

@@ -2,14 +2,9 @@ import { GoogleGenAI, Type } from "@google/genai";
 
 /**
  * ============================================================================
- * 🏛️ KINTSUGI MEMORY: GOOGLE GENAI AGENT FRAMEWORK ARCHITECTURE
+ * KINTSUGI MEMORY: MULTI-AGENT FRAMEWORK ARCHITECTURE
  * ============================================================================
- * Built for the All Things Agentic Hackathon on:
- * 1. Google GenAI SDK (@google/genai v2.4.0)
- * 2. Gemini 3.7 / 3.5 Flash Multimodal Models (>3.5 Spec)
- * 3. Google Cloud Pub/Sub & Cloud Run Infrastructure
- *
- * Decoupled 4-Agent Pipeline:
+ * Decoupled 4-Agent Collaborative Pipeline:
  *  1. ScribeAgent (Audio Speech Diarization & Universal Material Ingestion)
  *  2. SocraticInterviewerAgent (Diagnostic Forced-Recall Generation)
  *  3. CognitiveEvaluatorAgent (Bayesian FSRS Retrievability & Golden Seam Synthesis)

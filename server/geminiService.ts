@@ -2,12 +2,9 @@ import { GoogleGenAI, Type } from "@google/genai";
 
 /**
  * ============================================================================
- * 🧠 GEMINI SERVICE: OFFICIAL GOOGLE GENAI SDK (v2.4.0) IMPLEMENTATION
+ * GEMINI SERVICE: GOOGLE GENAI SDK INTEGRATION
  * ============================================================================
- * Mandatory Hackathon Rules Compliance:
- * 1. Strictly Gemini > 3.5 Models (gemini-3.7-flash, gemini-3.7-pro, gemini-3.5-flash)
- * 2. Structured JSON Outputs via responseSchema
- * 3. Zero Mock / Placeholder Stubs
+ * Manages model inference, structured response schemas, and Vertex AI routing.
  * ============================================================================
  */
 

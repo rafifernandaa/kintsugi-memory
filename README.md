@@ -338,4 +338,4 @@ The script automatically:
 ## 📜 License
 
 MIT License — Copyright (c) 2026 Kintsugi Memory.  
-Created with 🌸 for the Google Cloud: All Things Agentic Hackathon.
+Created with 🌸 for lifelong learners and polyglots.

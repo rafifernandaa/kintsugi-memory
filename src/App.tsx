@@ -45,6 +45,7 @@ export default function App() {
   const [telemetryDrawerOpen, setTelemetryDrawerOpen] = useState(false);
   const [dailySummaryOpen, setDailySummaryOpen] = useState<boolean>(false);
   const [settingsModalOpen, setSettingsModalOpen] = useState<boolean>(false);
+  const [gardenViewMode, setGardenViewMode] = useState<'clustered' | 'flat' | 'network' | 'trajectory'>('clustered');
 
   const [telemetryLogs, setTelemetryLogs] = useState<TelemetryLog[]>([
     {
@@ -238,8 +239,13 @@ export default function App() {
                 timeWarpDays={timeWarpDays}
                 onStartReview={handleSelectConceptForReview}
                 onNavigateToTab={(t) => {
-                  if (t === 'garden') setCurrentTab('neuroplasticity');
-                  else if (t === 'ingest') setCurrentTab('materials');
+                  if (t === 'garden_graph' || t === 'network') {
+                    setGardenViewMode('network');
+                    setCurrentTab('neuroplasticity');
+                  } else if (t === 'garden') {
+                    setGardenViewMode('clustered');
+                    setCurrentTab('neuroplasticity');
+                  } else if (t === 'ingest') setCurrentTab('materials');
                   else if (t === 'retrieve') setCurrentTab('review');
                   else if (t === 'oracle') setCurrentTab('progress');
                   else if (t === 'dispatch') setCurrentTab('insights');
@@ -288,6 +294,7 @@ export default function App() {
               <MemoryGarden
                 concepts={concepts}
                 timeWarpDays={timeWarpDays}
+                initialViewMode={gardenViewMode}
                 onSelectConceptForReview={handleSelectConceptForReview}
                 onInspectOracle={handleInspectOracle}
                 onFastForwardDecay={applyTimeWarp}

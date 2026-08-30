@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Concept } from '../types';
 import {
   Sparkles,
@@ -35,6 +35,7 @@ import { FutureDecayProjection } from './FutureDecayProjection';
 interface MemoryGardenProps {
   concepts: Concept[];
   timeWarpDays: number;
+  initialViewMode?: 'clustered' | 'flat' | 'network' | 'trajectory';
   onSelectConceptForReview: (concept: Concept) => void;
   onInspectOracle: (concept: Concept) => void;
   onFastForwardDecay: (days: number) => void;
@@ -137,11 +138,19 @@ function getCategoryMeta(category?: string) {
 export const MemoryGarden: React.FC<MemoryGardenProps> = ({
   concepts,
   timeWarpDays,
+  initialViewMode,
   onSelectConceptForReview,
   onInspectOracle,
   onFastForwardDecay,
 }) => {
-  const [viewMode, setViewMode] = useState<'clustered' | 'flat' | 'network' | 'trajectory'>('clustered');
+  const [viewMode, setViewMode] = useState<'clustered' | 'flat' | 'network' | 'trajectory'>(initialViewMode || 'clustered');
+
+  useEffect(() => {
+    if (initialViewMode) {
+      setViewMode(initialViewMode);
+    }
+  }, [initialViewMode]);
+
   const [statusFilter, setStatusFilter] = useState<'all' | 'critical' | 'golden' | 'healthy'>('all');
   const [selectedClusterFilter, setSelectedClusterFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');

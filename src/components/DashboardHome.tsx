@@ -892,8 +892,9 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({
                 </span>
               </div>
               <button
-                onClick={() => onNavigateToTab('garden')}
+                onClick={() => onNavigateToTab('garden_graph' as any)}
                 className="text-xs font-mono text-[#8F6A00] hover:text-[#2B2827] flex items-center gap-1 font-semibold transition-colors"
+                title="Open interactive D3 Force Graph in Memory Garden"
               >
                 <span>Full Topology</span>
                 <ArrowRight className="w-3 h-3" />

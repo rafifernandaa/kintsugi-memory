@@ -801,7 +801,7 @@ export const ActiveRetrievalRoom: React.FC<ActiveRetrievalRoomProps> = ({
             Generating Calibrated Socratic Scenario...
           </h3>
           <p className="text-xs text-[#736D6B] font-mono">
-            Gemini 3.7 Flash tailoring question difficulty to your current forgetting curve
+            Gemini 3.5 Flash tailoring question difficulty to your current forgetting curve
           </p>
         </div>
       ) : currentQ ? (
@@ -1246,7 +1246,7 @@ export const ActiveRetrievalRoom: React.FC<ActiveRetrievalRoomProps> = ({
               <div className="text-center py-16 space-y-4">
                 <Loader2 className="w-10 h-10 mx-auto animate-spin text-[#BF9A2A]" />
                 <h3 className="text-lg font-serif font-bold">Synthesizing Socratic Invariants...</h3>
-                <p className="text-xs font-mono opacity-70">Gemini 3.7 Flash tailoring neural probe</p>
+                <p className="text-xs font-mono opacity-70">Gemini 3.5 Flash tailoring neural probe</p>
               </div>
             ) : currentQ ? (
               <>

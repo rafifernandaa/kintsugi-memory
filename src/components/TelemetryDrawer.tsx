@@ -36,7 +36,7 @@ export const TelemetryDrawer: React.FC<TelemetryDrawerProps> = ({
           </button>
         </div>
         <p className="text-[11px] text-[#5A5553] font-mono">
-          Real-time execution traces for Gemini 3.7 Flash, Bayesian FSRS calculations, and async scheduler state machine.
+          Real-time execution traces for Gemini 3.5 Flash, Bayesian FSRS calculations, and async scheduler state machine.
         </p>
       </div>
 

@@ -289,7 +289,7 @@ export const ExamCalendar: React.FC<ExamCalendarProps> = ({
     reader.readAsDataURL(file);
   };
 
-  // Handle AI Invariant & Concept Extraction via Gemini 3.7 / Vertex AI
+  // Handle AI Invariant & Concept Extraction via Gemini 3.5 / Vertex AI
   const handleExtractVessels = async () => {
     if (!uploadedFileBase64 && !uploadedTextNotes.trim()) {
       setExtractionError('Please upload a document/slide or paste syllabus lecture notes to extract vessels.');
@@ -301,7 +301,7 @@ export const ExamCalendar: React.FC<ExamCalendarProps> = ({
     setExtractionProgressStep('Ingesting document structure & preparing multimodal prompt...');
 
     try {
-      setExtractionProgressStep('Consulting Gemini 3.7 & Scribe Agent for causal invariants...');
+      setExtractionProgressStep('Consulting Gemini 3.5 & Scribe Agent for causal invariants...');
 
       const payload: any = {
         rawText: uploadedTextNotes.trim() || undefined,
@@ -337,7 +337,7 @@ export const ExamCalendar: React.FC<ExamCalendarProps> = ({
         }));
         setExtractedVessels(formatted);
         onAddTelemetry(
-          'Gemini 3.7 Extracted Exam Support Material',
+          'Gemini 3.5 Extracted Exam Support Material',
           `Distilled ${formatted.length} atomic concept vessels from "${uploadedFileName || modalTitle}" via Google GenAI SDK.`,
           'Ingestion Agent'
         );
@@ -725,14 +725,14 @@ export const ExamCalendar: React.FC<ExamCalendarProps> = ({
                 金継ぎ 試験日程 • FSRS Retention Countdown
               </span>
               <span className="px-2 py-0.5 rounded-md text-[10px] font-mono bg-[#152659]/10 text-[#152659] border border-[#152659]/20 font-semibold">
-                Powered by Gemini 3.7
+                Powered by Gemini 3.5
               </span>
             </div>
             <h2 className="text-2xl sm:text-3xl font-serif font-bold text-[#2B2827] tracking-tight">
               Calibrate Active Retrieval to Your Exam Milestones
             </h2>
             <p className="text-xs sm:text-sm text-[#5A5553] max-w-2xl leading-relaxed">
-              Schedule your midterms and finals. Upload course syllabi, lecture slides, or PDF notes to immediately extract atomic memory vessels via Gemini 3.7, preventing forgetting cliffs before exam day.
+              Schedule your midterms and finals. Upload course syllabi, lecture slides, or PDF notes to immediately extract atomic memory vessels via Gemini 3.5, preventing forgetting cliffs before exam day.
             </p>
           </div>
 
@@ -1674,7 +1674,7 @@ export const ExamCalendar: React.FC<ExamCalendarProps> = ({
               </div>
 
               {/* ========================================================================= */}
-              {/* SUPPORT MATERIAL INGESTION & VESSEL SYNTHESIS (GEMINI 3.7 / VERTEX AI) */}
+              {/* SUPPORT MATERIAL INGESTION & VESSEL SYNTHESIS (GEMINI 3.5 / VERTEX AI) */}
               {/* ========================================================================= */}
               <div className="p-4 rounded-2xl bg-[#FAF8F2] border border-[#DDD7C8] space-y-3.5">
                 <div className="flex items-center justify-between flex-wrap gap-2">
@@ -1877,7 +1877,7 @@ export const ExamCalendar: React.FC<ExamCalendarProps> = ({
                           onClick={() => setModalVesselSourceTab('upload')}
                           className="text-xs font-mono font-bold text-[#8F6A00] hover:underline"
                         >
-                          → Switch to "Upload Material" to extract your first vessels with Gemini 3.7
+                          → Switch to "Upload Material" to extract your first vessels with Gemini 3.5
                         </button>
                       </div>
                     ) : (

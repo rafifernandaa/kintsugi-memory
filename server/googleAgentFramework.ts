@@ -61,7 +61,7 @@ export class ScribeAgent {
   private ai: GoogleGenAI;
   private model: string;
 
-  constructor(apiKey?: string, model = "gemini-3.7-flash") {
+  constructor(apiKey?: string, model = "gemini-3.5-flash") {
     this.ai = createAgentGenAIClient(apiKey);
     this.model = model;
   }
@@ -413,7 +413,7 @@ export class SocraticInterviewerAgent {
   private ai: GoogleGenAI;
   private model: string;
 
-  constructor(apiKey?: string, model = "gemini-3.7-flash") {
+  constructor(apiKey?: string, model = "gemini-3.5-flash") {
     this.ai = createAgentGenAIClient(apiKey);
     this.model = model;
   }
@@ -493,7 +493,7 @@ export class CognitiveEvaluatorAgent {
   private ai: GoogleGenAI;
   private model: string;
 
-  constructor(apiKey?: string, model = "gemini-3.7-flash") {
+  constructor(apiKey?: string, model = "gemini-3.5-flash") {
     this.ai = createAgentGenAIClient(apiKey);
     this.model = model;
   }
@@ -608,7 +608,7 @@ export class AutonomousCliffAgent {
 
   constructor(
     apiKey?: string,
-    model = "gemini-3.7-flash",
+    model = "gemini-3.5-flash",
     projectId = process.env.GOOGLE_CLOUD_PROJECT || "kintsugi-memory-service",
     pubSubTopic = process.env.GOOGLE_CLOUD_PUBSUB_TOPIC || "projects/kintsugi-memory-service/topics/kintsugi-cliff-pings"
   ) {

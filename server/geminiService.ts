@@ -535,7 +535,7 @@ Provide:
 }
 
 /**
- * 6. Generate AI Exam Countdown & Socratic Study Blueprint with Gemini 3.7
+ * 6. Generate AI Exam Countdown & Socratic Study Blueprint with Gemini 3.5
  */
 export async function generateExamStudyPlan(options: {
   exam: any;

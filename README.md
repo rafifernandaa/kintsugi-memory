@@ -3,7 +3,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-gold.svg)](https://opensource.org/licenses/MIT)
 [![Google Cloud Run](https://img.shields.io/badge/Google%20Cloud-Run%20%7C%20Pub%2FSub%20%7C%20Vertex%20AI-4285F4?logo=googlecloud&logoColor=white)](https://cloud.google.com)
-[![Gemini Models](https://img.shields.io/badge/Powered%20By-Gemini%203.5%20%26%203.7%20Flash-8E75B2?logo=google&logoColor=white)](https://ai.google.dev)
+[![Gemini Models](https://img.shields.io/badge/Powered%20By-Gemini%203.5%20Flash-8E75B2?logo=google&logoColor=white)](https://ai.google.dev)
 [![Live Production Demo](https://img.shields.io/badge/Live%20Demo-Google%20Cloud%20Run-success?logo=googlecloud&logoColor=white)](https://kintsugi-memory-service-676289354133.us-west1.run.app/)
 
 ---
@@ -41,7 +41,7 @@ flowchart TB
     subgraph GCP["Google Cloud Platform Managed Services"]
         PubSubTopic["Cloud Pub/Sub Topic: kintsugi-cliff-pings"]
         PubSubSub["Cloud Pub/Sub Subscription: kintsugi-cliff-pings-sub"]
-        VertexAI["Google Vertex AI & Gemini 3.5 / 3.7 Flash"]
+        VertexAI["Google Vertex AI & Gemini 3.5 Flash"]
         IAM["Service Account: kintsugi-runner (Least-Privilege RBAC)"]
     end
 
@@ -222,7 +222,7 @@ kintsugi-memory/
 
 | Layer | Technologies | Role & Implementation |
 |---|---|---|
-| **AI & LLM Engines** | **Google Gemini 3.5 Flash** & **Gemini 3.7 Flash** | Multimodal audio diarization, document synthesis, counterfactual Socratic questioning, and misconception extraction. |
+| **AI & LLM Engines** | **Google Gemini 3.5 Flash** | Multimodal audio diarization, document synthesis, counterfactual Socratic questioning, and misconception extraction. |
 | **Compute & Hosting** | **Google Cloud Run** (`us-west1`) | Serverless container auto-scaling hosting Express + Vite SSR backend. |
 | **Async Messaging** | **Google Cloud Pub/Sub** | High-throughput event topic (`kintsugi-cliff-pings`) and subscriber worker for background forgetting-cliff alerts. |
 | **Model Gateway** | **Google Vertex AI** (`global`) | Enterprise Gemini model routing with token security and low-latency inference. |

@@ -35,7 +35,7 @@ steps:
       - 'managed'
       - '--allow-unauthenticated'
       - '--set-env-vars'
-      - 'GOOGLE_CLOUD_PROJECT=$PROJECT_ID,GEMINI_MODEL=gemini-3.7-flash,GOOGLE_CLOUD_REGION=us-west1'
+      - 'GOOGLE_CLOUD_PROJECT=$PROJECT_ID,GEMINI_MODEL=gemini-3.5-flash,GOOGLE_CLOUD_REGION=us-west1'
 
 images:
   - 'gcr.io/$PROJECT_ID/kintsugi-memory-agent:$BUILD_ID'

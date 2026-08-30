@@ -250,7 +250,7 @@ export const AboutTab: React.FC<AboutTabProps> = ({ onNavigateToTab }) => {
               <Mic className="w-4 h-4 text-[#2F6A38]" /> Vertex AI & Speech-to-Text
             </div>
             <p className="text-[#5A5553] leading-relaxed">
-              Dual audio pipeline using Gemini 3.5 / 3.7 multimodal audio and browser Web Speech API for live classroom and language conversation transcription.
+              Dual audio pipeline using Gemini 3.5 multimodal audio and browser Web Speech API for live classroom and language conversation transcription.
             </p>
           </div>
         </div>

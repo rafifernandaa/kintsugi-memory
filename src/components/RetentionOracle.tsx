@@ -33,7 +33,7 @@ export const RetentionOracle: React.FC<RetentionOracleProps> = ({
   );
   const [examDaysAhead, setExamDaysAhead] = useState<number>(7);
 
-  // Gemini 3.7 Cognitive Telemetry Insight State
+  // Gemini 3.5 Cognitive Telemetry Insight State
   const [insightData, setInsightData] = useState<CognitiveInsightData | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
   const [insightError, setInsightError] = useState<string | null>(null);
@@ -174,7 +174,7 @@ export const RetentionOracle: React.FC<RetentionOracleProps> = ({
         </div>
       </div>
 
-      {/* 🧠 GEMINI 3.7 COGNITIVE FORGETTING PATTERN INSIGHT */}
+      {/* 🧠 GEMINI 3.5 COGNITIVE FORGETTING PATTERN INSIGHT */}
       <div className="bg-[#FFFFFF] border border-[#DDD7C8] rounded-2xl p-6 shadow-sm space-y-5 relative overflow-hidden ring-1 ring-[#BF9A2A]/20">
         <KintsugiOverlay repairs={2} intensity="subtle" />
 
@@ -187,7 +187,7 @@ export const RetentionOracle: React.FC<RetentionOracleProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-[#BF9A2A]/15 text-[#8F6A00] border border-[#BF9A2A]/40 flex items-center gap-1 font-bold">
-                  <Sparkles className="w-3 h-3 text-[#8F6A00]" /> Gemini 3.7 Telemetry Agent
+                  <Sparkles className="w-3 h-3 text-[#8F6A00]" /> Gemini 3.5 Telemetry Agent
                 </span>
                 {insightData?.generatedAt && (
                   <span className="text-[10px] font-mono text-[#736D6B]">
@@ -219,7 +219,7 @@ export const RetentionOracle: React.FC<RetentionOracleProps> = ({
                 <Brain className="w-6 h-6 animate-bounce" />
               </div>
               <div className="text-xs font-mono text-[#5A5553]">
-                Gemini 3.7 is correlating empirical Bayesian difficulty ratings, stability days, and review histories...
+                Gemini 3.5 is correlating empirical Bayesian difficulty ratings, stability days, and review histories...
               </div>
             </div>
           ) : insightData ? (
@@ -324,7 +324,7 @@ export const RetentionOracle: React.FC<RetentionOracleProps> = ({
           ) : (
             <div className="p-4 rounded-xl bg-[#FAF8F2] border border-[#DDD7C8] text-center space-y-2">
               <p className="text-xs text-[#5A5553]">
-                Click below to generate a real-time Gemini 3.7 cognitive telemetry analysis of your forgetting curve parameters.
+                Click below to generate a real-time Gemini 3.5 cognitive telemetry analysis of your forgetting curve parameters.
               </p>
               <button
                 onClick={fetchCognitiveInsights}

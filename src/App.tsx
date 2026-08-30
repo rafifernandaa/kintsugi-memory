@@ -52,7 +52,7 @@ export default function App() {
       timestamp: new Date().toISOString(),
       agentRole: 'Bayesian FSRS Engine',
       action: 'System Bootstrapped',
-      details: 'Initialized 4-Agent pipeline with power-law decay parameterization and Gemini 3.7 server hooks.',
+      details: 'Initialized 4-Agent pipeline with power-law decay parameterization and Gemini 3.5 server hooks.',
       latencyMs: 12,
       status: 'success',
     },

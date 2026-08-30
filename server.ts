@@ -285,7 +285,7 @@ app.post("/api/generate-questions", async (req, res) => {
 });
 
 // -------------------------------------------------------------
-// 3B. EXAM STUDY PLAN COUNTDOWN GENERATOR (GEMINI 3.7)
+// 3B. EXAM STUDY PLAN COUNTDOWN GENERATOR (GEMINI 3.5)
 // -------------------------------------------------------------
 app.post("/api/generate-exam-study-plan", async (req, res) => {
   try {
@@ -312,7 +312,7 @@ app.post("/api/generate-exam-study-plan", async (req, res) => {
 });
 
 // -------------------------------------------------------------
-// 3C. JOURNAL FLASHCARDS & LINGUISTIC DISTILLER (GEMINI 3.5/3.7)
+// 3C. JOURNAL FLASHCARDS & LINGUISTIC DISTILLER (GEMINI 3.5)
 // -------------------------------------------------------------
 app.post("/api/distill-journal-flashcards", async (req, res) => {
   try {

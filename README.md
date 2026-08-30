@@ -10,15 +10,11 @@
 
 ## 🏛️ Project Overview
 
-Cognitive psychology and modern neuroscience reveal a foundational truth: **meaningful cognitive change and lifelong mastery are possible at any age** because human brains physically rewire through repeated, effortful experience—a biological principle known as **neuroplasticity**. When neurons fire together during demanding, high-friction cognitive tasks, synaptic connections undergo Long-Term Potentiation (LTP), physically reinforcing neural circuits.
+Cognitive psychology and modern neuroscience show that meaningful change is possible throughout our lives because human brains physically rewire through repeated, effortful experiences—a foundational principle known as **neuroplasticity**. In traditional spaced repetition systems, software remains completely passive: it sits silent on the user's device waiting for manual initiation while biological memory decay runs its course, frequently leading to the *illusion of competence* through passive recognition rather than genuine retrieval.
 
-Yet traditional study apps and flashcards fail this biology:
-1. **Passive Inertia**: Traditional tools sit silently on a user's device waiting for manual initiation, while biological memory traces decay down a steep power-law forgetting curve.
-2. **Illusion of Competence**: Passive recognition (flipping pre-made cards or multiple-choice guessing) does not trigger the synaptic strain needed to drive neuroplastic reorganization.
+**Kintsugi Memory** is an **autonomous, proactive collaborative partner** inspired by the Japanese art of *Kintsugi* (金継ぎ — repairing broken ceramics with precious gold lacquer). In cognitive neuroscience, when a memory trace destabilizes at the **Forgetting Cliff**, forced generative recall triggers synaptic protein synthesis and Long-Term Potentiation, catalyzing neural reconsolidation that leaves the mental model stronger and more resilient than before.
 
-**Kintsugi Memory** is an **autonomous, proactive collaborative partner** inspired by the Japanese art of *Kintsugi* (金継ぎ — repairing broken ceramics with precious gold lacquer). In neurobiology, when an unstable memory trace reaches the **Forgetting Cliff (retention < 70%)**, forced generative recall catalyzes structural synaptic reconsolidation—leaving the memory trace stronger and more resilient than the original pristine state.
-
-Deployed natively on **Google Cloud Run**, Kintsugi Memory operates an asynchronous background governor over **Google Cloud Pub/Sub**. When biological memory decay approaches the critical 70% retention boundary, the agent proactively initiates contact by dispatching counterfactual Socratic probes directly to the user's Gmail inbox and browser alerts—forcing active recall at the exact biological moment needed to drive lasting neuroplasticity.
+Deployed natively on **Google Cloud Run**, Kintsugi Memory operates an asynchronous background governor over **Google Cloud Pub/Sub**. When memory decay approaches the critical forgetting threshold, the agent proactively initiates contact by dispatching individualized Socratic challenges directly to the user's Gmail inbox and browser alerts—forcing active recall at the exact biological moment needed to drive lasting neuroplasticity.
 
 ---
 

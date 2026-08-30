@@ -155,6 +155,7 @@ kintsugi-memory/
 │   ├── .dockerignore                     # Build exclusion patterns for lean container layers
 │   ├── .env.example                      # Environment variables template (API keys, Pub/Sub, SMTP)
 │   ├── .gitignore                        # Git exclusion rules for node_modules, dist, and local caches
+│   ├── DEMO_SCRIPT.md                    # Official 4-minute demo video script, Cloud Shell commands & timestamps
 │   ├── Dockerfile                        # Multi-stage production container build (Node.js 22 LTS)
 │   ├── cloudbuild.yaml                   # Google Cloud Build automated CI/CD container build pipeline
 │   ├── deploy-cloudrun.sh                # Automated Linux/macOS deployment script for Google Cloud Run

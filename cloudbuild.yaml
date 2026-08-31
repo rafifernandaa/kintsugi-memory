@@ -35,7 +35,7 @@ steps:
       - 'managed'
       - '--allow-unauthenticated'
       - '--set-env-vars'
-      - 'GOOGLE_CLOUD_PROJECT=$PROJECT_ID,GEMINI_MODEL=gemini-3.5-flash,GOOGLE_CLOUD_REGION=us-west1'
+      - 'GOOGLE_CLOUD_PROJECT=$PROJECT_ID,GEMINI_MODEL=gemini-3.5-flash,GOOGLE_CLOUD_REGION=us-west1,GOOGLE_CLOUD_PUBSUB_TOPIC=projects/$PROJECT_ID/topics/kintsugi-cliff-pings,GOOGLE_CLOUD_PUBSUB_SUBSCRIPTION=kintsugi-cliff-pings-sub'
 
 images:
   - 'gcr.io/$PROJECT_ID/kintsugi-memory-agent:$BUILD_ID'

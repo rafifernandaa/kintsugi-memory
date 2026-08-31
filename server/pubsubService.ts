@@ -34,11 +34,11 @@ export const inMemoryPubSubAuditLogs: PubSubNotificationLog[] = [];
 let pubsubClient: PubSub | null = null;
 const projectId = process.env.GOOGLE_CLOUD_PROJECT || "kintsugi-memory-service";
 const topicName = process.env.GOOGLE_CLOUD_PUBSUB_TOPIC?.split("/topics/")[1] || "kintsugi-cliff-pings";
-const subscriptionName = process.env.GOOGLE_CLOUD_PUBSUB_SUBSCRIPTION || "kintsugi-cliff-pings-server-sub";
+const subscriptionName = process.env.GOOGLE_CLOUD_PUBSUB_SUBSCRIPTION || "kintsugi-cliff-pings-sub";
 
 try {
   pubsubClient = new PubSub({ projectId });
-  console.log(`[PubSub] Initialized Google Cloud PubSub client for project "${projectId}"`);
+  console.log(`[PubSub] Initialized Google Cloud PubSub client for project "${projectId}" (Topic: "${topicName}", Subscription: "${subscriptionName}")`);
 } catch (err: any) {
   console.warn("[PubSub] PubSub client initialization notice:", err?.message || err);
 }
@@ -343,14 +343,27 @@ export async function publishCliffEvent(payload: CliffPingPayload): Promise<{
 /**
  * Starts background subscriber listener with explicit message ack()/nack()
  */
-export function startPubSubSubscriber(): void {
+export async function startPubSubSubscriber(): Promise<void> {
   if (!pubsubClient) {
     console.log("[PubSub Subscriber] Google Cloud PubSub client not initialized; listener deferred.");
     return;
   }
 
   try {
+    const topic = pubsubClient.topic(topicName);
+    const [topicExists] = await topic.exists().catch(() => [false]);
+    if (!topicExists) {
+      await topic.create().catch(() => {});
+    }
+
     const subscription = pubsubClient.subscription(subscriptionName);
+    const [subExists] = await subscription.exists().catch(() => [false]);
+    if (!subExists) {
+      console.log(`[PubSub Subscriber] Subscription "${subscriptionName}" not found on GCP, attempting creation under topic "${topicName}"...`);
+      await topic.createSubscription(subscriptionName, { ackDeadlineSeconds: 60 }).catch((err) => {
+        console.warn(`[PubSub Subscriber] Auto-create notice for subscription "${subscriptionName}":`, err?.message || err);
+      });
+    }
 
     subscription.on("message", (message: Message) => {
       try {
@@ -367,10 +380,10 @@ export function startPubSubSubscriber(): void {
     });
 
     subscription.on("error", (error: any) => {
-      console.warn("[PubSub Subscriber] Subscription error (topic or subscription may need creation in GCP):", error?.message || error);
+      console.warn(`[PubSub Subscriber] Subscription notice for "${subscriptionName}":`, error?.message || error);
     });
 
-    console.log(`[PubSub Subscriber] Listening for forgetting-cliff events on subscription "${subscriptionName}"...`);
+    console.log(`[PubSub Subscriber] Listening for forgetting-cliff events on subscription "${subscriptionName}" (Topic: "${topicName}")...`);
   } catch (err: any) {
     console.warn("[PubSub Subscriber] Failed to attach subscriber listener:", err?.message || err);
   }

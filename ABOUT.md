@@ -108,8 +108,8 @@ Kintsugi Memory is built as a cloud-native reactive system on Google Cloud Platf
 
 ## What's Next for Kintsugi Memory
 
-- **Dynamic Novelty & Multi-Perspective Synthesis**: Continuously rotating question angles (analogies, debugger scenarios, counterfactuals) to prevent cognitive habituation across languages and STEM subjects.
-- **Anti-Interference Neural Scheduling**: Graph-based semantic distance algorithms that decouple competing or phonetically confusable concepts across review sessions to protect nascent synaptic pathways.
-- **Cross-Domain Synaptic Transference Bridges**: Discovering structural invariants and analogical links across disparate fields (e.g., biological homeostasis and feedback control loops) to foster deep conceptual transfer.
-- **Age-Adaptive Cognitive Load Regulation**: Real-time response and hesitation calibration that adjusts Socratic temperature and scaffolding, keeping school students, university candidates, and lifelong adult learners in their optimal neuroplastic growth zone.
-- **Mobile Auditory Companion**: Hands-free background voice dialogue on native mobile devices for low-friction daily retrieval during commutes.
+- **Dynamic Novelty Injection**: Rotates question framing (analogies, counterfactuals, scenario debugging) on every review to break routine and prevent mental autopilot.
+- **Anti-Interference Scheduling**: Decouples semantically and phonetically confusable concepts across distinct days using graph distance metrics to prevent neural cross-talk.
+- **Cross-Domain Synaptic Transference**: Identifies structural analogies across disparate subjects (e.g. closed-loop control and biological homeostasis) to foster high-order conceptual transfer.
+- **Age-Adaptive Cognitive Regulation**: Gauges hesitation and cognitive strain to dynamically adjust Socratic scaffolding, keeping school students, university candidates, and lifelong learners in their optimal growth zone.
+- **Ambient Mobile Voice Companion**: Hands-free background voice dialogue for low-friction daily retrieval during commutes.

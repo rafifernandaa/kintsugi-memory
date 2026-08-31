@@ -181,7 +181,6 @@ kintsugi-memory/
 │   ├── types.ts                          # TypeScript domain models, interfaces, and Bayesian FSRS schemas
 │   │
 │   ├── components/                       # User Interface Viewports & Interactive Modules
-│   │   ├── AboutTab.tsx                  # Architecture documentation, GCP infrastructure status, and tech stack
 │   │   ├── ActiveRetrievalRoom.tsx       # Socratic dialogue arena, probe evaluation, and Golden Seam renderer
 │   │   ├── AppSettingsModal.tsx          # Runtime API key switcher, dark/light focus theme, and audio toggles
 │   │   ├── AutonomousDispatcher.tsx      # Pub/Sub decay testing console, 30-day fast-forward, and audit log

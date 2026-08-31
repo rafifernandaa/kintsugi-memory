@@ -108,7 +108,8 @@ Kintsugi Memory is built as a cloud-native reactive system on Google Cloud Platf
 
 ## What's Next for Kintsugi Memory
 
-- **Mobile Voice Companion**: Native iOS/Android app for hands-free audio retrieval during daily commutes.
-- **Cross-Domain Synaptic Discovery**: Graph algorithms that detect analogies across disparate knowledge domains.
-- **Collaborative Study Guilds**: Shared knowledge graphs where one member's repaired misconception reinforces the group's collective map.
-- **Circadian-Aware Scheduling**: Aligning retrieval intervals with individual cognitive and sleep consolidation cycles.
+- **Dynamic Novelty & Multi-Perspective Synthesis**: Continuously rotating question angles (analogies, debugger scenarios, counterfactuals) to prevent cognitive habituation across languages and STEM subjects.
+- **Anti-Interference Neural Scheduling**: Graph-based semantic distance algorithms that decouple competing or phonetically confusable concepts across review sessions to protect nascent synaptic pathways.
+- **Cross-Domain Synaptic Transference Bridges**: Discovering structural invariants and analogical links across disparate fields (e.g., biological homeostasis and feedback control loops) to foster deep conceptual transfer.
+- **Age-Adaptive Cognitive Load Regulation**: Real-time response and hesitation calibration that adjusts Socratic temperature and scaffolding, keeping school students, university candidates, and lifelong adult learners in their optimal neuroplastic growth zone.
+- **Mobile Auditory Companion**: Hands-free background voice dialogue on native mobile devices for low-friction daily retrieval during commutes.
